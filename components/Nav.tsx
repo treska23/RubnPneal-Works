@@ -21,8 +21,8 @@ export default function Nav() {
   ];
 
   return (
-    <header className="sticky inset-x-0 top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
-      <nav className="fixed inset-x-0 top-0 z-50 bg-white/75 backdrop-blur-md shadow-sm">
+    <header className="sticky top-0 inset-x-0 z-50 bg-white/80 backdrop-blur-md shadow-sm">
+      <nav className="relative inset-x-0 top-0 bg-white/75 backdrop-blur-md shadow-sm">
         {/* --- Logo --- */}
         <div className="flex items-center space-x-2 flex-shrink-0">
           <Image src="/logo.svg" alt="Logo" width={40} height={40} priority />

@@ -13,7 +13,7 @@ export default function SectionLayout({
   title,
   children,
   className = "",
-  ...rest // aquí entrarán id, style, data-*, aria-*, etc.
+  ...rest
 }: SectionLayoutProps) {
   return (
     <section className={`relative z-10 py-16 px-4 ${className}`} {...rest}>
