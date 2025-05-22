@@ -67,6 +67,12 @@ export async function getStaticProps() {
   const chJson = (await chRes.json()) as {
     items: { contentDetails: { relatedPlaylists: { uploads: string } } }[];
   };
+
+  if (!Array.isArray(chJson.items) || chJson.items.length === 0) {
+    console.warn('YouTube API fallo o canal vacío:', chJson);
+    return { props: { videos: [] }, revalidate: 3600 };
+  }
+
   const uploadsId = chJson.items[0].contentDetails.relatedPlaylists.uploads;
 
   // 2) Paginamos todas las llamadas para traer TODOS los vídeos
