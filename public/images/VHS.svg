@@ -1,0 +1,15 @@
+<svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cinta VHS">
+  <!-- Cuerpo -->
+  <rect x="2" y="12" width="116" height="56" rx="4" ry="4" fill="#222" stroke="#111" stroke-width="2"></rect>
+  <!-- Ventana de visión -->
+  <rect x="12" y="20" width="96" height="24" fill="#444"></rect>
+  <!-- Bobinas -->
+  <circle cx="36" cy="52" r="10" fill="#111" stroke="#333" stroke-width="2"></circle>
+  <circle cx="84" cy="52" r="10" fill="#111" stroke="#333" stroke-width="2"></circle>
+  <!-- Eje interior -->
+  <circle cx="36" cy="52" r="4" fill="#777"></circle>
+  <circle cx="84" cy="52" r="4" fill="#777"></circle>
+  <!-- Etiqueta -->
+  <rect x="12" y="48" width="96" height="12" fill="#990000"></rect>
+  <text x="60" y="58" font-family="monospace" font-size="8" fill="#fff" text-anchor="middle">VHS</text>
+</svg>
