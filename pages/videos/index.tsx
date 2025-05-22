@@ -1,8 +1,8 @@
 ﻿// pages/videos/index.tsx
-import React from "react";
-import Image from "next/image";
-import SectionLayout from "@/components/SectionLayout";
-import VideoFrame from "@/components/VideoFrame";
+import React from 'react';
+import Image from 'next/image';
+import SectionLayout from '@/components/SectionLayout';
+import VideoFrame from '@/components/ui/VideoFrame';
 
 interface PlaylistItemsApiResponse {
   items: {
@@ -39,12 +39,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
         <div className="flex items-center justify-center space-x-6 mb-8">
           <Image src="/images/vhs.svg" alt="Cinta VHS" width={64} height={64} />
           <h1 className="text-5xl font-bold">Vídeos</h1>
-          <Image
-            src="/images/beta.svg"
-            alt="Cinta Betamax"
-            width={64}
-            height={64}
-          />
+          <Image src="/images/beta.svg" alt="Cinta Betamax" width={64} height={64} />
         </div>
 
         {/* Grid de vídeos */}
@@ -67,7 +62,7 @@ export async function getStaticProps() {
 
   // 1) Sacamos el playlist de “uploads”
   const chRes = await fetch(
-    `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${apiKey}`
+    `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${apiKey}`,
   );
   const chJson = (await chRes.json()) as {
     items: { contentDetails: { relatedPlaylists: { uploads: string } } }[];
@@ -80,12 +75,12 @@ export async function getStaticProps() {
 
   do {
     const params = new URLSearchParams({
-      part: "snippet",
+      part: 'snippet',
       playlistId: uploadsId,
-      maxResults: "50", // el máximo permitido
+      maxResults: '50', // el máximo permitido
       key: apiKey,
     });
-    if (nextPageToken) params.set("pageToken", nextPageToken);
+    if (nextPageToken) params.set('pageToken', nextPageToken);
 
     const url = `https://www.googleapis.com/youtube/v3/playlistItems?${params}`;
     const res = await fetch(url);
