@@ -12,6 +12,15 @@ module.exports = {
         notable: ["Notable", "cursive"],
         sans: ["Inter", "sans-serif"],
       },
+      keyframes: {
+        "ghost-move": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100vw)" },
+        },
+      },
+      animation: {
+        ghost: "ghost-move 8s linear infinite",
+      },
     },
   },
   plugins: [],
