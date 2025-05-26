@@ -196,3 +196,28 @@
     background-size: 100% 4px;
   }
 }
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+  5% {
+    opacity: 0.85;
+  }
+  10% {
+    opacity: 0.9;
+  }
+}
+
+.crt-effect {
+  @apply border-4 border-red-700/50;
+  animation: flicker 0.15s infinite;
+}
+
+.scanlines {
+  background-image: linear-gradient(
+    rgba(255, 255, 255, 0.02) 1px,
+    transparent 1px
+  );
+  background-size: 100% 4px;
+}
