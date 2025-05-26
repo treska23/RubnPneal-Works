@@ -2,7 +2,7 @@
 import React from "react";
 import Image from "next/image";
 import SectionLayout from "@/components/SectionLayout";
-import VideoFrame from "@/components/VideoFrame";
+import VideoFrame from "@/components/ui/VideoFrame";
 
 interface PlaylistItemsApiResponse {
   items: {
@@ -35,18 +35,6 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
 
       {/* — CONTENIDO EN PRIMER PLANO — */}
       <div className="relative z-10">
-        {/* Cabecera con iconos y título */}
-        <div className="flex items-center justify-center space-x-6 mb-8">
-          <Image src="/images/vhs.svg" alt="Cinta VHS" width={64} height={64} />
-          <h1 className="text-5xl font-bold">Vídeos</h1>
-          <Image
-            src="/images/beta.svg"
-            alt="Cinta Betamax"
-            width={64}
-            height={64}
-          />
-        </div>
-
         {/* Grid de vídeos */}
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 px-4">
           {videos.map((id) => (
