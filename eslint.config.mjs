@@ -1,16 +1,18 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-];
-
-export default eslintConfig;
+module.exports = {
+  root: true,
+  parser: "@typescript-eslint/parser",
+  parserOptions: { ecmaVersion: 2020, sourceType: "module" },
+  plugins: ["@typescript-eslint", "prettier"],
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "next/core-web-vitals",
+    "plugin:prettier/recommended", // activa eslint-plugin-prettier y eslint-config-prettier
+  ],
+  rules: {
+    // aquí tus overrides
+    "prettier/prettier": "error",
+    // p.ej. deshabilita reglas que te molesten:
+    // '@typescript-eslint/no-explicit-any': 'off',
+  },
+};

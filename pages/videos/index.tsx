@@ -1,8 +1,8 @@
-﻿// pages/videos/index.tsx
-import React from "react";
-import Image from "next/image";
-import SectionLayout from "@/components/SectionLayout";
-import VideoFrame from "@/components/ui/VideoFrame";
+// pages/videos/index.tsx
+import React from 'react';
+import Image from 'next/image';
+import SectionLayout from '@/components/SectionLayout';
+import VideoFrame from '../../components/ui/VideoFrame';
 
 interface PlaylistItemsApiResponse {
   items: {
@@ -55,11 +55,17 @@ export async function getStaticProps() {
 
   // 1) Sacamos el playlist de “uploads”
   const chRes = await fetch(
-    `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${apiKey}`
+    `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${apiKey}`,
   );
   const chJson = (await chRes.json()) as {
     items: { contentDetails: { relatedPlaylists: { uploads: string } } }[];
   };
+
+  if (!Array.isArray(chJson.items) || chJson.items.length === 0) {
+    console.warn('YouTube API fallo o canal vacío:', chJson);
+    return { props: { videos: [] }, revalidate: 3600 };
+  }
+
   const uploadsId = chJson.items[0].contentDetails.relatedPlaylists.uploads;
 
   // 2) Paginamos todas las llamadas para traer TODOS los vídeos
@@ -68,12 +74,12 @@ export async function getStaticProps() {
 
   do {
     const params = new URLSearchParams({
-      part: "snippet",
+      part: 'snippet',
       playlistId: uploadsId,
-      maxResults: "50", // el máximo permitido
+      maxResults: '50', // el máximo permitido
       key: apiKey,
     });
-    if (nextPageToken) params.set("pageToken", nextPageToken);
+    if (nextPageToken) params.set('pageToken', nextPageToken);
 
     const url = `https://www.googleapis.com/youtube/v3/playlistItems?${params}`;
     const res = await fetch(url);

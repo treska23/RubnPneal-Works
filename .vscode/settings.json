@@ -1,44 +1,21 @@
 {
-  // Formateo al guardar
-  "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-
-  // ESLint: valida JS, TS, React
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ],
-
-  // Tailwind CSS IntelliSense
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always"
+  },
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
   "tailwindCSS.includeLanguages": {
     "javascript": "javascript",
     "typescript": "typescript",
     "typescriptreact": "html"
   },
   "tailwindCSS.emmetCompletions": true,
-
-  // Ocultar carpetas generadas
   "files.exclude": {
     "**/.git": true,
     "**/node_modules": true,
     "**/.next": true
   },
-
-  "git.path": "C:\\Program Files\\Git\\cmd\\git.exe",
-
-  // Autocompletado de rutas y alias
   "path-intellisense.extensionOnImport": true,
-  "typescript.preferences.importModuleSpecifier": "non-relative",
-
-  // Import Cost (opcional)
-  "importCost.showNotifications": false,
-
-  // Better Comments (opcional)
-  "better-comments.tags": [
-    { "tag": "!", "color": "red", "strikethrough": false, "underline": false },
-    { "tag": "?", "color": "blue", "strikethrough": false, "underline": false },
-    { "tag": "//", "color": "grey", "strikethrough": false, "underline": false }
-  ]
+  "typescript.preferences.importModuleSpecifier": "non-relative"
 }

@@ -1,0 +1,15 @@
+<svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cinta Betamax">
+  <!-- Cuerpo ligeramente más estrecho -->
+  <rect x="2" y="14" width="116" height="52" rx="4" ry="4" fill="#333" stroke="#111" stroke-width="2"></rect>
+  <!-- Ventana de visión -->
+  <rect x="14" y="22" width="92" height="20" fill="#555"></rect>
+  <!-- Bobinas -->
+  <circle cx="36" cy="50" r="8" fill="#111" stroke="#333" stroke-width="2"></circle>
+  <circle cx="84" cy="50" r="8" fill="#111" stroke="#333" stroke-width="2"></circle>
+  <!-- Eje interior -->
+  <circle cx="36" cy="50" r="3" fill="#999"></circle>
+  <circle cx="84" cy="50" r="3" fill="#999"></circle>
+  <!-- Etiqueta Betamax -->
+  <rect x="14" y="44" width="92" height="10" fill="#006699"></rect>
+  <text x="60" y="53" font-family="monospace" font-size="7" fill="#fff" text-anchor="middle">Betamax</text>
+</svg>
