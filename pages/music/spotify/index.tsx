@@ -16,7 +16,7 @@ const trackIds = [
 export default function SpotifyPage() {
   return (
     <>
-      {/* Declaramos la keyframes dentro de un style jsx global */}+{" "}
+      {/* Declaramos la keyframes dentro de un style jsx global */}
       <style jsx global>{`
         @keyframes pixel-pulse {
           0%,
@@ -117,8 +117,8 @@ export default function SpotifyPage() {
               frameBorder="0"
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
               loading="lazy"
-            ></iframe>{" "}
-          </div>{" "}
+            ></iframe>
+          </div>
         </div>
       </SectionLayout>
     </>
