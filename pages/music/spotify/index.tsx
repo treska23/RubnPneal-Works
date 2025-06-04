@@ -17,6 +17,7 @@ export default function SpotifyPage() {
   return (
     <>
       {/* Declaramos la keyframes dentro de un style jsx global */}+{' '}
+
       <style jsx global>{`
         @keyframes pixel-pulse {
           0%,
@@ -119,6 +120,7 @@ export default function SpotifyPage() {
               loading="lazy"
             ></iframe>{' '}
           </div>{' '}
+
         </div>
       </SectionLayout>
     </>

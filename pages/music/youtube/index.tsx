@@ -3,20 +3,6 @@ import SectionLayout from '@/components/SectionLayout';
 import Parser from 'rss-parser';
 
 const CHANNEL_ID = 'UCAyA9gTo-GPaKNnlulvS8iw';
-const youtubeEmbeds = [
-  'https://www.youtube.com/embed/RXNj-MnTLFA',
-  'https://www.youtube.com/embed/T_3qrzcDkAU',
-  'https://www.youtube.com/embed/0n72YppaTg8',
-  'https://www.youtube.com/embed/HeMutzB-rYc',
-  'https://www.youtube.com/embed/uAv_fvXs_DE',
-  'https://www.youtube.com/embed/22dx8LN8o1A',
-  'https://www.youtube.com/embed/SxD3kFOdK8Y',
-  'https://www.youtube.com/embed/tuNVwzS4KY4',
-  'https://www.youtube.com/embed/fNk6zBTDZvU',
-  'https://www.youtube.com/embed/W9Xj8VWbZSc',
-  'https://www.youtube.com/embed/8IP4PmwJOYg',
-  'https://www.youtube.com/embed/p9deLBAxpt8',
-];
 
 type YouTubeVideo = { id: string; title: string; thumbnail: string };
 
@@ -32,7 +18,7 @@ export async function getStaticProps() {
   return { props: { videos } };
 }
 
-export default function YouTubePage() {
+export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
   return (
     <>
       <style jsx global>{`
@@ -75,14 +61,14 @@ export default function YouTubePage() {
 
         {/* ─── Grid de vídeos ─── */}
         <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
-          {youtubeEmbeds.map((src, i) => (
+          {videos.map((video, i) => (
             <div
               key={i}
               className="group relative overflow-hidden rounded-lg border-2 border-black transform transition-all duration-300 hover:-rotate-1 hover:scale-105"
             >
               <iframe
                 style={{ borderRadius: '12px' }}
-                src={src}
+                src={`https://www.youtube.com/embed/${video.id}`}
                 width="100%"
                 height="240"
                 frameBorder="0"
