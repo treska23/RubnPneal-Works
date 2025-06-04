@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper/modules';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import 'swiper/css';
+import 'swiper/css/navigation';
 
 interface ComicPage {
   image: string;
@@ -41,10 +44,21 @@ export default function ComicReader() {
 
   const Panel = ({ page, index }: { page: ComicPage; index: number }) => (
     <div
-      className="relative cursor-pointer"
+      className="relative cursor-pointer overflow-hidden"
       onClick={() => setActive(active === index ? null : index)}
     >
-      <Image src={page.image} alt="Comic" width={800} height={1200} className="w-full h-auto" />
+      <TransformWrapper wheel={{ step: 0.2 }} doubleClick={{ disabled: true }}>
+        <TransformComponent wrapperClass="w-full h-auto">
+          <Image
+            src={page.image}
+            alt="Comic"
+            width={800}
+            height={1200}
+            className="w-full h-auto select-none"
+            draggable={false}
+          />
+        </TransformComponent>
+      </TransformWrapper>
       {active === index && (
         <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white p-4 space-y-4">
           <p className="text-center">{page.caption}</p>
@@ -86,7 +100,13 @@ export default function ComicReader() {
           ))}
         </div>
       ) : (
-        <Swiper spaceBetween={24} className="w-full" slidesPerView={1}>
+        <Swiper
+          spaceBetween={24}
+          className="w-full"
+          slidesPerView={1}
+          navigation
+          modules={[Navigation]}
+        >
           {pages.map((p, i) => (
             <SwiperSlide key={i}>
               <Panel page={p} index={i} />
