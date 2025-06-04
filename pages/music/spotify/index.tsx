@@ -1,22 +1,23 @@
 // pages/music/spotify/index.tsx
-import SectionLayout from "@/components/SectionLayout";
+import SectionLayout from '@/components/SectionLayout';
 
 const trackIds = [
-  "5Q3jx7MeOdXMORcYRVrZCr",
-  "2ZR3fNmXvvCEM7c1NBQc8I",
-  "29SF1Np1YcHL2do0yn2WP9",
-  "6aeQRm0Hmimiq8H2eX57PN",
-  "0ilhM3zao9dvKNKxcvoAD9",
-  "39M28XOz5rULAbErpccwZk",
-  "2Xypqm0teQLY1ECaS2UWIL",
-  "62FmlTMhpE1G1fGcDMAdOf",
-  "4GIkmAY5pQrEGavCtxe5e3",
+  '5Q3jx7MeOdXMORcYRVrZCr',
+  '2ZR3fNmXvvCEM7c1NBQc8I',
+  '29SF1Np1YcHL2do0yn2WP9',
+  '6aeQRm0Hmimiq8H2eX57PN',
+  '0ilhM3zao9dvKNKxcvoAD9',
+  '39M28XOz5rULAbErpccwZk',
+  '2Xypqm0teQLY1ECaS2UWIL',
+  '62FmlTMhpE1G1fGcDMAdOf',
+  '4GIkmAY5pQrEGavCtxe5e3',
 ];
 
 export default function SpotifyPage() {
   return (
     <>
-      {/* Declaramos la keyframes dentro de un style jsx global */}
+      {/* Declaramos la keyframes dentro de un style jsx global */}+{' '}
+
       <style jsx global>{`
         @keyframes pixel-pulse {
           0%,
@@ -38,11 +39,11 @@ export default function SpotifyPage() {
           <div
             className="absolute top-1/2 left-1/2 pointer-events-none"
             style={{
-              width: "6rem", // 6 columnas × 1 rem
-              height: "5rem", // 5 filas × 1 rem
-              transform: "translate(-50%,-50%)",
-              animation: "pixel-pulse 4s ease-in-out infinite",
-              transformOrigin: "center center",
+              width: '6rem', // 6 columnas × 1 rem
+              height: '5rem', // 5 filas × 1 rem
+              transform: 'translate(-50%,-50%)',
+              animation: 'pixel-pulse 4s ease-in-out infinite',
+              transformOrigin: 'center center',
             }}
           >
             {[
@@ -79,11 +80,11 @@ export default function SpotifyPage() {
                 key={i}
                 className="bg-white"
                 style={{
-                  position: "absolute",
+                  position: 'absolute',
                   top: `${row}rem`,
                   left: `${col}rem`,
-                  width: "1rem",
-                  height: "1rem",
+                  width: '1rem',
+                  height: '1rem',
                 }}
               />
             ))}
@@ -96,7 +97,7 @@ export default function SpotifyPage() {
                 className="relative overflow-hidden rounded-lg border-2 border-green-400 transform transition-all duration-300 hover:-rotate-1 hover:scale-105"
               >
                 <iframe
-                  style={{ borderRadius: "12px" }}
+                  style={{ borderRadius: '12px' }}
                   src={`https://open.spotify.com/embed/track/${id}?utm_source=generator`}
                   width="100%"
                   height="352"
@@ -110,15 +111,16 @@ export default function SpotifyPage() {
           {/* Embed del reproductor de artista */}
           <div className="mt-12 px-4">
             <iframe
-              style={{ borderRadius: "12px" }}
+              style={{ borderRadius: '12px' }}
               src="https://open.spotify.com/embed/artist/24cB9jl7geMfGyDiW29KlY?utm_source=generator"
               width="100%"
               height="352"
               frameBorder="0"
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
               loading="lazy"
-            ></iframe>
-          </div>
+            ></iframe>{' '}
+          </div>{' '}
+
         </div>
       </SectionLayout>
     </>

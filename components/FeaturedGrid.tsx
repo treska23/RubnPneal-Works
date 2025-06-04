@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from 'next/image';
 import {
   Card,
   CardHeader,
@@ -7,8 +7,8 @@ import {
   CardTitle,
   CardDescription,
   CardAction,
-} from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+} from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 
 export interface FeaturedItem {
   id: string | number;
@@ -33,27 +33,20 @@ interface FeaturedGridProps {
  */
 export default function FeaturedGrid({ items = [] }: FeaturedGridProps) {
   if (items.length === 0) {
-    return (
-      <p className="p-4 text-center text-muted-foreground">
-        No hay elementos destacados.
-      </p>
-    );
+    return <p className="p-4 text-center text-muted-foreground">No hay elementos destacados.</p>;
   }
 
   return (
     <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
       {items.map((item) => (
-        <Card
-          key={item.id}
-          className="shadow-lg hover:shadow-xl transition-shadow"
-        >
+        <Card key={item.id} className="shadow-lg hover:shadow-xl transition-shadow">
           <CardHeader className="p-0">
             <div className="relative h-48 w-full">
               <Image
                 src={item.imageSrc}
                 alt={item.title}
                 fill
-                style={{ objectFit: "cover" }}
+                style={{ objectFit: 'cover' }}
                 className="rounded-t-xl"
                 unoptimized
               />
@@ -62,9 +55,7 @@ export default function FeaturedGrid({ items = [] }: FeaturedGridProps) {
 
           <CardContent>
             <CardTitle>{item.title}</CardTitle>
-            <CardDescription className="line-clamp-3 mt-1">
-              {item.description}
-            </CardDescription>
+            <CardDescription className="line-clamp-3 mt-1">{item.description}</CardDescription>
           </CardContent>
 
           {item.link && (

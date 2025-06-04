@@ -5,8 +5,8 @@ export interface BigTitleProps {
 }
 
 export default function BigTitle({
-  titleSize = "calc(clamp(3rem,12vw,8rem) + 150px)",
-  paragraphSize = "clamp(1rem,4vw,2rem)",
+  titleSize = 'calc(clamp(3rem,12vw,8rem) + 150px)',
+  paragraphSize = 'clamp(1rem,4vw,2rem)',
 }: BigTitleProps) {
   return (
     <section className="py-24 bg-white text-black">
@@ -14,8 +14,8 @@ export default function BigTitle({
         <h1
           style={{
             fontSize: titleSize,
-            textAlign: "justify",
-            textAlignLast: "justify",
+            textAlign: 'justify',
+            textAlignLast: 'justify',
           }}
           className="font-notable uppercase tracking-widest leading-none"
         >
@@ -24,14 +24,13 @@ export default function BigTitle({
         <p
           style={{
             fontSize: paragraphSize,
-            marginTop: "25px",
-            textAlign: "justify", // justifica cada línea
-            textAlignLast: "justify", // también justifica la última línea
+            marginTop: '25px',
+            textAlign: 'justify', // justifica cada línea
+            textAlignLast: 'justify', // también justifica la última línea
           }}
           className="w-full leading-snug text-justify"
         >
-          Un cuento gráfico sobre la relación entre humanos y el silencio de
-          los&nbsp;árboles.
+          Un cuento gráfico sobre la relación entre humanos y el silencio de los&nbsp;árboles.
         </p>
       </div>
     </section>
