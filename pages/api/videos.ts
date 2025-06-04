@@ -1,5 +1,5 @@
 // pages/api/videos.ts
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Video = {
   videoId: string;
@@ -7,10 +7,7 @@ type Video = {
   thumbnail: string;
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Video[]>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<Video[]>) {
   const key = process.env.YOUTUBE_API_KEY;
   const channelId = process.env.YOUTUBE_CHANNEL_ID;
   const max = 12; // cuantos vídeos sacar

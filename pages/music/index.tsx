@@ -1,5 +1,5 @@
 ﻿// pages/music/index.tsx
-import Link from "next/link";
+import Link from 'next/link';
 
 export default function MusicIndex() {
   return (
@@ -14,9 +14,7 @@ export default function MusicIndex() {
           cursor-pointer
         "
       >
-        <h1 className="text-5xl font-bold uppercase text-white tracking-wider">
-          Spotify
-        </h1>
+        <h1 className="text-5xl font-bold uppercase text-white tracking-wider">Spotify</h1>
       </Link>
 
       {/* Mitad YouTube */}
@@ -29,9 +27,7 @@ export default function MusicIndex() {
           cursor-pointer
         "
       >
-        <h1 className="text-5xl font-bold uppercase text-white tracking-wider">
-          YouTube
-        </h1>
+        <h1 className="text-5xl font-bold uppercase text-white tracking-wider">YouTube</h1>
       </Link>
     </div>
   );
