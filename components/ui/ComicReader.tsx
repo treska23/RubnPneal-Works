@@ -22,6 +22,7 @@ export default function ComicReader() {
     return plugin;
   }, []);
 
+
   return (
     <div className="flex justify-center">
       <div className="w-[150%] h-screen">
@@ -33,6 +34,7 @@ export default function ComicReader() {
           />
         </Worker>
       </div>
+
     </div>
   );
 }
