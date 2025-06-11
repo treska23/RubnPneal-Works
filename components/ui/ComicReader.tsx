@@ -13,8 +13,8 @@ export default function ComicReader() {
       <Toolbar>
         {plugin.toolbarPluginInstance.renderDefaultToolbar((slots: ToolbarSlot) => ({
           ...slots,
-          Download: () => null,
-          DownloadMenuItem: () => null,
+          Download: () => <></>,
+          DownloadMenuItem: () => <></>,
         }))}
       </Toolbar>
     );
