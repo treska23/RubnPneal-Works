@@ -1,113 +1,37 @@
-import { useState } from 'react';
-import Image from 'next/image';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Keyboard } from 'swiper/modules';
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import 'swiper/css';
-import 'swiper/css/navigation';
-
-interface ComicPage {
-  image: string;
-  caption: string;
-}
-
-const pages: ComicPage[] = [
-  {
-    image: '/hero/slide1.jpg',
-    caption: 'Primer panel del cuento',
-  },
-  {
-    image: '/hero/slide2.jpg',
-    caption: 'Segundo panel del cuento',
-  },
-  {
-    image: '/hero/slide3.jpg',
-    caption: 'Tercer panel del cuento',
-  },
-  {
-    image: '/hero/slide4.jpg',
-    caption: 'Cuarto panel del cuento',
-  },
-];
+import { Worker, Viewer } from '@react-pdf-viewer/core';
+import { defaultLayoutPlugin, DefaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import type { ToolbarProps, ToolbarSlot } from '@react-pdf-viewer/toolbar';
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import { useMemo } from 'react';
 
 export default function ComicReader() {
-  const [mode, setMode] = useState<'vertical' | 'panel'>('vertical');
-  const [active, setActive] = useState<number | null>(null);
-
-  const speak = (text: string) => {
-    if (typeof window !== 'undefined') {
-      const utterance = new SpeechSynthesisUtterance(text);
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
-  const Panel = ({ page, index }: { page: ComicPage; index: number }) => (
-    <div
-      className="relative cursor-pointer"
-      onClick={() => setActive(active === index ? null : index)}
-    >
-      <TransformWrapper>
-        <TransformComponent>
-          <Image src={page.image} alt="Comic" width={800} height={1200} className="w-full h-auto" />
-        </TransformComponent>
-      </TransformWrapper>
-      {active === index && (
-        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white p-4 space-y-4">
-          <p className="text-center">{page.caption}</p>
-          <button
-            className="px-4 py-2 bg-white text-black rounded"
-            onClick={(e) => {
-              e.stopPropagation();
-              speak(page.caption);
-            }}
-          >
-            Escuchar
-          </button>
-        </div>
-      )}
-    </div>
-  );
+  const layoutPlugin = useMemo(() => {
+    // eslint-disable-next-line prefer-const
+    let plugin: DefaultLayoutPlugin;
+    const renderToolbar = (Toolbar: (props: ToolbarProps) => React.ReactElement) => (
+      <Toolbar>
+        {plugin.toolbarPluginInstance.renderDefaultToolbar((slots: ToolbarSlot) => ({
+          ...slots,
+          Download: () => null,
+          DownloadMenuItem: () => null,
+        }))}
+      </Toolbar>
+    );
+    plugin = defaultLayoutPlugin({ renderToolbar });
+    return plugin;
+  }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="flex gap-2 justify-center">
-        <button
-          className={`px-4 py-2 rounded ${mode === 'vertical' ? 'bg-black text-white' : 'bg-gray-200'}`}
-          onClick={() => setMode('vertical')}
-        >
-          Vertical
-        </button>
-        <button
-          className={`px-4 py-2 rounded ${mode === 'panel' ? 'bg-black text-white' : 'bg-gray-200'}`}
-          onClick={() => setMode('panel')}
-        >
-          Viñeta por viñeta
-        </button>
+    <div className="flex justify-center">
+      <div className="w-[150%] ml-[-25%] h-screen">
+        <Worker workerUrl="/pdf.worker.js">
+          <Viewer
+            fileUrl="/Cuando los árboles dejaron de hablar_peq.pdf"
+            plugins={[layoutPlugin]}
+          />
+        </Worker>
       </div>
-
-      {mode === 'vertical' ? (
-        <div className="space-y-6">
-          {pages.map((p, i) => (
-            <Panel key={i} page={p} index={i} />
-          ))}
-        </div>
-      ) : (
-        <Swiper
-          spaceBetween={24}
-          className="w-full"
-          slidesPerView={1}
-          modules={[Navigation, Keyboard]}
-          navigation
-          keyboard
-        >
-          {pages.map((p, i) => (
-            <SwiperSlide key={i}>
-              <Panel page={p} index={i} />
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      )}
     </div>
   );
 }
