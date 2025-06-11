@@ -1,11 +1,37 @@
-export default function ComicReader() {
-  return (
-    <div className="w-[150%] h-screen">
-      <iframe
-        src="/Cuando los árboles dejaron de hablar_peq.pdf#toolbar=0"
-        className="w-full h-full border-none m-0 p-0"
-      />
+import { Worker, Viewer } from '@react-pdf-viewer/core';
+import { defaultLayoutPlugin, DefaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import type { ToolbarProps, ToolbarSlot } from '@react-pdf-viewer/toolbar';
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import { useMemo } from 'react';
 
+export default function ComicReader() {
+  const layoutPlugin = useMemo(() => {
+    // eslint-disable-next-line prefer-const
+    let plugin: DefaultLayoutPlugin;
+    const renderToolbar = (Toolbar: (props: ToolbarProps) => React.ReactElement) => (
+      <Toolbar>
+        {plugin.toolbarPluginInstance.renderDefaultToolbar((slots: ToolbarSlot) => ({
+          ...slots,
+          Download: () => null,
+          DownloadMenuItem: () => null,
+        }))}
+      </Toolbar>
+    );
+    plugin = defaultLayoutPlugin({ renderToolbar });
+    return plugin;
+  }, []);
+
+  return (
+    <div className="flex justify-center">
+      <div className="w-[150%] ml-[-25%] h-screen">
+        <Worker workerUrl="/pdf.worker.js">
+          <Viewer
+            fileUrl="/Cuando los árboles dejaron de hablar_peq.pdf"
+            plugins={[layoutPlugin]}
+          />
+        </Worker>
+      </div>
     </div>
   );
 }
