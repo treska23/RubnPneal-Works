@@ -7,15 +7,20 @@ const CHANNEL_ID = 'UCAyA9gTo-GPaKNnlulvS8iw';
 type YouTubeVideo = { id: string; title: string; thumbnail: string };
 
 export async function getStaticProps() {
-  const feed = await new Parser().parseURL(
-    `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`,
-  );
-  const videos: YouTubeVideo[] = feed.items.map((i) => ({
-    id: i.link?.split('v=')[1] ?? '',
-    title: i.title ?? '',
-    thumbnail: i['media:thumbnail']?.url ?? '',
-  }));
-  return { props: { videos } };
+  try {
+    const feed = await new Parser().parseURL(
+      `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`,
+    );
+    const videos: YouTubeVideo[] = feed.items.map((i) => ({
+      id: i.link?.split('v=')[1] ?? '',
+      title: i.title ?? '',
+      thumbnail: i['media:thumbnail']?.url ?? '',
+    }));
+    return { props: { videos } };
+  } catch (err) {
+    console.error('Failed to fetch YouTube RSS feed:', err);
+    return { props: { videos: [] } };
+  }
 }
 
 export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
@@ -61,25 +66,31 @@ export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
 
         {/* ─── Grid de vídeos ─── */}
         <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
-          {videos.map((video, i) => (
-            <div
-              key={i}
-              className="group relative overflow-hidden rounded-lg border-2 border-black transform transition-all duration-300 hover:-rotate-1 hover:scale-105"
-            >
-              <iframe
-                style={{ borderRadius: '12px' }}
-                src={`https://www.youtube.com/embed/${video.id}`}
-                width="100%"
-                height="240"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
-                <span className="text-4xl">▶️</span>
+          {videos.length === 0 ? (
+            <p className="col-span-full text-center py-8">
+              No se pudieron cargar los videos.
+            </p>
+          ) : (
+            videos.map((video, i) => (
+              <div
+                key={i}
+                className="group relative overflow-hidden rounded-lg border-2 border-black transform transition-all duration-300 hover:-rotate-1 hover:scale-105"
+              >
+                <iframe
+                  style={{ borderRadius: '12px' }}
+                  src={`https://www.youtube.com/embed/${video.id}`}
+                  width="100%"
+                  height="240"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
+                  <span className="text-4xl">▶️</span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </SectionLayout>
     </>

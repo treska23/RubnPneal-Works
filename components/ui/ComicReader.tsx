@@ -33,6 +33,7 @@ export default function ComicReader() {
           />
         </Worker>
       </div>
+
     </div>
   );
 }
