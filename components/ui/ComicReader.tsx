@@ -25,6 +25,7 @@ export default function ComicReader() {
   return (
     <div className="flex justify-center">
       <div className="relative left-1/2 -translate-x-1/2 w-[150%] h-screen">
+
         <Worker workerUrl="/pdf.worker.js">
           <Viewer
             fileUrl="/Cuando los árboles dejaron de hablar_peq.pdf"
