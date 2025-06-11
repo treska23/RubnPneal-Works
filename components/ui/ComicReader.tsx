@@ -1,4 +1,4 @@
-import { Worker, Viewer } from '@react-pdf-viewer/core';
+import { Worker, Viewer, SpecialZoomLevel } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin, DefaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import type { ToolbarProps, ToolbarSlot } from '@react-pdf-viewer/toolbar';
 import '@react-pdf-viewer/core/lib/styles/index.css';
@@ -24,11 +24,13 @@ export default function ComicReader() {
 
   return (
     <div className="flex justify-center">
-      <div className="w-[150%] ml-[-25%] h-screen">
+      <div className="relative left-1/2 -translate-x-1/2 w-[150%] h-screen">
+
         <Worker workerUrl="/pdf.worker.js">
           <Viewer
             fileUrl="/Cuando los árboles dejaron de hablar_peq.pdf"
             plugins={[layoutPlugin]}
+            defaultScale={SpecialZoomLevel.PageWidth}
           />
         </Worker>
       </div>
