@@ -1,7 +1,6 @@
 ﻿// pages/music/index.tsx
 import Link from 'next/link';
 
-
 export default function MusicIndex() {
   return (
     <div className="flex h-screen">
