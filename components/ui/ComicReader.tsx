@@ -3,7 +3,7 @@
 
 import { Worker, Viewer, SpecialZoomLevel } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
-
+import type { ToolbarSlot } from '@react-pdf-viewer/toolbar';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
@@ -16,10 +16,10 @@ export default function ComicReader() {
   /* 2️⃣  Transformar los slots (memorizar para no recrear) */
   const transform = useMemo(
     () =>
-      (slot: any): any => ({
+      (slot: ToolbarSlot): ToolbarSlot => ({
         ...slot,
-        Download: () => null,
-        DownloadMenuItem: () => null,
+        Download: () => <></>,
+        DownloadMenuItem: () => <></>,
       }),
     [],
   );

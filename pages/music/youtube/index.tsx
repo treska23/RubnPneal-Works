@@ -27,23 +27,21 @@ export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
   return (
     <>
       <style jsx global>{`
-        /* desplazamiento diagonal */
         @keyframes tv-scan-diag {
           from {
             background-position: 0 0;
           }
           to {
-            background-position: 120px 120px; /* debe ser múltiplo del pattern */
+            background-position: 120px 120px;
           }
         }
-        /* parpadeo CRT */
         @keyframes flicker {
           0%,
           100% {
-            opacity: 1; /* blanco encendido */
+            opacity: 1;
           }
           50% {
-            opacity: 0; /* se apaga → rojo puro detrás */
+            opacity: 0;
           }
         }
       `}</style>
@@ -52,24 +50,19 @@ export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
         title="YouTube"
         className="relative bg-red-600 text-white font-black uppercase tracking-widest [text-shadow:2px_2px_0_rgba(0,0,0,0.8)]"
       >
-        {/* ─── Overlay de líneas diagonales CRT ─── */}
         <div
-          className="pointer-events-none absolute inset-0" // ← quitamos mix-blend-screen
+          className="pointer-events-none absolute inset-0"
           style={{
-            /* 60 px blanco / 60 px hueco – ángulo 105 ° (ajústalo tú) */
             backgroundImage:
               'repeating-linear-gradient(350deg, #ffffff 0 100px, transparent 10px 320px)',
-            animation: 'tv-scan-diag 8s linear infinite, flicker 3s steps(100) infinite', // ← opacidad 1 ↔ 0
+            animation: 'tv-scan-diag 8s linear infinite, flicker 3s steps(100) infinite',
             imageRendering: 'pixelated',
           }}
         />
 
-        {/* ─── Grid de vídeos ─── */}
         <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
           {videos.length === 0 ? (
-            <p className="col-span-full text-center py-8">
-              No se pudieron cargar los videos.
-            </p>
+            <p className="col-span-full text-center py-8">No se pudieron cargar los videos.</p>
           ) : (
             videos.map((video, i) => (
               <div
