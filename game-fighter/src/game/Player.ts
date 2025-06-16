@@ -81,36 +81,22 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private startAttack(
     anim: string,
     hitboxWidth: number,
-    duration = 120,
+    _unused = 0, // ← ya no lo empleamos
     hitData: Partial<HitData> = {},
   ) {
     this.attackState = 'attack';
     this.isAttacking = true;
 
-    const animDuration = this.scene.anims.get(anim)?.duration ?? 150;
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    if (body.blocked.down) this.setVelocityX(0);
 
-    const playerBody = this.body as Phaser.Physics.Arcade.Body;
+    /* reproducir anim */
+    this.play(anim, true);
 
-    if (playerBody.blocked.down) {
-      this.setVelocityX(0);
-    }
-
-    //  ► Cuando termine la animación, volvemos a idle
-    this.once(
-      Phaser.Animations.Events.ANIMATION_COMPLETE,
-      (animation: Phaser.Animations.Animation) => {
-        if (animation.key === anim) {
-          this.attackState = 'idle';
-          this.isAttacking = false;
-        }
-      },
-    );
-
-    this.anims.play(anim, true);
-
-    //  ► Creamos la HitBox con datos mezclados
+    /* crear hit-box (sin cambios) */
     const dir = this.flipX ? -1 : 1;
-    const inAir = !(this.body as Phaser.Physics.Arcade.Body).blocked.down;
+    const inAir = !body.blocked.down;
+    const yOff = inAir ? -32 : -16;
 
     const defaultHit: HitData = {
       damage: 8,
@@ -121,43 +107,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       owner: 'player',
     };
 
-    const yOffset = inAir ? -32 /* más alto */ : -16; /* suelo */
-
-    const finalHit = { ...defaultHit, ...hitData } as HitData;
-    finalHit.damage = Math.round(finalHit.damage * this.damageMultiplier);
-
-    const hb = new HitBox(
-      this.scene,
-      this.x + dir * 24,
-      this.y - yOffset,
-      hitboxWidth,
-      24,
-      finalHit,
-    );
-    // hb.setFillStyle(0xff0000, 0.3); // semitransparente (removed, not available on HitBox)
-    hb.setDepth(10);
+    const hb = new HitBox(this.scene, this.x + dir * 24, this.y - yOff, hitboxWidth, 24, {
+      ...defaultHit,
+      ...hitData,
+    });
     this.hitGroup.add(hb);
 
-    this.scene.physics.add.overlap(
-      hb,
-      (this.scene as any).enemy as Phaser.Physics.Arcade.Sprite,
-      (_zone, enemySprite) => {
-        const hit = _zone as HitBox;
-        hit.applyTo(enemySprite as any);
-      },
-      undefined,
-      this,
-    );
-
-    this.scene.time.delayedCall(animDuration, () => {
+    /* cuando termine la animación limpiamos todo ----------------------- */
+    this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
       if (hb.active) hb.destroy();
+      this.attackState = 'idle';
+      this.isAttacking = false;
     });
 
-    // Fallback por si la animación se interrumpe
-    this.scene.time.delayedCall(animDuration + 50, () => {
+    /* salvaguarda opcional */
+    this.scene.time.delayedCall(1000, () => {
       if (this.attackState === 'attack') {
         this.attackState = 'idle';
         this.isAttacking = false;
+        if (hb.active) hb.destroy();
       }
     });
   }

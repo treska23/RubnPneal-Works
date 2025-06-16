@@ -38,6 +38,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private patternWeakness: 'high' | 'low' | null = null;
   private intelligence = 3; // IA aún más rápida (Bison)
   private decisionInterval = 1000;
+  /* Bandera para registrar animaciones sólo una vez */
+  private static _animsCreated = false;
 
   private nextPatternSwitch = 0;
   constructor(
@@ -78,6 +80,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.decisionInterval = 1000 / this.intelligence;
     this.choosePattern();
+
+    /* Animaciones (una única vez) -------------------------------------- */
+    if (!Enemy._animsCreated) {
+      Enemy.createAnimations(scene.anims);
+      Enemy._animsCreated = true;
+    }
   }
 
   public setTarget(target: Phaser.Physics.Arcade.Sprite) {
@@ -166,64 +174,32 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
    *  ========================================
    */
   private startAttack(lowAttack = false) {
-    // Si ya estamos atacando o en cooldown, no hacemos nada
-    if (this.attackCooldown || this.isAttacking) {
-      return;
-    }
+    if (this.attackCooldown || this.isAttacking) return;
+
     this.isAttacking = true;
     this.attackCooldown = true;
     if (lowAttack) this.isCrouching = true;
-
-    // Paramos el movimiento horizontal
     (this.body as Phaser.Physics.Arcade.Body).setVelocityX(0);
 
-    // ── ① Elegir un ataque aleatorio ────────────────────────────
-    // Lista de tipos de ataque que hemos definido en createAnimations:
-    const posiblesAtaques: Array<'punch' | 'kick_light' | 'kick_tight'> = lowAttack
+    /* -- elegir animación --------------------------------------------- */
+    const opts: Array<'punch' | 'kick_light' | 'kick_tight'> = lowAttack
       ? ['kick_light']
       : ['punch', 'kick_light', 'kick_tight'];
 
-    // Elegir un índice al azar entre 0 y 2:
-    const idx = Phaser.Math.Between(0, posiblesAtaques.length - 1);
-    const tipoSeleccionado = posiblesAtaques[idx];
+    const tipo = opts[Phaser.Math.Between(0, opts.length - 1)];
+    const animKey =
+      tipo === 'punch'
+        ? 'enemy_punch'
+        : tipo === 'kick_light'
+          ? 'enemy_kick_light'
+          : 'enemy_kick_strong';
 
-    let animKey: string;
-    switch (tipoSeleccionado) {
-      case 'punch':
-        animKey = 'enemy_punch';
-        break;
-      case 'kick_light':
-        animKey = 'enemy_kick_light';
-        break;
-      case 'kick_tight':
-        animKey = 'enemy_kick_strong';
-        break;
-      default:
-        animKey = 'enemy_punch'; // Valor por defecto para evitar uso antes de asignar
-        break;
-    }
-
-    // Nos aseguramos de capturar el fin de la animación antes de reproducirla
-    this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, (anim: Phaser.Animations.Animation) => {
-      // Si la animación que acaba coincide con la que acabamos de reproducir:
-      if (anim.key === animKey) {
-        this.isAttacking = false;
-        this.scene.time.delayedCall(500, () => {
-          this.attackCooldown = false;
-        });
-        this.aiState = 'chase';
-      }
-    });
-
-    // Reproducimos animación de ataque (asegúrate de tenerla creada en createAnimations)
-    this.play(animKey, true);
-    const animDuration = this.scene.anims.get(animKey)?.duration ?? 150;
-
-    // ↓ Creamos la HitBox justo delante del enemigo ↓
     const dir = this.flipX ? -1 : 1;
+
+    /* -- crear hit-box inmediatamente ---------------------------------- */
     let baseDamage = 10;
-    if (tipoSeleccionado === 'punch') baseDamage = 8;
-    if (tipoSeleccionado === 'kick_tight') baseDamage = 14;
+    if (tipo === 'punch') baseDamage = 8;
+    if (tipo === 'kick_tight') baseDamage = 14;
 
     const defaultHit: HitData = {
       damage: Math.round(baseDamage * this.damageMultiplier),
@@ -232,83 +208,35 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       guardStun: 8,
       height: 'mid',
       owner: 'enemy',
-      type: tipoSeleccionado === 'punch' ? 'punch' : 'kick',
+      type: tipo === 'punch' ? 'punch' : 'kick',
     };
 
     const hb = new HitBox(
       this.scene,
-      this.x + dir * 30, // ③ Posición X: un poco delante según flipX
-      lowAttack ? this.y : this.y - 10, // ④ Posición Y
-      30, // ⑤ Ancho de hitbox
-      20, // ⑥ Alto de hitbox
+      this.x + dir * 30,
+      lowAttack ? this.y : this.y - 10,
+      30,
+      20,
       defaultHit,
     );
     hb.setDepth(10);
     this.hitGroup.add(hb);
 
-    // Destruimos la HitBox al terminar la animación
-    this.scene.time.delayedCall(animDuration, () => {
+    /* -- reproducir animación y esperar a que termine ------------------ */
+    this.play(animKey, true);
+
+    this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
       if (hb.active) hb.destroy();
+
+      this.isAttacking = false;
+      if (lowAttack) this.isCrouching = false;
+
+      /* pequeño delay antes de poder volver a atacar */
+      this.scene.time.delayedCall(500, () => (this.attackCooldown = false));
+      this.aiState = 'chase';
     });
 
-    // Fallback por si la animación se interrumpe
-    this.scene.time.delayedCall(animDuration + 50, () => {
-      if (this.aiState === 'attack') {
-        this.aiState = 'chase';
-        this.isAttacking = false;
-        if (lowAttack) this.isCrouching = false;
-      }
-    });
-  }
-
-  /** Salta y, a mitad de trayecto, crea una hit-box aérea */
-  private startJumpAttack() {
-    if (this.jumpCooldown || this.isAttacking) return;
-
-    this.jumpCooldown = true;
-    this.isAttacking = true;
-
-    const body = this.body as Phaser.Physics.Arcade.Body;
-    const dir = this.flipX ? -1 : 1;
-
-    // impulso inicial
-    body.setVelocity(dir * 80, -300);
-    this.play('enemy_jump_kick', true);
-
-    /* hit-box en el aire --------------------------------------------------- */
-    this.scene.time.delayedCall(300, () => {
-      const airHit: HitData = {
-        damage: Math.round(12 * this.damageMultiplier),
-        knockBack: new Phaser.Math.Vector2(dir * 60, 100),
-        hitStun: 260,
-        guardStun: 10,
-        height: 'mid',
-        owner: 'enemy',
-        type: 'kick',
-      };
-      const hb = new HitBox(this.scene, this.x + dir * 24, this.y - 16, 28, 24, airHit);
-      this.hitGroup.add(hb);
-      this.scene.time.delayedCall(150, () => hb.destroy());
-    });
-
-    /* ── detector de aterrizaje: sólo se ejecuta UNA vez ─────────────────── */
-    const landingEvt = this.scene.time.addEvent({
-      delay: 16,
-      loop: true,
-
-      callback: (_ev: Phaser.Time.TimerEvent) => {
-        if (body.blocked.down) {
-          landingEvt.remove(false); // detener el bucle
-          this.isAttacking = false;
-          this.aiState = 'chase';
-          this.play('enemy_idle', true); // vuelve a idle UNA vez
-          // 1 s de cooldown antes del siguiente salto
-          this.scene.time.delayedCall(1000, () => (this.jumpCooldown = false));
-        }
-      },
-    });
-
-    // Salvaguarda por si la animación se corta y no aterriza
+    /* Salvaguarda opcional (por si la anim se interrumpe) */
     this.scene.time.delayedCall(1000, () => {
       if (this.isAttacking) {
         this.isAttacking = false;
@@ -481,6 +409,52 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         break;
       }
     }
+  }
+
+  private startJumpAttack() {
+    if (this.jumpCooldown || this.isAttacking) return;
+
+    this.jumpCooldown = true;
+    this.isAttacking = true;
+
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    const dir = this.flipX ? -1 : 1;
+
+    /* impulso de despegue */
+    body.setVelocity(dir * 80, -300);
+    this.play('enemy_jump_kick', true);
+
+    /* hit-box en el aire, justo después de 300 ms de salto */
+    this.scene.time.delayedCall(300, () => {
+      const airHit: HitData = {
+        damage: Math.round(12 * this.damageMultiplier),
+        knockBack: new Phaser.Math.Vector2(dir * 60, 100),
+        hitStun: 260,
+        guardStun: 10,
+        height: 'mid',
+        owner: 'enemy',
+        type: 'kick',
+      };
+      const airBox = new HitBox(this.scene, this.x + dir * 24, this.y - 16, 28, 24, airHit);
+      this.hitGroup.add(airBox);
+
+      /* la hit-box sólo dura 150 ms */
+      this.scene.time.delayedCall(150, () => airBox.destroy());
+    });
+
+    /* cuando acabe la animación (aterrice) ----------------------------- */
+    this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+      this.isAttacking = false;
+      this.aiState = 'chase';
+      this.scene.time.delayedCall(1000, () => (this.jumpCooldown = false));
+    });
+
+    /* fallback si por alguna razón nunca llega el evento anterior */
+    this.scene.time.delayedCall(1500, () => {
+      this.isAttacking = false;
+      this.aiState = 'chase';
+      this.jumpCooldown = false;
+    });
   }
 
   /** ========================================
