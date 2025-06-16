@@ -37,9 +37,43 @@ export default class FightScene extends Phaser.Scene {
     this.canMove = false;
     this.ended = false;
 
-    // 0️⃣ — Carga animaciones (solo una vez)
-    Enemy.createAnimations(this.anims);
-    this.createPlayerAnimations();
+    const requiredEnemyAnims = [
+      'enemy_idle',
+      'enemy_walk',
+      'enemy_punch',
+      'enemy_kick_light',
+      'enemy_kick_strong',
+      'enemy_hit_high',
+      'enemy_ko',
+      'enemy_jump_kick',
+      'enemy_guard_high',
+      'enemy_guard_low',
+      'enemy_down',
+    ];
+
+    const missingEnemyAnim = requiredEnemyAnims.some((key) => !this.anims.exists(key));
+    if (missingEnemyAnim) {
+      Enemy.createAnimations(this.anims);
+    }
+
+    const requiredPlayerAnims = [
+      'player_idle',
+      'player_guard_high',
+      'player_guard_low',
+      'player_locomotion',
+      'player_jump',
+      'player_punch',
+      'player_kick_light',
+      'player_kick_tight',
+      'player_damage',
+      'player_ko',
+      'player_down',
+    ];
+
+    const missingPlayerAnim = requiredPlayerAnims.some((key) => !this.anims.exists(key));
+    if (missingPlayerAnim) {
+      this.createPlayerAnimations();
+    }
 
     // Inicia la banda sonora 8‑bit en bucle
     this.bgm = this.sound.add('bgm', { loop: true, volume: 0.5 });

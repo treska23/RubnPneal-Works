@@ -81,10 +81,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.decisionInterval = 1000 / this.intelligence;
     this.choosePattern();
 
-    /* Animaciones (una única vez) -------------------------------------- */
-    if (!Enemy._animsCreated) {
+    if (!scene.anims.exists('enemy_idle')) {
       Enemy.createAnimations(scene.anims);
-      Enemy._animsCreated = true;
     }
   }
 
@@ -222,6 +220,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     hb.setDepth(10);
     this.hitGroup.add(hb);
 
+    if (!this.anims || !this.anims.currentAnim || !this.scene.anims.exists(animKey)) {
+      console.warn('Animación no registrada:', animKey);
+    }
     /* -- reproducir animación y esperar a que termine ------------------ */
     this.play(animKey, true);
 

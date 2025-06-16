@@ -8,11 +8,8 @@ export default nextConfig;
 
 const path = require('path');
 module.exports = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   webpack(config: import('webpack').Configuration): import('webpack').Configuration {
-    config.resolve!.alias!['phaser'] = path.resolve(
+    (config.resolve!.alias as Record<string, string | false | string[]>)['phaser'] = path.resolve(
       __dirname,
       'node_modules/phaser/dist/phaser.js',
     );
