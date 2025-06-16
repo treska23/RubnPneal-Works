@@ -5,3 +5,14 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+const path = require('path');
+module.exports = {
+  webpack(config: import('webpack').Configuration): import('webpack').Configuration {
+    config.resolve!.alias!['phaser'] = path.resolve(
+      __dirname,
+      'node_modules/phaser/dist/phaser.js',
+    );
+    return config;
+  },
+};
