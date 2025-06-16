@@ -13,31 +13,29 @@ export default class PreloadScene extends Phaser.Scene {
   }
 
   preload() {
-    /* ╔═════════════ AUDIO ═════════════╗ */
-    this.load.audio('bgm', [asset('audio/bgm.ogg'), asset('audio/bgm.mp3')]);
-    this.load.audio('hit_sound', [asset('audio/hit.ogg'), asset('audio/hit.mp3')]);
-    this.load.audio('coin_sound', [asset('audio/coin.ogg'), asset('audio/coin.wav')]);
+    // ╔═════════════ AUDIO ═════════════╗j
+    this.tryLoadAudio('bgm', ['audio/bgm.ogg', 'audio/bgm.mp3']);
+    this.tryLoadAudio('hit_sound', ['audio/hit.ogg', 'audio/hit.mp3']);
+    this.tryLoadAudio('coin_sound', ['audio/coin.wav']); // ahora protegido
 
-    /* ╔═════════════ PLAYER (48×48) ═════════════╗ */
+    // ╔═════════════ PLAYER (48×48) ═════════════╗
     const P = 'assets/young/';
     const p = (name: string, file = name.replace('player_', 'young_')) =>
-      this.load.spritesheet(
-        name, // ← key
-        asset(`${P}${file}.png`), // ← archivo
-        { frameWidth: 48, frameHeight: 48 },
-      );
+      this.tryLoadSprite(name, `${P}${file}.png`, 48, 48);
+    [
+      'idle',
+      'locomotion',
+      'jump',
+      'punch',
+      'kick_soft',
+      'kick_tight',
+      'guard_high',
+      'guard_low',
+      'damage',
+      'down',
+    ].forEach((action) => p(`player_${action}`));
 
-    p('player_idle');
-    p('player_locomotion');
-    p('player_jump');
-    p('player_punch');
-    p('player_kick_soft');
-    p('player_kick_tight');
-    p('player_guard_high');
-    p('player_guard_low');
-    p('player_damage');
-    p('player_ko');
-    p('player_down');
+    this.tryLoadSprite('player_ko', `${P}young_ko.png`, 64, 48); // por ejemplo: 64 de ancho
 
     /* ╔═════════════ DETECTIVE / ENEMY (48×64) ═════════════╗ */
     const D = 'assets/detective/';
@@ -99,5 +97,27 @@ export default class PreloadScene extends Phaser.Scene {
       const launch = () => this.scene.start('FightScene');
       this.ready ? launch() : this.load.once('complete', launch);
     });
+  }
+  // ──────────────────────────────────────────────
+  // Métodos auxiliares para robustez
+  // ──────────────────────────────────────────────
+
+  private tryLoadAudio(key: string, files: string[]) {
+    try {
+      this.load.audio(
+        key,
+        files.map((f) => asset(f)),
+      );
+    } catch (err) {
+      console.warn(`⚠️ No se pudo cargar audio ${key}:`, err);
+    }
+  }
+
+  private tryLoadSprite(key: string, path: string, frameWidth: number, frameHeight: number) {
+    try {
+      this.load.spritesheet(key, asset(path), { frameWidth, frameHeight });
+    } catch (err) {
+      console.warn(`⚠️ No se pudo cargar spritesheet "${key}" desde ${path}`);
+    }
   }
 }

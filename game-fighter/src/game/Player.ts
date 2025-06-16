@@ -1,8 +1,8 @@
 // ==== src/game/Player.ts ====
 
-import Phaser from 'phaser';
-import { HitBox } from './HitBox'; // ⬅️ nuevo import
-import type { HitData } from './HitBox';
+import Phaser from "phaser";
+import { HitBox } from "./HitBox"; // ⬅️ nuevo import
+import type { HitData } from "./HitBox";
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -15,10 +15,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   };
   public isAttacking: boolean = false;
   private hitGroup: Phaser.Physics.Arcade.Group;
-  private attackState: 'idle' | 'attack' = 'idle';
+  private attackState: "idle" | "attack" = "idle";
   public health: number = 100;
   public maxHealth: number = 100;
-  public guardState: 'none' | 'high' | 'low' = 'none';
+  public guardState: "none" | "high" | "low" = "none";
   public isGuarding = false;
   public isCrouching = false;
   private damageMultiplier = 0.5; // daño reducido
@@ -30,7 +30,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     y: number,
     texture: string,
     frame: number = 0,
-    hitGroup: Phaser.Physics.Arcade.Group,
+    hitGroup: Phaser.Physics.Arcade.Group
   ) {
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
@@ -53,105 +53,137 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public takeDamage(amount: number, stun = 180) {
     if (amount <= 0) return;
     this.health = Phaser.Math.Clamp(this.health - amount, 0, this.maxHealth);
-    this.anims.play('player_damage', true);
+    this.anims.play("player_damage", true);
 
     this.isGuarding = false;
-    this.guardState = 'none';
+    this.guardState = "none";
     this.isCrouching = false;
 
     // ← ① Cancelamos cualquier ataque en curso
-    this.attackState = 'idle';
+    this.attackState = "idle";
     this.isAttacking = false;
 
     this.scene.time.delayedCall(stun, () => {
-      if (this.health > 0) this.play('player_idle', true);
+      if (this.health > 0) this.play("player_idle", true);
     });
 
     // Si llega a cero, KO
     if (this.health === 0) {
-      this.anims.play('player_ko', true);
+      this.anims.play("player_ko", true);
       this.setVelocity(0, 0);
       this.isKO = true;
     }
 
     // Emitimos un evento para que la escena actualice el HUD
-    this.emit('healthChanged', this.health);
+    this.emit("healthChanged", this.health);
   }
 
   private startAttack(
     anim: string,
     hitboxWidth: number,
-    _unused = 0, // ← ya no lo empleamos
-    hitData: Partial<HitData> = {},
+    duration = 120,
+    hitData: Partial<HitData> = {}
   ) {
-    this.attackState = 'attack';
+    this.attackState = "attack";
     this.isAttacking = true;
 
-    const body = this.body as Phaser.Physics.Arcade.Body;
-    if (body.blocked.down) this.setVelocityX(0);
+    const animDuration = this.anims.get(anim)?.duration ?? duration;
 
-    /* reproducir anim */
-    this.play(anim, true);
+    const playerBody = this.body as Phaser.Physics.Arcade.Body;
 
-    /* crear hit-box (sin cambios) */
+    if (playerBody.blocked.down) {
+      this.setVelocityX(0);
+    }
+
+    //  ► Cuando termine la animación, volvemos a idle
+    this.once(
+      Phaser.Animations.Events.ANIMATION_COMPLETE,
+      (animation: Phaser.Animations.Animation) => {
+        if (animation.key === anim) {
+          this.attackState = "idle";
+          this.isAttacking = false;
+        }
+      }
+    );
+
+    this.anims.play(anim, true);
+
+    //  ► Creamos la HitBox con datos mezclados
     const dir = this.flipX ? -1 : 1;
-    const inAir = !body.blocked.down;
-    const yOff = inAir ? -32 : -16;
+    const inAir = !(this.body as Phaser.Physics.Arcade.Body).blocked.down;
 
     const defaultHit: HitData = {
       damage: 8,
       knockBack: new Phaser.Math.Vector2(dir * 20, 0),
       hitStun: 180,
       guardStun: 6,
-      height: 'high',
-      owner: 'player',
+      height: "high",
+      owner: "player",
     };
 
-    const hb = new HitBox(this.scene, this.x + dir * 24, this.y - yOff, hitboxWidth, 24, {
-      ...defaultHit,
-      ...hitData,
-    });
+    const yOffset = inAir ? -32 /* más alto */ : -16; /* suelo */
+
+    const finalHit = { ...defaultHit, ...hitData } as HitData;
+    finalHit.damage = Math.round(finalHit.damage * this.damageMultiplier);
+
+    const hb = new HitBox(
+      this.scene,
+      this.x + dir * 24,
+      this.y - yOffset,
+      hitboxWidth,
+      24,
+      finalHit
+    );
+    // hb.setFillStyle(0xff0000, 0.3); // semitransparente (removed, not available on HitBox)
+    hb.setDepth(10);
     this.hitGroup.add(hb);
 
-    /* cuando termine la animación limpiamos todo ----------------------- */
-    this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+    this.scene.physics.add.overlap(
+      hb,
+      (this.scene as any).enemy as Phaser.Physics.Arcade.Sprite,
+      (_zone, enemySprite) => {
+        const hit = _zone as HitBox;
+        hit.applyTo(enemySprite as any);
+      },
+      undefined,
+      this
+    );
+
+    this.scene.time.delayedCall(animDuration, () => {
       if (hb.active) hb.destroy();
-      this.attackState = 'idle';
-      this.isAttacking = false;
     });
 
-    /* salvaguarda opcional */
-    this.scene.time.delayedCall(1000, () => {
-      if (this.attackState === 'attack') {
-        this.attackState = 'idle';
+    // Fallback por si la animación se interrumpe
+    this.scene.time.delayedCall(animDuration + 50, () => {
+      if (this.attackState === "attack") {
+        this.attackState = "idle";
         this.isAttacking = false;
-        if (hb.active) hb.destroy();
       }
     });
   }
 
   private tryAttack(): boolean {
-    if (this.attackState !== 'idle') return false;
+    if (this.attackState !== "idle") return false;
 
     const dir = this.flipX ? -1 : 1;
     const inAir = !(this.body as Phaser.Physics.Arcade.Body).blocked.down;
 
     if (Phaser.Input.Keyboard.JustDown(this.attackKeys.punch)) {
-      this.startAttack('player_punch', 26, 120, {
+      this.startAttack("player_punch", 26, 120, {
         damage: 6,
         hitStun: 120,
         knockBack: new Phaser.Math.Vector2(dir * 40, 0),
-        type: 'punch',
+        type: "punch",
       });
       return true;
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.attackKeys.kickL)) {
-      this.startAttack('player_kick_light', 32, 120, {
+      this.startAttack("player_kick_light", 32, 120, {
         damage: 10,
         hitStun: 180,
         knockBack: new Phaser.Math.Vector2(dir * 40, 0),
-        type: 'kick',
+        type: "kick",
       });
       return true;
     }
@@ -159,21 +191,21 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (Phaser.Input.Keyboard.JustDown(this.attackKeys.kickH)) {
       // if inAir, use a vertical knockback and longer stun
       if (inAir) {
-        this.startAttack('player_kick_tight', 36, 150, {
+        this.startAttack("player_kick_tight", 36, 150, {
           damage: 12,
           knockBack: new Phaser.Math.Vector2(dir * 10, -200),
           hitStun: 300,
-          height: 'mid',
-          type: 'kick',
+          height: "mid",
+          type: "kick",
         });
         return true;
       } else {
         // grounded heavy kick
-        this.startAttack('player_kick_tight', 36, 120, {
+        this.startAttack("player_kick_tight", 36, 120, {
           damage: 14,
           knockBack: new Phaser.Math.Vector2(dir * 30, 0),
           hitStun: 260,
-          type: 'kick',
+          type: "kick",
         });
         return true;
       }
@@ -190,7 +222,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // para evitar ventanas en las que la detección de golpes no refleje la
     // postura real del jugador.
 
-    if (this.attackState === 'attack') {
+
+    if (this.attackState === "attack") {
       return;
     }
 
@@ -219,13 +252,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
       this.setVelocityX(vx);
       this.setVelocityY(-this.jumpSpeed);
-      this.anims.play('player_jump', true);
+      this.anims.play("player_jump", true);
       return;
     }
 
     /* 3 ── LÓGICA EN EL AIRE (ya saltando) ───────────────────────── */
     if (!(body.blocked as any).down) {
-      this.anims.play('player_jump', true);
+      this.anims.play("player_jump", true);
       return;
     }
 
@@ -236,14 +269,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.isGuarding = true;
 
       if (down) {
-        this.guardState = 'low';
+        this.guardState = "low";
         this.isCrouching = true;
-        this.anims.play('player_guard_low', true);
+        this.anims.play("player_guard_low", true);
       } else {
-        this.guardState = 'high';
+        this.guardState = "high";
         this.isCrouching = false;
 
-        this.anims.play('player_guard_high', true);
+        this.anims.play("player_guard_high", true);
       }
 
       return;
@@ -252,14 +285,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     /* 5 ── RETROCESO (caminar hacia atrás) ───────────────────────── */
     if (backPressed && !down) {
       this.setVelocityX(facingLeft ? this.speed : -this.speed);
-      this.anims.play('player_locomotion', true);
+      this.anims.play("player_locomotion", true);
       return;
     }
 
     /* 5-bis ── AVANCE (caminar hacia el rival) ───────────────────── */
     if (forwardPressed && !down) {
       this.setVelocityX(facingLeft ? -this.speed : this.speed);
-      this.anims.play('player_locomotion', true);
+      this.anims.play("player_locomotion", true);
       return;
     }
 
@@ -268,8 +301,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.setVelocityX(0);
       this.isCrouching = true;
       this.isGuarding = false;
-      this.guardState = 'none';
-      this.anims.play('player_down', true);
+      this.guardState = "none";
+      this.anims.play("player_down", true);
       return;
     }
 
@@ -277,7 +310,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setVelocityX(0);
     this.isCrouching = false;
     this.isGuarding = false;
-    this.guardState = 'none';
-    this.anims.play('player_idle', true);
+    this.guardState = "none";
+    this.anims.play("player_idle", true);
   }
 }

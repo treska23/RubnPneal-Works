@@ -12,27 +12,27 @@ import {
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import { pageNavigationPlugin } from '@react-pdf-viewer/page-navigation';
 import type { ToolbarSlot } from '@react-pdf-viewer/toolbar';
-
-import MiniGame from './GameFighter';
+import MiniGame, { GameFighterHandle } from './GameFighter';
 
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 export default function ComicReader() {
-  /* ─── plugins ──────────────────────────────────────── */
+  /* ─── plugins ─────────────────────────────────────────────────── */
   const layoutPlugin = useRef(defaultLayoutPlugin());
   const navPlugin = useRef(pageNavigationPlugin());
+
   const { jumpToPage } = navPlugin.current;
 
-  /* ─── estado ───────────────────────────────────────── */
-  const [currentPage, setCurrentPage] = useState(0); // índice 0-based
+  /* ─── estado ──────────────────────────────────────────────────── */
+  const [currentPage, setCurrentPage] = useState(0);
   const [minigameVisible, setMinigameVisible] = useState(false);
   const [minigameSolved, setMinigameSolved] = useState(false);
 
   const targetHumanPage = 36;
   const targetIndex = targetHumanPage - 1; // 0-based
 
-  /* ─── toolbar: quitamos descarga ───────────────────── */
+  /* ─── toolbar sin descarga ────────────────────────────────────── */
   const transform = useMemo(
     () =>
       (slot: ToolbarSlot): ToolbarSlot => ({
@@ -43,35 +43,39 @@ export default function ComicReader() {
     [],
   );
 
-  /* ─── bloqueo de teclado/rueda mientras hay overlay ── */
-  const viewerRef = useRef<HTMLDivElement>(null);
+  /* ─── freeze-scroll helpers ───────────────────────────────────── */
+  const lockScroll = () => {
+    const y = window.scrollY;
+    document.body.dataset.scrollY = String(y);
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${y}px`;
+    document.body.style.width = '100%';
+  };
+  const unlockScroll = () => {
+    const y = +(document.body.dataset.scrollY || 0);
+    document.body.style.overflow =
+      document.body.style.position =
+      document.body.style.top =
+      document.body.style.width =
+        '';
+    window.scrollTo(0, y);
+  };
+
+  /* ─── show/hide minigame ──────────────────────────────────────── */
+  useEffect(() => {
+    setMinigameVisible(currentPage === targetIndex && !minigameSolved);
+  }, [currentPage, minigameSolved]);
 
   useEffect(() => {
-    const keysBlocked = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', ' ', 'Home', 'End'];
-
-    const onKey = (e: KeyboardEvent) => {
-      if (minigameVisible && keysBlocked.includes(e.key)) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-    const onWheel = (e: WheelEvent) => {
-      if (minigameVisible) e.preventDefault();
-    };
-
-    window.addEventListener('keydown', onKey, true);
-    viewerRef.current?.addEventListener('wheel', onWheel, { passive: false });
-
-    return () => {
-      window.removeEventListener('keydown', onKey, true);
-      viewerRef.current?.removeEventListener('wheel', onWheel);
-    };
+    if (minigameVisible) lockScroll();
+    else unlockScroll();
+    return unlockScroll; // limpieza por si el componente desmonta
   }, [minigameVisible]);
 
-  /* ─── cambio de página ─────────────────────────────── */
+  /* ─── page-change “protegido” ─────────────────────────────────── */
   const handlePageChange = (e: PageChangeEvent) => {
     const newIdx = e.currentPage;
-    // evita avanzar si aún no ganaste
     if (!minigameSolved && newIdx > targetIndex) {
       jumpToPage(targetIndex);
       return;
@@ -79,40 +83,43 @@ export default function ComicReader() {
     setCurrentPage(newIdx);
   };
 
-  /* ─── mostrar u ocultar overlay ─────────────────────── */
-  const showMini = currentPage === targetIndex && !minigameSolved;
-  useEffect(() => setMinigameVisible(showMini), [showMini]);
+  /* ─── foco al canvas cuando se abre el juego ──────────────────── */
+  const miniRef = useRef<GameFighterHandle>(null);
+  useEffect(() => {
+    if (minigameVisible) setTimeout(() => miniRef.current?.focus(), 0);
+  }, [minigameVisible]);
 
+  /* ─────────────────────────── render ──────────────────────────── */
   return (
     <div className="relative flex justify-center h-screen">
-      {/* ---------- Visor PDF ---------- */}
-      <div
-        ref={viewerRef}
-        className={`w-[150%] h-full ${minigameVisible ? 'pointer-events-none select-none' : ''}`}
-      >
-        <Worker workerUrl="/pdf.worker.js">
-          <Viewer
-            fileUrl="/comic.pdf"
-            plugins={[layoutPlugin.current, navPlugin.current]}
-            defaultScale={SpecialZoomLevel.PageWidth}
-            scrollMode={ScrollMode.Page}
-            onPageChange={handlePageChange}
-          />
-        </Worker>
+      {/* ===== Visor PDF (se desmonta mientras showMini) ===== */}
+      {!minigameVisible && (
+        <div className="w-[150%] h-full">
+          <Worker workerUrl="/pdf.worker.js">
+            <Viewer
+              fileUrl="/comic.pdf"
+              plugins={[layoutPlugin.current, navPlugin.current]}
+              defaultScale={SpecialZoomLevel.PageWidth}
+              scrollMode={ScrollMode.Page}
+              onPageChange={handlePageChange}
+            />
+          </Worker>
 
-        {layoutPlugin.current.toolbarPluginInstance && (
-          <layoutPlugin.current.toolbarPluginInstance.Toolbar>
-            {layoutPlugin.current.toolbarPluginInstance.renderDefaultToolbar(transform)}
-          </layoutPlugin.current.toolbarPluginInstance.Toolbar>
-        )}
-      </div>
+          {layoutPlugin.current.toolbarPluginInstance && (
+            <layoutPlugin.current.toolbarPluginInstance.Toolbar>
+              {layoutPlugin.current.toolbarPluginInstance.renderDefaultToolbar(transform)}
+            </layoutPlugin.current.toolbarPluginInstance.Toolbar>
+          )}
+        </div>
+      )}
 
-      {/* ---------- Minijuego ---------- */}
-      {showMini && (
+      {/* ===== Minijuego ===== */}
+      {minigameVisible && (
         <MiniGame
+          ref={miniRef}
           onSolved={() => {
-            setMinigameSolved(true); // evita que vuelva a aparecer
-            setMinigameVisible(false); // reactiva el visor
+            setMinigameSolved(true);
+            setMinigameVisible(false); // ← al cerrarlo, PDF se monta de nuevo
           }}
         />
       )}

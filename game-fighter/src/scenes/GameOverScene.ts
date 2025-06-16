@@ -8,7 +8,13 @@ export default class GameOverScene extends Phaser.Scene {
 
   create() {
     this.sound.stopAll();
-    this.sound.play('coin_sound');
+
+    if (this.cache.audio.exists('coin_sound')) {
+      this.sound.play('coin_sound');
+    } else {
+      console.warn('coin_sound sigue sin estar en caché');
+    }
+
     this.cameras.main.setBackgroundColor('#222');
     this.add
       .text(400, 300, 'Game Over', {
@@ -17,15 +23,10 @@ export default class GameOverScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     this.add
-      .text(
-        400,
-        340,
-        `Rounds: ${RoundManager.playerWins}-${RoundManager.enemyWins}`,
-        {
-          color: '#ffffff',
-          fontSize: '14px',
-        }
-      )
+      .text(400, 340, `Rounds: ${RoundManager.playerWins}-${RoundManager.enemyWins}`, {
+        color: '#ffffff',
+        fontSize: '14px',
+      })
       .setOrigin(0.5);
   }
 }
