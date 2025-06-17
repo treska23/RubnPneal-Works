@@ -49,7 +49,7 @@ export default class PreloadScene extends Phaser.Scene {
     d('detective_idle', 'detective_idle'); // enemy_idle
     d('detective_locomotion', 'detective_locomotion'); // enemy_walk
     d('detective_punch_right', 'detective_punch'); // enemy_punch
-    d('detective_kicks_light', 'detective_kick_light'); // enemy_kick_light
+    d('detective_kicks_light', 'detective_kicks_light'); // enemy_kick_light
     d('detective_kicks_tight', 'detective_kicks_tight'); // enemy_kick_strong / jump_kick
     d('detective_damage', 'detective_damage'); // enemy_hit_high
     d('detective_defense', 'detective_defense'); // enemy_guard_high / low  ✅ NUEVO
