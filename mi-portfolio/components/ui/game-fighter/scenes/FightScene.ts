@@ -44,7 +44,10 @@ export default class FightScene extends Phaser.Scene {
     // Inicia la banda sonora 8‑bit en bucle
     this.bgm = this.sound.add("bgm", { loop: true, volume: 0.5 });
     this.bgm.play();
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.bgm.stop());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.bgm.stop();
+      RoundManager.stopEnemyAI();
+    });
 
     // 1️⃣ — Fondo y plataformas
     this.add
@@ -82,6 +85,7 @@ export default class FightScene extends Phaser.Scene {
     this.enemy.setFlipX(true);
 
     this.physics.add.collider(this.enemy, platforms);
+    RoundManager.startEnemyAI(this.player, this.enemy);
 
     // 6️⃣ — Overlap: cualquier HitBox del grupo golpea al enemigo
     this.physics.add.overlap(this.hitGroup, this.enemy, (objA, objB) => {
@@ -153,24 +157,7 @@ export default class FightScene extends Phaser.Scene {
       );
       this.playerHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
-        this.ended = true;
-        this.canMove = false;
-        this.add
-          .text(400, 300, "You Lose", {
-            fontSize: "32px",
-            color: "#ffffff",
-          })
-          .setOrigin(0.5);
-        RoundManager.enemyWins += 1;
-        const next = () => {
-          if (RoundManager.hasPlayerLost()) {
-            this.scene.start("GameOverScene");
-          } else {
-            RoundManager.nextRound();
-            this.scene.restart();
-          }
-        };
-        this.time.delayedCall(2000, next);
+        this.handleLose();
       }
     });
     this.enemy.on("healthChanged", (hp: number) => {
@@ -183,24 +170,7 @@ export default class FightScene extends Phaser.Scene {
       );
       this.enemyHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
-        this.ended = true;
-        this.canMove = false;
-        this.add
-          .text(400, 300, "You Win", {
-            fontSize: "32px",
-            color: "#ffffff",
-          })
-          .setOrigin(0.5);
-        RoundManager.playerWins += 1;
-        const next = () => {
-          if (RoundManager.hasPlayerWon()) {
-            this.scene.start("VictoryScene");
-          } else {
-            RoundManager.nextRound();
-            this.scene.restart();
-          }
-        };
-        this.time.delayedCall(2000, next);
+        this.handleWin();
       }
     });
 
@@ -271,6 +241,50 @@ export default class FightScene extends Phaser.Scene {
     if (!this.canMove) return;
     this.player.update(time, delta);
     (this.enemy as Enemy).update(time, delta);
+  }
+
+  private handleWin() {
+    this.ended = true;
+    this.canMove = false;
+    RoundManager.stopEnemyAI();
+    this.add
+      .text(400, 300, "You Win", {
+        fontSize: "32px",
+        color: "#ffffff",
+      })
+      .setOrigin(0.5);
+    RoundManager.playerWins += 1;
+    const next = () => {
+      if (RoundManager.hasPlayerWon()) {
+        this.scene.start("VictoryScene");
+      } else {
+        RoundManager.nextRound();
+        this.scene.restart();
+      }
+    };
+    this.time.delayedCall(2000, next);
+  }
+
+  private handleLose() {
+    this.ended = true;
+    this.canMove = false;
+    RoundManager.stopEnemyAI();
+    this.add
+      .text(400, 300, "You Lose", {
+        fontSize: "32px",
+        color: "#ffffff",
+      })
+      .setOrigin(0.5);
+    RoundManager.enemyWins += 1;
+    const next = () => {
+      if (RoundManager.hasPlayerLost()) {
+        this.scene.start("GameOverScene");
+      } else {
+        RoundManager.nextRound();
+        this.scene.restart();
+      }
+    };
+    this.time.delayedCall(2000, next);
   }
 
   private playHitEffects(hit: HitBox) {

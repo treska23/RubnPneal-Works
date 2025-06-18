@@ -2,6 +2,7 @@
 "use client";
 
 import { forwardRef, useImperativeHandle, useEffect, useRef } from "react";
+import RoundManager from "game-fighter/src/game/RoundManager";
 import Phaser from "phaser";
 
 import BootScene from "game-fighter/src/scenes/BootScene";
@@ -65,7 +66,8 @@ const GameFighter = forwardRef<GameFighterHandle, Props>(
 
       /* limpieza segura */
       return () => {
-        setTimeout(() => gameRef.current?.destroy(true), 0);
+        RoundManager.stopEnemyAI();
+        gameRef.current?.destroy(true);
       };
     }, [onSolved]);
 
