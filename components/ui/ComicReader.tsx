@@ -69,8 +69,11 @@ export default function ComicReader() {
 
   /* ─── restore page after minigame ─────────────────────────────── */
   useEffect(() => {
-    if (!minigameVisible) jumpToPage(currentPage);
-  }, [minigameVisible, currentPage, jumpToPage]);
+    if (!minigameVisible && minigameSolved && currentPage !== targetIndex) {
+      jumpToPage(targetIndex);
+    }
+  }, [minigameVisible, minigameSolved, currentPage, targetIndex, jumpToPage]);
+
 
   useEffect(() => {
     if (minigameVisible) lockScroll();
@@ -106,6 +109,7 @@ export default function ComicReader() {
               plugins={[layoutPlugin.current, navPlugin.current]}
               defaultScale={SpecialZoomLevel.PageWidth}
               scrollMode={ScrollMode.Page}
+              initialPage={currentPage}
               onPageChange={handlePageChange}
             />
           </Worker>
