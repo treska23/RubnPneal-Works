@@ -42,7 +42,7 @@ export default class FightScene extends Phaser.Scene {
     this.createPlayerAnimations();
 
     // Inicia la banda sonora 8‑bit en bucle
-    this.bgm = this.sound.add('bgm', { loop: true, volume: 0.5 });
+    this.bgm = this.sound.add("bgm", { loop: true, volume: 0.5 });
     this.bgm.play();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.bgm.stop());
 
@@ -77,13 +77,11 @@ export default class FightScene extends Phaser.Scene {
       0, // frame por defecto
       100, // maxHealth (puedes ajustar este número)
       this.player, // → target: el jugador
-      this.hitGroup // → hitGroup: grupo compartido de HitBoxes
+      this.hitGroup, // → hitGroup: grupo compartido de HitBoxes
     );
     this.enemy.setFlipX(true);
 
     this.physics.add.collider(this.enemy, platforms);
-
-
 
     // 6️⃣ — Overlap: cualquier HitBox del grupo golpea al enemigo
     this.physics.add.overlap(this.hitGroup, this.enemy, (objA, objB) => {
@@ -124,7 +122,7 @@ export default class FightScene extends Phaser.Scene {
         {
           fontSize: "14px",
           color: "#ffffff",
-        }
+        },
       )
       .setOrigin(0.5, 0);
 
@@ -133,14 +131,14 @@ export default class FightScene extends Phaser.Scene {
       20,
       20,
       this.player.health,
-      this.player.maxHealth
+      this.player.maxHealth,
     );
     this.drawHealthBar(
       this.enemyHealthBar,
       580,
       20,
       this.enemy.health,
-      this.enemy.maxHealth
+      this.enemy.maxHealth,
     );
 
     this.startRoundCountdown();
@@ -151,21 +149,22 @@ export default class FightScene extends Phaser.Scene {
         20,
         20,
         hp,
-        this.player.maxHealth
+        this.player.maxHealth,
       );
       this.playerHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
         this.ended = true;
         this.canMove = false;
-        this.add.text(400, 300, 'You Lose', {
-          fontSize: '32px',
-          color: '#ffffff',
-        }).setOrigin(0.5);
+        this.add
+          .text(400, 300, "You Lose", {
+            fontSize: "32px",
+            color: "#ffffff",
+          })
+          .setOrigin(0.5);
         RoundManager.enemyWins += 1;
         const next = () => {
           if (RoundManager.hasPlayerLost()) {
-
-            this.scene.start('GameOverScene');
+            this.scene.start("GameOverScene");
           } else {
             RoundManager.nextRound();
             this.scene.restart();
@@ -180,21 +179,22 @@ export default class FightScene extends Phaser.Scene {
         580,
         20,
         hp,
-        this.enemy.maxHealth
+        this.enemy.maxHealth,
       );
       this.enemyHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
         this.ended = true;
         this.canMove = false;
-        this.add.text(400, 300, 'You Win', {
-          fontSize: '32px',
-          color: '#ffffff',
-        }).setOrigin(0.5);
+        this.add
+          .text(400, 300, "You Win", {
+            fontSize: "32px",
+            color: "#ffffff",
+          })
+          .setOrigin(0.5);
         RoundManager.playerWins += 1;
         const next = () => {
           if (RoundManager.hasPlayerWon()) {
-
-            this.scene.start('VictoryScene');
+            this.scene.start("VictoryScene");
           } else {
             RoundManager.nextRound();
             this.scene.restart();
@@ -239,7 +239,7 @@ export default class FightScene extends Phaser.Scene {
       if (isAtk) {
         this.enemy.once(
           Phaser.Animations.Events.ANIMATION_COMPLETE,
-          () => ((this.enemy as any).isAttacking = false)
+          () => ((this.enemy as any).isAttacking = false),
         );
       }
     });
@@ -250,7 +250,7 @@ export default class FightScene extends Phaser.Scene {
     x: number,
     y: number,
     health: number,
-    maxHealth: number
+    maxHealth: number,
   ) {
     const width = 200;
     const height = 20;
@@ -274,19 +274,21 @@ export default class FightScene extends Phaser.Scene {
   }
 
   private playHitEffects(hit: HitBox) {
-    this.sound.play('hit_sound');
+    this.sound.play("hit_sound");
     const { type, height } = hit.hitData as any;
-    if (type === 'kick' || (type === 'punch' && height === 'high')) {
+    if (type === "kick" || (type === "punch" && height === "high")) {
       this.cameras.main.shake(100, 0.01);
     }
   }
 
   private startRoundCountdown() {
     this.canMove = false;
-    const countdown = this.add.text(400, 260, '3', {
-      fontSize: '32px',
-      color: '#ffffff',
-    }).setOrigin(0.5);
+    const countdown = this.add
+      .text(400, 260, "3", {
+        fontSize: "32px",
+        color: "#ffffff",
+      })
+      .setOrigin(0.5);
 
     let value = 3;
     const evt = this.time.addEvent({
@@ -298,7 +300,7 @@ export default class FightScene extends Phaser.Scene {
           countdown.setText(String(value));
         } else {
           evt.remove(false);
-          countdown.setText('Fight!');
+          countdown.setText("Fight!");
           this.canMove = true;
           this.time.delayedCall(500, () => countdown.destroy());
         }

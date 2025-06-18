@@ -34,7 +34,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private damageMultiplier = 2;
   private attackChance = 50;
   private jumpChance = 15;
-  private pattern: "aggressive" | "defensive" | "balanced" | "bison" = "balanced";
+  private pattern: "aggressive" | "defensive" | "balanced" | "bison" =
+    "balanced";
   private patternWeakness: "high" | "low" | null = null;
   private intelligence = 3; // IA aún más rápida (Bison)
   private decisionInterval = 1000;
@@ -48,7 +49,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     frame: number = 0,
     maxHealth = 100,
     target?: Phaser.Physics.Arcade.Sprite, // ← añadimos parámetro opcional
-    hitGroup?: Phaser.Physics.Arcade.Group
+    hitGroup?: Phaser.Physics.Arcade.Group,
   ) {
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
@@ -123,10 +124,20 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         break;
     }
     // escalar por inteligencia y limitar al 100%
-    this.guardChance = Math.min(100, Math.round(this.guardChance * this.intelligence));
-    this.attackChance = Math.min(100, Math.round(this.attackChance * this.intelligence));
-    this.jumpChance = Math.min(100, Math.round(this.jumpChance * this.intelligence));
-    this.nextPatternSwitch = this.scene.time.now + Phaser.Math.Between(4000, 7000);
+    this.guardChance = Math.min(
+      100,
+      Math.round(this.guardChance * this.intelligence),
+    );
+    this.attackChance = Math.min(
+      100,
+      Math.round(this.attackChance * this.intelligence),
+    );
+    this.jumpChance = Math.min(
+      100,
+      Math.round(this.jumpChance * this.intelligence),
+    );
+    this.nextPatternSwitch =
+      this.scene.time.now + Phaser.Math.Between(4000, 7000);
   }
 
   /** Lógica de daño y hit-stun */
@@ -179,9 +190,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     // ── ① Elegir un ataque aleatorio ────────────────────────────
     // Lista de tipos de ataque que hemos definido en createAnimations:
-     const posiblesAtaques: Array<"punch" | "kick_light" | "kick_tight"> = lowAttack
-      ? ["kick_light"]
-      : ["punch", "kick_light", "kick_tight"];
+    const posiblesAtaques: Array<"punch" | "kick_light" | "kick_tight"> =
+      lowAttack ? ["kick_light"] : ["punch", "kick_light", "kick_tight"];
 
     // Elegir un índice al azar entre 0 y 2:
     const idx = Phaser.Math.Between(0, posiblesAtaques.length - 1);
@@ -203,7 +213,6 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         break;
     }
 
-
     // Nos aseguramos de capturar el fin de la animación antes de reproducirla
     this.once(
       Phaser.Animations.Events.ANIMATION_COMPLETE,
@@ -216,7 +225,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           });
           this.aiState = "chase";
         }
-      }
+      },
     );
 
     // Reproducimos animación de ataque (asegúrate de tenerla creada en createAnimations)
@@ -245,7 +254,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       lowAttack ? this.y : this.y - 10, // ④ Posición Y
       30, // ⑤ Ancho de hitbox
       20, // ⑥ Alto de hitbox
-      defaultHit
+      defaultHit,
     );
     hb.setDepth(10);
     this.hitGroup.add(hb);
@@ -296,11 +305,11 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.y - 16,
         28,
         24,
-        airHit
+        airHit,
       );
       this.hitGroup.add(hb);
-    this.scene.time.delayedCall(150, () => hb.destroy());
-  });
+      this.scene.time.delayedCall(150, () => hb.destroy());
+    });
 
     /* ── detector de aterrizaje: sólo se ejecuta UNA vez ─────────────────── */
     const landingEvt = this.scene.time.addEvent({
@@ -308,7 +317,6 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       loop: true,
 
       callback: (_ev: Phaser.Time.TimerEvent) => {
-
         if (body.blocked.down) {
           landingEvt.remove(false); // detener el bucle
           this.isAttacking = false;
@@ -380,7 +388,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     // Periodically query OpenAI for a suggested action
-    if (_time - this.lastDecisionTime > this.decisionInterval && !this.pendingDecision) {
+    if (
+      _time - this.lastDecisionTime > this.decisionInterval &&
+      !this.pendingDecision
+    ) {
       this.lastDecisionTime = _time;
       requestEnemyAction({ distance: dist }).then((act) => {
         if (act) this.pendingDecision = act;

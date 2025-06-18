@@ -1,13 +1,15 @@
-import Phaser from 'phaser';
+import Phaser from "phaser";
 
 export default class BootScene extends Phaser.Scene {
-  constructor() { super({ key: 'BootScene' }); }
+  constructor() {
+    super({ key: "BootScene" });
+  }
 
   preload() {
     // aquí puedes cargar imágenes pequeñas de carga
   }
 
   create() {
-    this.scene.start('PreloadScene');
+    this.scene.start("PreloadScene");
   }
 }

@@ -20,5 +20,4 @@ export default class RoundManager {
   static hasPlayerWon() {
     return this.playerWins >= 2;
   }
-
 }

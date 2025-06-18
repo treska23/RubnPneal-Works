@@ -18,8 +18,6 @@ export interface HitData {
   type?: "punch" | "kick";
 }
 
-
-
 export class HitBox extends Phaser.GameObjects.Zone {
   public readonly hitData: HitData;
 
@@ -29,7 +27,7 @@ export class HitBox extends Phaser.GameObjects.Zone {
     y: number,
     w: number,
     h: number,
-    hitData: HitData
+    hitData: HitData,
   ) {
     super(scene, x, y, w, h);
     this.hitData = hitData;
@@ -53,7 +51,7 @@ export class HitBox extends Phaser.GameObjects.Zone {
       takeDamage: (dmg: number, stun?: number) => void;
       guardState?: "none" | "high" | "low";
       isCrouching?: boolean;
-    }
+    },
   ) {
     const { damage, knockBack, hitStun, guardStun, height } = this.hitData;
 
@@ -78,7 +76,7 @@ export class HitBox extends Phaser.GameObjects.Zone {
     if (blocked) {
       // - pequeño retroceso visual
       if (knockBack) target.setVelocityX(knockBack.x * 0.3);
-      
+
       target.takeDamage(0, guardStun);
 
       this.destroy();
@@ -93,7 +91,7 @@ export class HitBox extends Phaser.GameObjects.Zone {
     const finalDamage = height === "high" ? Math.round(damage * 0.5) : damage;
     const extraStun = height === "high" ? 80 : 0;
     target.takeDamage(finalDamage, hitStun + extraStun);
-    
+
     if ((target as any).health === 0) {
       target.setVelocity(0, 0);
     }

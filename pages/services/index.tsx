@@ -1,4 +1,4 @@
-﻿import SectionLayout from '@/components/SectionLayout';
+﻿import SectionLayout from "@/components/SectionLayout";
 
 export default function ServicesPage() {
   return (

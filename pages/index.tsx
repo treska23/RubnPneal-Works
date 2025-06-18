@@ -1,12 +1,12 @@
 // pages/index.tsx
 
-import type { GetStaticProps, NextPage } from 'next';
+import type { GetStaticProps, NextPage } from "next";
 
-import HeroCarousel from '../components/ui/HeroCarousel';
-import BigTitle from '@/components/BigTitle';
-import AboutAuthor from '../components/AboutAuthor';
-import SectionLayout from '../components/SectionLayout';
-import FeaturedGrid, { FeaturedItem } from '../components/FeaturedGrid';
+import HeroCarousel from "../components/ui/HeroCarousel";
+import BigTitle from "@/components/BigTitle";
+import AboutAuthor from "../components/AboutAuthor";
+import SectionLayout from "../components/SectionLayout";
+import FeaturedGrid, { FeaturedItem } from "../components/FeaturedGrid";
 
 interface HomeProps {
   featuredItems: FeaturedItem[];
@@ -18,17 +18,17 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
   const featuredItems: FeaturedItem[] = [
     {
       id: 1,
-      imageSrc: '/posts/post1.jpg',
-      title: 'Proyecto Personal #1',
-      description: 'Una breve descripción de lo que trata este proyecto.',
-      link: '/posts/1',
+      imageSrc: "/posts/post1.jpg",
+      title: "Proyecto Personal #1",
+      description: "Una breve descripción de lo que trata este proyecto.",
+      link: "/posts/1",
     },
     {
       id: 2,
-      imageSrc: '/posts/post2.jpg',
-      title: 'Proyecto Personal #2',
-      description: 'Otra descripción para el segundo proyecto destacado.',
-      link: '/posts/2',
+      imageSrc: "/posts/post2.jpg",
+      title: "Proyecto Personal #2",
+      description: "Otra descripción para el segundo proyecto destacado.",
+      link: "/posts/2",
     },
     // … más items si necesitas
   ];

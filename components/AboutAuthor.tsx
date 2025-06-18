@@ -1,5 +1,5 @@
 // components/ui/AboutAuthor.tsx
-import Image from 'next/image';
+import Image from "next/image";
 
 export default function AboutAuthor() {
   return (
@@ -19,12 +19,13 @@ export default function AboutAuthor() {
       <div className="text-center lg:text-left space-y-4">
         <h2 className="text-3xl font-serif font-bold">Sobre el autor</h2>
         <p className="text-lg leading-relaxed">
-          Hola, soy Rubén Pneal: ilustrador y autor de este cómic gráfico. Me apasiona explorar la
-          relación entre el ser humano y la naturaleza a través de imágenes potentes y narrativa
-          visual. Aquí encontrarás mis reflexiones, proyectos y próximos lanzamientos.
+          Hola, soy Rubén Pneal: ilustrador y autor de este cómic gráfico. Me
+          apasiona explorar la relación entre el ser humano y la naturaleza a
+          través de imágenes potentes y narrativa visual. Aquí encontrarás mis
+          reflexiones, proyectos y próximos lanzamientos.
         </p>
         <p className="text-lg leading-relaxed">
-          Si quieres saber más, sígueme en{' '}
+          Si quieres saber más, sígueme en{" "}
           <a
             href="https://www.instagram.com/rubnpneal/?hl=es"
             target="_blank"
@@ -32,7 +33,7 @@ export default function AboutAuthor() {
             className="underline text-blue-600 hover:text-blue-800"
           >
             Instagram
-          </a>{' '}
+          </a>{" "}
           o escríbeme a <strong>ruben.pineal.lopez@hotmail.com</strong>.
         </p>
       </div>

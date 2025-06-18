@@ -30,7 +30,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     y: number,
     texture: string,
     frame: number = 0,
-    hitGroup: Phaser.Physics.Arcade.Group
+    hitGroup: Phaser.Physics.Arcade.Group,
   ) {
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
@@ -82,7 +82,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     anim: string,
     hitboxWidth: number,
     duration = 120,
-    hitData: Partial<HitData> = {}
+    hitData: Partial<HitData> = {},
   ) {
     this.attackState = "attack";
     this.isAttacking = true;
@@ -103,7 +103,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           this.attackState = "idle";
           this.isAttacking = false;
         }
-      }
+      },
     );
 
     this.anims.play(anim, true);
@@ -132,7 +132,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.y - yOffset,
       hitboxWidth,
       24,
-      finalHit
+      finalHit,
     );
     // hb.setFillStyle(0xff0000, 0.3); // semitransparente (removed, not available on HitBox)
     hb.setDepth(10);
@@ -146,7 +146,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         hit.applyTo(enemySprite as any);
       },
       undefined,
-      this
+      this,
     );
 
     this.scene.time.delayedCall(animDuration, () => {
@@ -221,7 +221,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // El estado de guardia/crouch se actualizará más abajo según la entrada
     // para evitar ventanas en las que la detección de golpes no refleje la
     // postura real del jugador.
-
 
     if (this.attackState === "attack") {
       return;
