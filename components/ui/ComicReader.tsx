@@ -74,7 +74,6 @@ export default function ComicReader() {
     }
   }, [minigameVisible, minigameSolved, currentPage, targetIndex, jumpToPage]);
 
-
   useEffect(() => {
     if (minigameVisible) lockScroll();
     else unlockScroll();

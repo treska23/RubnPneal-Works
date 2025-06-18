@@ -49,7 +49,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     frame: number = 0,
     maxHealth = 100,
     target?: Phaser.Physics.Arcade.Sprite, // ← añadimos parámetro opcional
-    hitGroup?: Phaser.Physics.Arcade.Group,
+    hitGroup?: Phaser.Physics.Arcade.Group
   ) {
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
@@ -126,15 +126,15 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // escalar por inteligencia y limitar al 100%
     this.guardChance = Math.min(
       100,
-      Math.round(this.guardChance * this.intelligence),
+      Math.round(this.guardChance * this.intelligence)
     );
     this.attackChance = Math.min(
       100,
-      Math.round(this.attackChance * this.intelligence),
+      Math.round(this.attackChance * this.intelligence)
     );
     this.jumpChance = Math.min(
       100,
-      Math.round(this.jumpChance * this.intelligence),
+      Math.round(this.jumpChance * this.intelligence)
     );
     this.nextPatternSwitch =
       this.scene.time.now + Phaser.Math.Between(4000, 7000);
@@ -232,7 +232,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           });
           this.aiState = "chase";
         }
-      },
+      }
     );
 
     // Reproducimos animación de ataque (asegúrate de tenerla creada en createAnimations)
@@ -261,7 +261,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       lowAttack ? this.y : this.y - 10, // ④ Posición Y
       30, // ⑤ Ancho de hitbox
       20, // ⑥ Alto de hitbox
-      defaultHit,
+      defaultHit
     );
     hb.setDepth(10);
     this.hitGroup.add(hb);
@@ -312,7 +312,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.y - 16,
         28,
         24,
-        airHit,
+        airHit
       );
       this.hitGroup.add(hb);
       this.scene.time.delayedCall(150, () => hb.destroy());
@@ -635,5 +635,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       frameRate: 2,
       repeat: 0, // solo un frame de “duck”
     });
+  }
+
+  public do(action: EnemyDecision) {
+    // Simplemente la guardamos; update() se encargará de procesarla
+    this.pendingDecision = action;
   }
 }

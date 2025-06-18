@@ -77,7 +77,7 @@ export default class FightScene extends Phaser.Scene {
       0, // frame por defecto
       100, // maxHealth (puedes ajustar este número)
       this.player, // → target: el jugador
-      this.hitGroup, // → hitGroup: grupo compartido de HitBoxes
+      this.hitGroup // → hitGroup: grupo compartido de HitBoxes
     );
     this.enemy.setFlipX(true);
 
@@ -122,7 +122,7 @@ export default class FightScene extends Phaser.Scene {
         {
           fontSize: "14px",
           color: "#ffffff",
-        },
+        }
       )
       .setOrigin(0.5, 0);
 
@@ -131,14 +131,14 @@ export default class FightScene extends Phaser.Scene {
       20,
       20,
       this.player.health,
-      this.player.maxHealth,
+      this.player.maxHealth
     );
     this.drawHealthBar(
       this.enemyHealthBar,
       580,
       20,
       this.enemy.health,
-      this.enemy.maxHealth,
+      this.enemy.maxHealth
     );
 
     this.startRoundCountdown();
@@ -149,7 +149,7 @@ export default class FightScene extends Phaser.Scene {
         20,
         20,
         hp,
-        this.player.maxHealth,
+        this.player.maxHealth
       );
       this.playerHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
@@ -179,7 +179,7 @@ export default class FightScene extends Phaser.Scene {
         580,
         20,
         hp,
-        this.enemy.maxHealth,
+        this.enemy.maxHealth
       );
       this.enemyHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
@@ -239,7 +239,7 @@ export default class FightScene extends Phaser.Scene {
       if (isAtk) {
         this.enemy.once(
           Phaser.Animations.Events.ANIMATION_COMPLETE,
-          () => ((this.enemy as any).isAttacking = false),
+          () => ((this.enemy as any).isAttacking = false)
         );
       }
     });
@@ -250,7 +250,7 @@ export default class FightScene extends Phaser.Scene {
     x: number,
     y: number,
     health: number,
-    maxHealth: number,
+    maxHealth: number
   ) {
     const width = 200;
     const height = 20;
