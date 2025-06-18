@@ -53,6 +53,7 @@ export default class FightScene extends Phaser.Scene {
       RoundManager.stopEnemyAI,
     );
 
+
     // 1️⃣ — Fondo y plataformas
     this.add
       .image(400, 300, "room_bg")
