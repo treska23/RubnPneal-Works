@@ -48,10 +48,7 @@ export default class FightScene extends Phaser.Scene {
       this.bgm.stop();
       RoundManager.stopEnemyAI();
     });
-    this.events.once(
-      Phaser.Scenes.Events.DESTROY,
-      RoundManager.stopEnemyAI,
-    );
+    this.events.once(Phaser.Scenes.Events.DESTROY, RoundManager.stopEnemyAI);
 
     // 1️⃣ — Fondo y plataformas
     this.add
@@ -161,7 +158,25 @@ export default class FightScene extends Phaser.Scene {
       );
       this.playerHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
-        this.handleLose();
+        this.ended = true;
+        this.canMove = false;
+        RoundManager.stopEnemyAI();
+        this.add
+          .text(400, 300, "You Lose", {
+            fontSize: "32px",
+            color: "#ffffff",
+          })
+          .setOrigin(0.5);
+        RoundManager.enemyWins += 1;
+        const next = () => {
+          if (RoundManager.hasPlayerLost()) {
+            this.scene.start("GameOverScene");
+          } else {
+            RoundManager.nextRound();
+            this.scene.restart();
+          }
+        };
+        this.time.delayedCall(2000, next);
       }
     });
     this.enemy.on("healthChanged", (hp: number) => {
@@ -174,7 +189,25 @@ export default class FightScene extends Phaser.Scene {
       );
       this.enemyHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
-        this.handleWin();
+        this.ended = true;
+        this.canMove = false;
+        RoundManager.stopEnemyAI();
+        this.add
+          .text(400, 300, "You Win", {
+            fontSize: "32px",
+            color: "#ffffff",
+          })
+          .setOrigin(0.5);
+        RoundManager.playerWins += 1;
+        const next = () => {
+          if (RoundManager.hasPlayerWon()) {
+            this.scene.start("VictoryScene");
+          } else {
+            RoundManager.nextRound();
+            this.scene.restart();
+          }
+        };
+        this.time.delayedCall(2000, next);
       }
     });
 
@@ -245,50 +278,6 @@ export default class FightScene extends Phaser.Scene {
     if (!this.canMove) return;
     this.player.update(time, delta);
     (this.enemy as Enemy).update(time, delta);
-  }
-
-  private handleWin() {
-    this.ended = true;
-    this.canMove = false;
-    RoundManager.stopEnemyAI();
-    this.add
-      .text(400, 300, "You Win", {
-        fontSize: "32px",
-        color: "#ffffff",
-      })
-      .setOrigin(0.5);
-    RoundManager.playerWins += 1;
-    const next = () => {
-      if (RoundManager.hasPlayerWon()) {
-        this.scene.start("VictoryScene");
-      } else {
-        RoundManager.nextRound();
-        this.scene.restart();
-      }
-    };
-    this.time.delayedCall(2000, next);
-  }
-
-  private handleLose() {
-    this.ended = true;
-    this.canMove = false;
-    RoundManager.stopEnemyAI();
-    this.add
-      .text(400, 300, "You Lose", {
-        fontSize: "32px",
-        color: "#ffffff",
-      })
-      .setOrigin(0.5);
-    RoundManager.enemyWins += 1;
-    const next = () => {
-      if (RoundManager.hasPlayerLost()) {
-        this.scene.start("GameOverScene");
-      } else {
-        RoundManager.nextRound();
-        this.scene.restart();
-      }
-    };
-    this.time.delayedCall(2000, next);
   }
 
   private playHitEffects(hit: HitBox) {
