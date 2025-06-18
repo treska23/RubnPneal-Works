@@ -520,6 +520,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  public do(action: EnemyDecision) {
+    this.pendingDecision = action;
+  }
+
   /** ========================================
    *  ③ Método estático para crear animaciones
    *  ========================================

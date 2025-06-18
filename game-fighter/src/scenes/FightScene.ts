@@ -48,6 +48,11 @@ export default class FightScene extends Phaser.Scene {
       this.bgm.stop();
       RoundManager.stopEnemyAI();
     });
+    this.events.once(
+      Phaser.Scenes.Events.DESTROY,
+      RoundManager.stopEnemyAI,
+    );
+
 
     // 1️⃣ — Fondo y plataformas
     this.add
