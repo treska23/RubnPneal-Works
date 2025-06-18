@@ -41,9 +41,9 @@ export default class RoundManager {
   }
 
   static stopEnemyAI() {
-    if (this.aiTimer) {
+    if (this.aiTimer !== null) {
       clearInterval(this.aiTimer);
-      this.aiTimer = null;
     }
+    this.aiTimer = null;
   }
 }

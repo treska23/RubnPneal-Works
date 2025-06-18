@@ -40,7 +40,7 @@ export default function ComicReader() {
         Download: () => <></>,
         DownloadMenuItem: () => <></>,
       }),
-    []
+    [],
   );
 
   /* ─── freeze-scroll helpers ───────────────────────────────────── */
@@ -118,7 +118,7 @@ export default function ComicReader() {
           {layoutPlugin.current.toolbarPluginInstance && (
             <layoutPlugin.current.toolbarPluginInstance.Toolbar>
               {layoutPlugin.current.toolbarPluginInstance.renderDefaultToolbar(
-                transform
+                transform,
               )}
             </layoutPlugin.current.toolbarPluginInstance.Toolbar>
           )}

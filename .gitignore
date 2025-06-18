@@ -179,3 +179,4 @@ dist
 # -- Fine-tuning datasets
 .vscode/fine-tune/*.jsonl
 .env.local
+mi-portfolio/components/ui/game-fighter/
