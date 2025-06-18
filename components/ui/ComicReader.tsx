@@ -40,7 +40,7 @@ export default function ComicReader() {
         Download: () => <></>,
         DownloadMenuItem: () => <></>,
       }),
-    [],
+    []
   );
 
   /* ─── freeze-scroll helpers ───────────────────────────────────── */
@@ -68,11 +68,13 @@ export default function ComicReader() {
   }, [currentPage, minigameSolved, targetIndex]);
 
   /* ─── restore page after minigame ─────────────────────────────── */
+  const prevVisible = useRef(minigameVisible);
   useEffect(() => {
-    if (!minigameVisible && minigameSolved && currentPage !== targetIndex) {
+    if (prevVisible.current && !minigameVisible && minigameSolved) {
       jumpToPage(targetIndex);
     }
-  }, [minigameVisible, minigameSolved, currentPage, targetIndex, jumpToPage]);
+    prevVisible.current = minigameVisible;
+  }, [minigameVisible, minigameSolved, targetIndex, jumpToPage]);
 
   useEffect(() => {
     if (minigameVisible) lockScroll();
@@ -116,7 +118,7 @@ export default function ComicReader() {
           {layoutPlugin.current.toolbarPluginInstance && (
             <layoutPlugin.current.toolbarPluginInstance.Toolbar>
               {layoutPlugin.current.toolbarPluginInstance.renderDefaultToolbar(
-                transform,
+                transform
               )}
             </layoutPlugin.current.toolbarPluginInstance.Toolbar>
           )}
