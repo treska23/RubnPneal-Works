@@ -69,8 +69,10 @@ export default function ComicReader() {
 
   /* ─── restore page after minigame ─────────────────────────────── */
   useEffect(() => {
-    if (!minigameVisible) jumpToPage(currentPage);
-  }, [minigameVisible, currentPage, jumpToPage]);
+    if (!minigameVisible && minigameSolved && currentPage !== targetIndex) {
+      jumpToPage(targetIndex);
+    }
+  }, [minigameVisible, minigameSolved, currentPage, targetIndex, jumpToPage]);
 
 
   useEffect(() => {
