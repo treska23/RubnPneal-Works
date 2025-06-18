@@ -8,7 +8,7 @@ export default class VictoryScene extends Phaser.Scene {
 
   create() {
     this.sound.stopAll();
-    this.sound.play("coin");
+    this.sound.play("coin_sound");
 
     this.cameras.main.setBackgroundColor("#222");
 
