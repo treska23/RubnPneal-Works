@@ -67,6 +67,12 @@ export default function ComicReader() {
     setMinigameVisible(currentPage === targetIndex && !minigameSolved);
   }, [currentPage, minigameSolved, targetIndex]);
 
+  /* ─── restore page after minigame ─────────────────────────────── */
+  useEffect(() => {
+    if (!minigameVisible) jumpToPage(currentPage);
+  }, [minigameVisible, currentPage, jumpToPage]);
+
+
   useEffect(() => {
     if (minigameVisible) lockScroll();
     else unlockScroll();
@@ -121,6 +127,7 @@ export default function ComicReader() {
           ref={miniRef}
           onSolved={() => {
             setMinigameSolved(true);
+            setCurrentPage(targetIndex);
             setMinigameVisible(false); // ← al cerrarlo, PDF se monta de nuevo
           }}
         />
