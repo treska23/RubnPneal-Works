@@ -81,4 +81,6 @@ const GameFighter = forwardRef<GameFighterHandle, Props>(
   },
 );
 
+GameFighter.displayName = "GameFighter";
+
 export default GameFighter;
