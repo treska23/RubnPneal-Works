@@ -2,7 +2,33 @@
 import React from "react";
 import Image from "next/image";
 import SectionLayout from "@/components/SectionLayout";
-import VideoFrame from "../../components/ui/VideoFrame";
+import YouTube, { YouTubeProps } from "react-youtube";
+// Base configuration for every embedded YouTube iframe.
+// Setting `playsinline` prevents react-youtube from injecting `eval`.
+
+const YT_OPTS: YouTubeProps["opts"] = {
+  width: "100%",
+  height: "100%",
+  playerVars: { playsinline: 1 },
+};
+
+function VideoCard({ id }: { id: string }) {
+  return (
+    <div className="w-full aspect-video bg-black rounded border border-red-700">
+      <YouTube
+        videoId={id}
+        opts={YT_OPTS}
+        onReady={(e) => {
+          const iframe = e.target.getIframe();
+          // Guard against null when Next.js hydrates
+          if (iframe?.parentNode) {
+            (iframe.parentNode as HTMLElement).style.border = "none";
+          }
+        }}
+      />
+    </div>
+  );
+}
 
 interface PlaylistItemsApiResponse {
   items: {
@@ -38,7 +64,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
         {/* Grid de vídeos */}
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 px-4">
           {videos.map((id) => (
-            <VideoFrame key={id} videoId={id} />
+            <VideoCard key={id} id={id} />
           ))}
         </div>
       </div>

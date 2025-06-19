@@ -16,7 +16,10 @@ export default function SectionLayout({
   ...rest
 }: SectionLayoutProps) {
   return (
-    <section className={`relative z-10 py-16 px-4 ${className}`} {...rest}>
+    <section
+      className={`relative z-10 py-16 w-full px-4 sm:px-8 lg:px-16 max-w-4xl mx-auto ${className}`}
+      {...rest}
+    >
       {title && (
         <h2 className="text-4xl font-serif font-bold text-center mb-8">
           {title}
