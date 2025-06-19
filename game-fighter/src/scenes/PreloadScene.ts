@@ -1,6 +1,7 @@
 // game-fighter/src/scenes/PreloadScene.ts
 import Phaser from "phaser";
 import RoundManager from "../game/RoundManager";
+import { loadSharedAssets, createSharedAnimations } from "../utils/SharedLoader";
 
 /* Helper – mapea a /public/game-fighter/... */
 const asset = (f: string) => `/game-fighter/${f}`;
@@ -17,6 +18,8 @@ export default class PreloadScene extends Phaser.Scene {
     this.tryLoadAudio("bgm", ["audio/bgm.ogg", "audio/bgm.mp3"]);
     this.tryLoadAudio("hit_sound", ["audio/hit.ogg", "audio/hit.mp3"]);
     this.tryLoadAudio("coin_sound", ["audio/coin.wav"]); // ahora protegido
+
+    loadSharedAssets(this);
 
     // ╔═════════════ PLAYER (48×48) ═════════════╗
     const P = "assets/young/";
@@ -36,6 +39,7 @@ export default class PreloadScene extends Phaser.Scene {
     ].forEach((action) => p(`player_${action}`));
 
     this.tryLoadSprite("player_ko", `${P}young_ko.png`, 64, 48); // por ejemplo: 64 de ancho
+
 
     /* ╔═════════════ DETECTIVE / ENEMY (48×64) ═════════════╗ */
     const D = "assets/detective/";
@@ -81,6 +85,7 @@ export default class PreloadScene extends Phaser.Scene {
 
   create() {
     RoundManager.reset();
+    createSharedAnimations(this);
 
     const prompt = this.add
       .text(400, 320, "Pulsa para empezar", {
