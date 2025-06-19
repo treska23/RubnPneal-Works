@@ -19,7 +19,7 @@ export default function SectionLayout({
   return (
     <section
       className={cn(
-        "w-full max-w-screen-lg mx-auto px-4 py-8",
+        "w-full px-4 py-8",
         className,
       )}
       {...rest}
