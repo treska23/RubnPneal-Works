@@ -36,6 +36,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
+    Player.createAnimations(scene.anims);
+    this.play("player_walk");
+
     this.setCollideWorldBounds(true);
     (this.body as Phaser.Physics.Arcade.Body).setGravityY(980);
 
@@ -311,5 +314,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.isGuarding = false;
     this.guardState = "none";
     this.anims.play("player_idle", true);
+  }
+
+  /**
+   * Crea la animación de caminar si aún no existe.
+   */
+  public static createAnimations(anims: Phaser.Animations.AnimationManager) {
+    if (anims.exists("player_walk")) return;
+    anims.create({
+      key: "player_walk",
+      frames: anims.generateFrameNumbers("player_walk", { start: 0, end: 5 }),
+      frameRate: 8,
+      repeat: -1,
+    });
   }
 }

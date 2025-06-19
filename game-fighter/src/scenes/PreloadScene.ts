@@ -37,6 +37,12 @@ export default class PreloadScene extends Phaser.Scene {
 
     this.tryLoadSprite("player_ko", `${P}young_ko.png`, 64, 48); // por ejemplo: 64 de ancho
 
+    /* ╔═════════════ AVATAR (32×32) ═════════════╗ */
+    this.load.spritesheet("player_walk", "/sprites/avatar-walk.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+
     /* ╔═════════════ DETECTIVE / ENEMY (48×64) ═════════════╗ */
     const D = "assets/detective/";
     const d = (key: string, file: string) =>
