@@ -162,6 +162,7 @@ export default class FightScene extends Phaser.Scene {
       this.playerHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
         this.handleLose();
+
       }
     });
     this.enemy.on("healthChanged", (hp: number) => {
