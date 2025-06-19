@@ -18,7 +18,7 @@ export default function Document() {
         />
         {/* …otros meta/favicon… */}
       </Head>
-      <body className="bg-white text-black">
+      <body className="min-h-screen bg-white antialiased">
         <Main />
         <NextScript />
       </body>
