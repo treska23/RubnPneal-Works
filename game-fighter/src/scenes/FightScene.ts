@@ -48,15 +48,7 @@ export default class FightScene extends Phaser.Scene {
       this.bgm.stop();
       RoundManager.stopEnemyAI();
     });
-<<<<<<< codex/corregir-bucle-de-llamada-al-endpoint-y-limpiar-ia
     this.events.once(Phaser.Scenes.Events.DESTROY, RoundManager.stopEnemyAI);
-=======
-    this.events.once(
-      Phaser.Scenes.Events.DESTROY,
-      RoundManager.stopEnemyAI,
-    );
-
->>>>>>> main
 
     // 1️⃣ — Fondo y plataformas
     this.add
@@ -166,7 +158,6 @@ export default class FightScene extends Phaser.Scene {
       );
       this.playerHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
-<<<<<<< codex/corregir-bucle-de-llamada-al-endpoint-y-limpiar-ia
         this.ended = true;
         this.canMove = false;
         RoundManager.stopEnemyAI();
@@ -186,9 +177,6 @@ export default class FightScene extends Phaser.Scene {
           }
         };
         this.time.delayedCall(2000, next);
-=======
-        this.handleLose();
->>>>>>> main
       }
     });
     this.enemy.on("healthChanged", (hp: number) => {
@@ -201,7 +189,6 @@ export default class FightScene extends Phaser.Scene {
       );
       this.enemyHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
-<<<<<<< codex/corregir-bucle-de-llamada-al-endpoint-y-limpiar-ia
         this.ended = true;
         this.canMove = false;
         RoundManager.stopEnemyAI();
@@ -221,9 +208,6 @@ export default class FightScene extends Phaser.Scene {
           }
         };
         this.time.delayedCall(2000, next);
-=======
-        this.handleWin();
->>>>>>> main
       }
     });
 
