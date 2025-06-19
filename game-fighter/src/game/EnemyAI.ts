@@ -2,21 +2,19 @@
 export type EnemyDecision = "chase" | "attack" | "jump";
 
 /**
- * Devuelve la acción del enemigo según la distancia al jugador.
- * No usa llamadas en red y nunca lanza excepciones.
+ * Algoritmo local muy simple:
+ *   • < 60 px   → attack
+ *   • < 140 px  → 15 % jump, 85 % chase
+ *   • ≥ 140 px  → chase
+ *
+ * SIN peticiones de red - jamás lanzará fetch.
  */
 export async function requestEnemyAction(ctx: {
   distance: number;
 }): Promise<EnemyDecision> {
-  const { distance } = ctx;
+  const d = ctx.distance;
 
-  if (distance < 60) {
-    return "attack";
-  }
-
-  if (distance < 140) {
-    return Math.random() < 0.15 ? "jump" : "chase";
-  }
-
+  if (d < 60) return "attack";
+  if (d < 140 && Math.random() < 0.15) return "jump";
   return "chase";
 }
