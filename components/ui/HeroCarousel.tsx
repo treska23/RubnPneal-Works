@@ -16,7 +16,7 @@ export default function HeroCarousel() {
   ];
 
   return (
-    <section className="relative w-full h-screen md:h-[90vh]">
+    <section className="relative w-full h-[70vh] sm:h-screen md:h-[90vh]">
       {/* Carrusel */}
       <Swiper
         modules={[Autoplay, Navigation, Pagination]}
