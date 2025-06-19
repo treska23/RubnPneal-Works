@@ -46,7 +46,7 @@ interface VideosPageProps {
 // ─── 2) COMPONENTE PRINCIPAL ─────────────────────────────────────────────
 const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
   return (
-    <SectionLayout className="relative bg-gray-900 text-white overflow-hidden">
+    <SectionLayout className="relative bg-gray-900 text-white">
       {/* — Fantasma animado como fondo — */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <Image
