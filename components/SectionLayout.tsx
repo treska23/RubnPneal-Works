@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 
 // 1. Extiende de React.HTMLAttributes<HTMLElement> para heredar:
 //    - className?: string
@@ -17,7 +18,14 @@ export default function SectionLayout({
 }: SectionLayoutProps) {
   return (
     <section
-      className={`relative z-10 py-16 w-full px-4 sm:px-8 lg:px-16 max-w-4xl mx-auto ${className}`}
+      className={cn(
+        "relative z-10 py-16",
+        "w-full",
+        "max-w-screen-lg",
+        "px-4",
+        "mx-auto",
+        className,
+      )}
       {...rest}
     >
       {title && (
