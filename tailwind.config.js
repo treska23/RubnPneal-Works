@@ -13,6 +13,10 @@ module.exports = {
         sans: ['Inter', 'sans-serif'],
       },
       keyframes: {
+        avatar: {
+          '0%': { backgroundPositionX: '0' },
+          '100%': { backgroundPositionX: 'calc(var(--w) * var(--frames) * -1)' },
+        },
         'ghost-move': {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(100vw)' },
@@ -20,6 +24,7 @@ module.exports = {
       },
       animation: {
         ghost: 'ghost-move 8s linear infinite',
+        avatar: 'avatar var(--dur) steps(var(--frames)) infinite',
       },
     },
   },
