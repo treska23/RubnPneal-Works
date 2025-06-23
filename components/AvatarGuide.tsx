@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+
 import idleSheet from '@/public/sprites/avatar-idle.png';
 import walkSheet from '@/public/sprites/avatar-walk.png';
 
@@ -9,6 +10,7 @@ const FRAME_H = idleSheet.height;
 const SHEET = { idle: idleSheet.src, walk: walkSheet.src } as const;
 const FRAMES = { idle: 2, walk: 6 } as const;
 const ROOT_ID = 'avatar-guide-root';
+
 
 export default function AvatarGuide() {
   const ref = useRef<HTMLElement>(null);
