@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from 'next/image';
 import {
   Card,
   CardHeader,
@@ -7,8 +7,8 @@ import {
   CardTitle,
   CardDescription,
   CardAction,
-} from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+} from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 
 export interface FeaturedItem {
   id: string | number;
@@ -53,7 +53,7 @@ export default function FeaturedGrid({ items = [] }: FeaturedGridProps) {
                 src={item.imageSrc}
                 alt={item.title}
                 fill
-                style={{ objectFit: "cover" }}
+                style={{ objectFit: 'cover' }}
                 className="rounded-t-xl"
                 unoptimized
               />

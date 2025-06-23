@@ -1,7 +1,7 @@
 // game-fighter/src/game/RoundManager.ts
-import { requestEnemyAction } from "./EnemyAI";
-import { Player } from "./Player";
-import { Enemy } from "./Enemy";
+import { requestEnemyAction } from './EnemyAI';
+import { Player } from './Player';
+import { Enemy } from './Enemy';
 
 export default class RoundManager {
   /* ➊ estado de la partida */

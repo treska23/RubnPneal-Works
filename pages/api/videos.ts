@@ -1,5 +1,5 @@
 // pages/api/videos.ts
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 type Video = {
   videoId: string;

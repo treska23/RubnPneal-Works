@@ -1,5 +1,5 @@
 // components/ui/AboutAuthor.tsx
-import Image from "next/image";
+import Image from 'next/image';
 
 export default function AboutAuthor() {
   return (
@@ -25,7 +25,7 @@ export default function AboutAuthor() {
           reflexiones, proyectos y próximos lanzamientos.
         </p>
         <p className="text-lg leading-relaxed">
-          Si quieres saber más, sígueme en{" "}
+          Si quieres saber más, sígueme en{' '}
           <a
             href="https://www.instagram.com/rubnpneal/?hl=es"
             target="_blank"
@@ -33,7 +33,7 @@ export default function AboutAuthor() {
             className="underline text-blue-600 hover:text-blue-800"
           >
             Instagram
-          </a>{" "}
+          </a>{' '}
           o escríbeme a <strong>ruben.pineal.lopez@hotmail.com</strong>.
         </p>
       </div>

@@ -1,16 +1,16 @@
 // ==== src/game/Enemy.ts ====
 
-import Phaser from "phaser";
-import { HitBox } from "./HitBox"; // ① Importa HitBox
-import type { HitData } from "./HitBox";
-import { requestEnemyAction, type EnemyDecision } from "./EnemyAI";
+import Phaser from 'phaser';
+import { HitBox } from './HitBox'; // ① Importa HitBox
+import type { HitData } from './HitBox';
+import { requestEnemyAction, type EnemyDecision } from './EnemyAI';
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private speed = 200; // estilo M. Bison, mucho más rápido
   public health: number;
   public maxHealth: number;
 
-  private aiState: "chase" | "attack" = "chase"; // ① Estado interno
+  private aiState: 'chase' | 'attack' = 'chase'; // ① Estado interno
   private attackCooldown = false; // ③ Evita spamear ataques
   private hitGroup: Phaser.Physics.Arcade.Group; // ④ Grupo donde crearemos HitBoxes
 
@@ -26,7 +26,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private guardChance = 100;
   /** true mientras esté en anim “guard” o “crouch”                   */
   private isGuarding = false;
-  public guardState: "none" | "high" | "low" = "none";
+  public guardState: 'none' | 'high' | 'low' = 'none';
   public isCrouching = false;
   private isKO = false;
   private pendingDecision: EnemyDecision | null = null;
@@ -34,9 +34,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private damageMultiplier = 2;
   private attackChance = 50;
   private jumpChance = 15;
-  private pattern: "aggressive" | "defensive" | "balanced" | "bison" =
-    "balanced";
-  private patternWeakness: "high" | "low" | null = null;
+  private pattern: 'aggressive' | 'defensive' | 'balanced' | 'bison' =
+    'balanced';
+  private patternWeakness: 'high' | 'low' | null = null;
   private intelligence = 3; // IA aún más rápida (Bison)
   private decisionInterval = 1000;
 
@@ -49,7 +49,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     frame: number = 0,
     maxHealth = 100,
     target?: Phaser.Physics.Arcade.Sprite, // ← añadimos parámetro opcional
-    hitGroup?: Phaser.Physics.Arcade.Group
+    hitGroup?: Phaser.Physics.Arcade.Group,
   ) {
     super(scene, x, y, texture, frame);
     scene.add.existing(this);
@@ -89,31 +89,31 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // Bison tiene un peso mayor en la selección de patrones
     const rnd = Phaser.Math.Between(0, 100);
     if (rnd < 80) {
-      this.pattern = "bison";
+      this.pattern = 'bison';
     } else {
-      const options = ["aggressive", "defensive", "balanced"] as const;
+      const options = ['aggressive', 'defensive', 'balanced'] as const;
       this.pattern = options[Phaser.Math.Between(0, options.length - 1)];
     }
 
     switch (this.pattern) {
-      case "aggressive":
+      case 'aggressive':
         this.guardChance = 25;
         this.attackChance = 80;
         this.jumpChance = 40;
-        this.patternWeakness = "high";
+        this.patternWeakness = 'high';
         break;
-      case "defensive":
+      case 'defensive':
         this.guardChance = 90;
         this.attackChance = 30;
         this.jumpChance = 10;
-        this.patternWeakness = "low";
+        this.patternWeakness = 'low';
         break;
-      case "bison":
+      case 'bison':
         // Patrón inspirado en M. Bison: presión constante y gran defensa
         this.guardChance = 95;
         this.attackChance = 95;
         this.jumpChance = 60;
-        this.patternWeakness = "low";
+        this.patternWeakness = 'low';
         break;
 
       default:
@@ -126,15 +126,15 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // escalar por inteligencia y limitar al 100%
     this.guardChance = Math.min(
       100,
-      Math.round(this.guardChance * this.intelligence)
+      Math.round(this.guardChance * this.intelligence),
     );
     this.attackChance = Math.min(
       100,
-      Math.round(this.attackChance * this.intelligence)
+      Math.round(this.attackChance * this.intelligence),
     );
     this.jumpChance = Math.min(
       100,
-      Math.round(this.jumpChance * this.intelligence)
+      Math.round(this.jumpChance * this.intelligence),
     );
     this.nextPatternSwitch =
       this.scene.time.now + Phaser.Math.Between(4000, 7000);
@@ -145,7 +145,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (amount <= 0) return;
     this.health = Phaser.Math.Clamp(this.health - amount, 0, this.maxHealth);
 
-    this.play("enemy_hit_high", true);
+    this.play('enemy_hit_high', true);
 
     // ① Interrumpir completamente el ataque actual
     this.isAttacking = false;
@@ -157,17 +157,17 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.scene.time.delayedCall(stun, () => {
       this.attackCooldown = false; // ③ ya puede volver a atacar
       if (this.health > 0) {
-        this.aiState = "chase";
-        this.play("enemy_idle", true);
+        this.aiState = 'chase';
+        this.play('enemy_idle', true);
       } else {
-        this.play("enemy_ko", true);
+        this.play('enemy_ko', true);
         this.setVelocity(0, 0);
         this.isKO = true;
       }
     });
 
-    this.emit("healthChanged", this.health);
-    this.guardState = "none";
+    this.emit('healthChanged', this.health);
+    this.guardState = 'none';
     this.isGuarding = false;
     this.isCrouching = false;
   }
@@ -179,8 +179,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private startAttack(lowAttack = false) {
     // ── ① Elegir un ataque aleatorio ────────────────────────────
     // Lista de tipos de ataque que hemos definido en createAnimations:
-    const posiblesAtaques: Array<"punch" | "kick_light" | "kick_tight"> =
-      lowAttack ? ["kick_light"] : ["punch", "kick_light", "kick_tight"];
+    const posiblesAtaques: Array<'punch' | 'kick_light' | 'kick_tight'> =
+      lowAttack ? ['kick_light'] : ['punch', 'kick_light', 'kick_tight'];
 
     // Elegir un índice al azar entre 0 y 2:
     const idx = Phaser.Math.Between(0, posiblesAtaques.length - 1);
@@ -188,22 +188,22 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     let animKey: string;
     switch (tipoSeleccionado) {
-      case "punch":
-        animKey = "enemy_punch";
+      case 'punch':
+        animKey = 'enemy_punch';
         break;
-      case "kick_light":
-        animKey = "enemy_kick_light";
+      case 'kick_light':
+        animKey = 'enemy_kick_light';
         break;
-      case "kick_tight":
-        animKey = "enemy_kick_strong";
+      case 'kick_tight':
+        animKey = 'enemy_kick_strong';
         break;
       default:
-        animKey = "enemy_punch"; // Valor por defecto para evitar uso antes de asignar
+        animKey = 'enemy_punch'; // Valor por defecto para evitar uso antes de asignar
         break;
     }
 
     if (!this.scene.anims.exists(animKey)) {
-      console.warn("[Enemy] Animación NO registrada →", animKey);
+      console.warn('[Enemy] Animación NO registrada →', animKey);
       this.isAttacking = false;
       this.attackCooldown = false;
       if (lowAttack) this.isCrouching = false;
@@ -230,9 +230,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           this.scene.time.delayedCall(500, () => {
             this.attackCooldown = false;
           });
-          this.aiState = "chase";
+          this.aiState = 'chase';
         }
-      }
+      },
     );
 
     // Reproducimos animación de ataque (asegúrate de tenerla creada en createAnimations)
@@ -242,17 +242,17 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // ↓ Creamos la HitBox justo delante del enemigo ↓
     const dir = this.flipX ? -1 : 1;
     let baseDamage = 10;
-    if (tipoSeleccionado === "punch") baseDamage = 8;
-    if (tipoSeleccionado === "kick_tight") baseDamage = 14;
+    if (tipoSeleccionado === 'punch') baseDamage = 8;
+    if (tipoSeleccionado === 'kick_tight') baseDamage = 14;
 
     const defaultHit: HitData = {
       damage: Math.round(baseDamage * this.damageMultiplier),
       knockBack: new Phaser.Math.Vector2(dir * 50, -100),
       hitStun: 200,
       guardStun: 8,
-      height: "mid",
-      owner: "enemy",
-      type: tipoSeleccionado === "punch" ? "punch" : "kick",
+      height: 'mid',
+      owner: 'enemy',
+      type: tipoSeleccionado === 'punch' ? 'punch' : 'kick',
     };
 
     const hb = new HitBox(
@@ -261,7 +261,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       lowAttack ? this.y : this.y - 10, // ④ Posición Y
       30, // ⑤ Ancho de hitbox
       20, // ⑥ Alto de hitbox
-      defaultHit
+      defaultHit,
     );
     hb.setDepth(10);
     this.hitGroup.add(hb);
@@ -273,8 +273,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     // Fallback por si la animación se interrumpe
     this.scene.time.delayedCall(animDuration + 50, () => {
-      if (this.aiState === "attack") {
-        this.aiState = "chase";
+      if (this.aiState === 'attack') {
+        this.aiState = 'chase';
         this.isAttacking = false;
         if (lowAttack) this.isCrouching = false;
       }
@@ -293,7 +293,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     // impulso inicial
     body.setVelocity(dir * 80, -300);
-    this.play("enemy_jump_kick", true);
+    this.play('enemy_jump_kick', true);
 
     /* hit-box en el aire --------------------------------------------------- */
     this.scene.time.delayedCall(300, () => {
@@ -302,9 +302,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         knockBack: new Phaser.Math.Vector2(dir * 60, 100),
         hitStun: 260,
         guardStun: 10,
-        height: "mid",
-        owner: "enemy",
-        type: "kick",
+        height: 'mid',
+        owner: 'enemy',
+        type: 'kick',
       };
       const hb = new HitBox(
         this.scene,
@@ -312,7 +312,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.y - 16,
         28,
         24,
-        airHit
+        airHit,
       );
       this.hitGroup.add(hb);
       this.scene.time.delayedCall(150, () => hb.destroy());
@@ -327,8 +327,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         if (body.blocked.down) {
           landingEvt.remove(false); // detener el bucle
           this.isAttacking = false;
-          this.aiState = "chase";
-          this.play("enemy_idle", true); // vuelve a idle UNA vez
+          this.aiState = 'chase';
+          this.play('enemy_idle', true); // vuelve a idle UNA vez
           // 1 s de cooldown antes del siguiente salto
           this.scene.time.delayedCall(1000, () => (this.jumpCooldown = false));
         }
@@ -339,7 +339,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.scene.time.delayedCall(1000, () => {
       if (this.isAttacking) {
         this.isAttacking = false;
-        this.aiState = "chase";
+        this.aiState = 'chase';
       }
     });
   }
@@ -356,14 +356,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   /** Devuelve la altura (“high”, “mid”, “low”) del último hit del player,
    *  o null si el jugador no está atacando en este momento. */
-  private getIncomingHitHeight(): "high" | "mid" | "low" | null {
+  private getIncomingHitHeight(): 'high' | 'mid' | 'low' | null {
     const plyr = this.target as any;
     if (!plyr?.isAttacking) return null;
     // El Player ya genera su HitBox con la altura en hitData.height,
     // así que miramos el grupo compartido:
     for (const child of this.hitGroup.getChildren()) {
       const hb = child as HitBox;
-      if (hb.active && hb.hitData.owner === "player") {
+      if (hb.active && hb.hitData.owner === 'player') {
         return hb.hitData.height;
       }
     }
@@ -376,11 +376,11 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     // correctamente si el enemigo sigue agachado durante este frame
 
     const current = this.anims.currentAnim?.key;
-    if (current?.startsWith("enemy_hit") || current === "enemy_ko") return;
+    if (current?.startsWith('enemy_hit') || current === 'enemy_ko') return;
 
     if (!this.target) {
       (this.body as Phaser.Physics.Arcade.Body).setVelocityX(0);
-      this.play("enemy_idle", true);
+      this.play('enemy_idle', true);
       return;
     }
 
@@ -426,36 +426,36 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.isGuarding = true;
         body.setVelocityX(0);
 
-        if (incoming === "low") {
-          this.play("enemy_guard_low", true);
-          this.guardState = "low";
+        if (incoming === 'low') {
+          this.play('enemy_guard_low', true);
+          this.guardState = 'low';
           this.isCrouching = true;
         } else {
-          this.play("enemy_guard_high", true);
-          this.guardState = "high";
+          this.play('enemy_guard_high', true);
+          this.guardState = 'high';
         }
 
         // salir de guardia tras 300 ms
         this.scene.time.delayedCall(300, () => {
           this.isGuarding = false;
-          this.guardState = "none";
+          this.guardState = 'none';
           this.isCrouching = false;
-          this.play("enemy_idle", true);
+          this.play('enemy_idle', true);
         });
         return; // nada más este frame
-      } else if (incoming === "high") {
+      } else if (incoming === 'high') {
         // si no va a cubrir pero es alto…
         // …agáchate para esquivar
         this.isGuarding = true;
         this.isCrouching = true;
         body.setVelocityX(0);
-        this.play("enemy_down", true); // usa tu anim. de agacharse
+        this.play('enemy_down', true); // usa tu anim. de agacharse
 
         this.scene.time.delayedCall(300, () => {
           this.isGuarding = false;
-          this.guardState = "none";
+          this.guardState = 'none';
           this.isCrouching = false;
-          this.play("enemy_idle", true);
+          this.play('enemy_idle', true);
         });
         return;
       }
@@ -466,14 +466,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     /* 2.  Máquina de estados sencilla ------------------------------------- */
     switch (this.aiState) {
       /* -- persecución ----------------------------------------------------- */
-      case "chase": {
+      case 'chase': {
         /* 2-A   andar hacia el jugador si estamos en suelo */
         if (body.blocked.down && !this.isAttacking && !this.attackCooldown) {
           body.setVelocityX(dir * this.speed);
 
           /* reproducir walk SOLO si aún no está sonando */
-          if (this.anims.currentAnim?.key !== "enemy_walk") {
-            this.play("enemy_walk", true);
+          if (this.anims.currentAnim?.key !== 'enemy_walk') {
+            this.play('enemy_walk', true);
           }
         }
 
@@ -482,14 +482,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           const action = this.pendingDecision;
           this.pendingDecision = null;
           if (
-            action === "attack" &&
+            action === 'attack' &&
             dist <= this.groundAttackRange &&
             body.blocked.down
           ) {
             body.setVelocityX(0);
-            this.aiState = "attack";
+            this.aiState = 'attack';
           } else if (
-            action === "jump" &&
+            action === 'jump' &&
             dist < this.airAttackRange &&
             !this.jumpCooldown
           ) {
@@ -501,7 +501,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           Phaser.Math.Between(0, 100) < this.attackChance
         ) {
           body.setVelocityX(0);
-          this.aiState = "attack";
+          this.aiState = 'attack';
         } else if (
           dist < this.airAttackRange &&
           !this.jumpCooldown &&
@@ -513,10 +513,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       }
 
       /* -- ataque cuerpo a cuerpo ----------------------------------------- */
-      case "attack": {
+      case 'attack': {
         if (!this.isAttacking) {
           if (this.attackCooldown) {
-            this.aiState = "chase";
+            this.aiState = 'chase';
           } else {
             const targetCrouching = (this.target as any).isCrouching;
             this.startAttack(targetCrouching);
@@ -533,8 +533,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
    */
   public static createAnimations(anims: Phaser.Animations.AnimationManager) {
     anims.create({
-      key: "enemy_idle",
-      frames: anims.generateFrameNumbers("detective_idle", {
+      key: 'enemy_idle',
+      frames: anims.generateFrameNumbers('detective_idle', {
         start: 0,
         end: 1,
       }),
@@ -543,8 +543,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     });
 
     anims.create({
-      key: "enemy_walk",
-      frames: anims.generateFrameNumbers("detective_locomotion", {
+      key: 'enemy_walk',
+      frames: anims.generateFrameNumbers('detective_locomotion', {
         start: 0,
         end: 2,
       }),
@@ -553,8 +553,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     });
 
     anims.create({
-      key: "enemy_punch",
-      frames: anims.generateFrameNumbers("detective_punch_right", {
+      key: 'enemy_punch',
+      frames: anims.generateFrameNumbers('detective_punch_right', {
         start: 0,
         end: 1,
       }),
@@ -563,8 +563,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     });
 
     anims.create({
-      key: "enemy_hit_high",
-      frames: anims.generateFrameNumbers("detective_damage", {
+      key: 'enemy_hit_high',
+      frames: anims.generateFrameNumbers('detective_damage', {
         start: 0,
         end: 0,
       }),
@@ -573,8 +573,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     });
 
     anims.create({
-      key: "enemy_ko",
-      frames: anims.generateFrameNumbers("detective_ko", {
+      key: 'enemy_ko',
+      frames: anims.generateFrameNumbers('detective_ko', {
         start: 0,
         end: 0,
       }),
@@ -582,8 +582,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       repeat: 0,
     });
     anims.create({
-      key: "enemy_kick_strong",
-      frames: anims.generateFrameNumbers("detective_kicks_tight", {
+      key: 'enemy_kick_strong',
+      frames: anims.generateFrameNumbers('detective_kicks_tight', {
         start: 0,
         end: 2,
       }),
@@ -591,8 +591,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       repeat: 0,
     });
     anims.create({
-      key: "enemy_kick_light",
-      frames: anims.generateFrameNumbers("detective_kicks_light", {
+      key: 'enemy_kick_light',
+      frames: anims.generateFrameNumbers('detective_kicks_light', {
         start: 0,
         end: 2,
       }),
@@ -600,8 +600,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       repeat: 0,
     });
     anims.create({
-      key: "enemy_jump_kick",
-      frames: anims.generateFrameNumbers("detective_kicks_tight", {
+      key: 'enemy_jump_kick',
+      frames: anims.generateFrameNumbers('detective_kicks_tight', {
         start: 0,
         end: 2,
       }),
@@ -609,8 +609,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       repeat: 0,
     });
     anims.create({
-      key: "enemy_guard_high",
-      frames: anims.generateFrameNumbers("detective_defense", {
+      key: 'enemy_guard_high',
+      frames: anims.generateFrameNumbers('detective_defense', {
         start: 0,
         end: 0,
       }),
@@ -618,8 +618,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       repeat: 0,
     });
     anims.create({
-      key: "enemy_guard_low",
-      frames: anims.generateFrameNumbers("detective_defense", {
+      key: 'enemy_guard_low',
+      frames: anims.generateFrameNumbers('detective_defense', {
         start: 1,
         end: 1,
       }),
@@ -627,8 +627,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       repeat: 0,
     });
     anims.create({
-      key: "enemy_down",
-      frames: anims.generateFrameNumbers("detective_down", {
+      key: 'enemy_down',
+      frames: anims.generateFrameNumbers('detective_down', {
         start: 0,
         end: 0,
       }),

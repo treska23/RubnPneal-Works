@@ -1,9 +1,9 @@
 // pages/comic/index.tsx
-import SectionLayout from "@/components/SectionLayout";
-import dynamic from "next/dynamic";
+import SectionLayout from '@/components/SectionLayout';
+import dynamic from 'next/dynamic';
 
 // ⬇️  carga diferida en el cliente
-const ComicReader = dynamic(() => import("@/components/ui/ComicReader"), {
+const ComicReader = dynamic(() => import('@/components/ui/ComicReader'), {
   ssr: false, // evita que se renderice en el servidor
 });
 
