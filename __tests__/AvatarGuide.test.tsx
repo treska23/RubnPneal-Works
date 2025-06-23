@@ -2,10 +2,10 @@ import { render, waitFor } from '@testing-library/react';
 import AvatarGuide from '../components/AvatarGuide';
 
 test('renders AvatarGuide with idle state', async () => {
-  const { container } = render(<AvatarGuide />);
-  const fig = container.querySelector('figure') as HTMLElement;
+  render(<AvatarGuide />);
   await waitFor(() => {
-    expect(fig.classList.contains('avatar-guide')).toBe(true);
+    const fig = document.querySelector('figure.avatar-guide') as HTMLElement;
+    expect(fig).toBeTruthy();
     expect(fig.style.getPropertyValue('--frames')).toBe('2');
   });
 });
