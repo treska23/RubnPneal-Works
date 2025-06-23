@@ -19,18 +19,16 @@ export default function SectionLayout({
   return (
     <section
       className={cn(
-        'w-full',
-        'px-4 md:px-8 xl:px-12',
-        'py-8',
+        'w-full max-w-none',
         'mx-auto',
+        'px-4 sm:px-8 xl:px-12',
+        'py-8 sm:py-12',
         className,
       )}
       {...rest}
     >
       {title && (
-        <h2 className="text-4xl font-serif font-bold text-center mb-8">
-          {title}
-        </h2>
+        <h1 className="text-3xl font-bold mb-8 text-center">{title}</h1>
       )}
       {children}
     </section>
