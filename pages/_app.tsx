@@ -1,9 +1,10 @@
 // pages/_app.tsx
 import '../styles/globals.css';
+import '../styles/avatar-guide.css';
 import type { AppProps } from 'next/app';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
-import AvatarGuide from '../components/AvatarGuide';
+import AvatarGuide from '@/components/AvatarGuide';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -15,7 +16,9 @@ export default function App({ Component, pageProps }: AppProps) {
         </main>
         <Footer />
       </div>
-      <AvatarGuide />
+      <div className="fixed bottom-4 left-4 z-[9999]">
+        <AvatarGuide />
+      </div>
     </>
   );
 }
