@@ -196,40 +196,10 @@
     background-size: 100% 4px;
   }
 }
-@keyframes flicker {
-  0%,
-  100% {
-    opacity: 0.95;
-  }
-  5% {
-    opacity: 0.85;
-  }
-  10% {
-    opacity: 0.9;
-  }
-}
 
-.crt-effect {
-  @apply border-4 border-red-700/50;
-  animation: flicker 0.15s infinite;
-}
-
-.scanlines {
-  background-image: linear-gradient(
-    rgba(255, 255, 255, 0.02) 1px,
-    transparent 1px
-  );
-  background-size: 100% 4px;
-}
-@keyframes idle {
+@keyframes avatar-animate {
   to {
-    background-position-x: calc(var(--frame-w) * -2);
-  }
-}
-
-@keyframes walk {
-  to {
-    background-position-x: calc(var(--frame-w) * -6);
+    background-position-x: var(--shift);
   }
 }
 
@@ -238,11 +208,11 @@
   bottom: 2rem;
   right: 2rem;
   z-index: 50;
-  width: calc(var(--frame-w) * 0.75);
-  height: calc(var(--frame-h) * 0.75);
+  width: calc(var(--frame-w) * 0.25);
+  height: calc(var(--frame-h) * 0.25);
   background: url('/sprites/avatar-idle.png') left bottom/auto;
   image-rendering: pixelated;
-  animation: var(--anim-name) steps(var(--frames)) 0.8s infinite;
+  animation: avatar-animate 0.8s steps(var(--frames)) infinite;
   pointer-events: none;
   filter: drop-shadow(0 0 3px #0008);
   transform-origin: bottom right;
