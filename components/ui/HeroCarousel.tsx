@@ -1,18 +1,18 @@
 // components/HeroCarousel.tsx
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Navigation, Pagination } from "swiper/modules";
-import Image from "next/image";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Navigation, Pagination } from 'swiper/modules';
+import Image from 'next/image';
 
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 export default function HeroCarousel() {
   const slides = [
-    "/hero/slide1.jpg",
-    "/hero/slide2.jpg",
-    "/hero/slide3.jpg",
-    "/hero/slide4.jpg",
+    '/hero/slide1.jpg',
+    '/hero/slide2.jpg',
+    '/hero/slide3.jpg',
+    '/hero/slide4.jpg',
   ];
 
   return (

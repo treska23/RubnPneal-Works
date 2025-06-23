@@ -1,8 +1,8 @@
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { useState } from "react";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
 /**
  * Navbar inspirado en los ejemplos oficiales de Tailwind CSS v4 (UI Blocks → Navigation → Navbars)
@@ -13,11 +13,11 @@ export default function Nav() {
   const [open, setOpen] = useState(false);
 
   const links = [
-    { href: "/", label: "Inicio" },
-    { href: "/comic", label: "Cómic" },
-    { href: "/music", label: "Música" },
-    { href: "/videos", label: "Vídeos" },
-    { href: "/services", label: "Servicios" },
+    { href: '/', label: 'Inicio' },
+    { href: '/comic', label: 'Cómic' },
+    { href: '/music', label: 'Música' },
+    { href: '/videos', label: 'Vídeos' },
+    { href: '/services', label: 'Servicios' },
   ];
 
   return (
@@ -26,7 +26,7 @@ export default function Nav() {
         {/* --- Logo --- */}
         <div className="flex items-center space-x-2 flex-shrink-0">
           <Image src="/logo.svg" alt="Logo" width={40} height={40} priority />
-          <span className="text-xl font-bold">RubnPneal</span>{" "}
+          <span className="text-xl font-bold">RubnPneal</span>{' '}
         </div>
 
         {/* --- Links desktop --- */}
@@ -37,8 +37,8 @@ export default function Nav() {
                 href={href}
                 className={
                   router.pathname === href
-                    ? "text-gray-900 after:block after:h-0.5 after:w-full after:bg-gray-900"
-                    : "text-gray-600 hover:text-gray-900 transition-colors"
+                    ? 'text-gray-900 after:block after:h-0.5 after:w-full after:bg-gray-900'
+                    : 'text-gray-600 hover:text-gray-900 transition-colors'
                 }
               >
                 {label}
@@ -71,8 +71,8 @@ export default function Nav() {
                 href={href}
                 className={
                   router.pathname === href
-                    ? "block rounded-md px-3 py-2 bg-gray-100 text-gray-900"
-                    : "block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                    ? 'block rounded-md px-3 py-2 bg-gray-100 text-gray-900'
+                    : 'block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                 }
                 onClick={() => setOpen(false)}
               >

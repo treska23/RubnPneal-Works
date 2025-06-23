@@ -1,8 +1,8 @@
-import Phaser from "phaser";
-import { Player } from "../game/Player";
-import { HitBox } from "../game/HitBox"; // ⬅️ nuevo import
-import { Enemy } from "../game/Enemy";
-import RoundManager from "../game/RoundManager";
+import Phaser from 'phaser';
+import { Player } from '../game/Player';
+import { HitBox } from '../game/HitBox'; // ⬅️ nuevo import
+import { Enemy } from '../game/Enemy';
+import RoundManager from '../game/RoundManager';
 
 //import type { HitData } from '../game/HitBox';
 
@@ -26,7 +26,7 @@ export default class FightScene extends Phaser.Scene {
   // Le decimos a TS que enemy tendrá también health, maxHealth y takeDamage()
 
   constructor() {
-    super({ key: "FightScene" });
+    super({ key: 'FightScene' });
   }
 
   preload(): void {
@@ -42,25 +42,22 @@ export default class FightScene extends Phaser.Scene {
     this.createPlayerAnimations();
 
     // Inicia la banda sonora 8‑bit en bucle
-    this.bgm = this.sound.add("bgm", { loop: true, volume: 0.5 });
+    this.bgm = this.sound.add('bgm', { loop: true, volume: 0.5 });
     this.bgm.play();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.bgm.stop();
       RoundManager.stopEnemyAI();
     });
-    this.events.once(
-      Phaser.Scenes.Events.DESTROY,
-      RoundManager.stopEnemyAI,
-    );
+    this.events.once(Phaser.Scenes.Events.DESTROY, RoundManager.stopEnemyAI);
 
     // 1️⃣ — Fondo y plataformas
     this.add
-      .image(400, 300, "room_bg")
+      .image(400, 300, 'room_bg')
       .setDisplaySize(800, 600)
       .setScrollFactor(0);
 
     const platforms = this.physics.add.staticGroup();
-    platforms.create(400, 568, "ground").setDisplaySize(800, 64).refreshBody();
+    platforms.create(400, 568, 'ground').setDisplaySize(800, 64).refreshBody();
 
     // 3️⃣ — Grupo de hit‐boxes
     this.hitGroup = this.physics.add.group({
@@ -70,7 +67,7 @@ export default class FightScene extends Phaser.Scene {
     });
 
     // 4️⃣ — Crear jugador
-    this.player = new Player(this, 100, 515, "player_idle", 0, this.hitGroup);
+    this.player = new Player(this, 100, 515, 'player_idle', 0, this.hitGroup);
     this.player.setCollideWorldBounds(true);
     (this.player.body as Phaser.Physics.Arcade.Body).setBounce(0, 0);
     this.physics.add.collider(this.player, platforms);
@@ -80,11 +77,11 @@ export default class FightScene extends Phaser.Scene {
       this,
       650,
       500,
-      "detective_idle", // textura inicial
+      'detective_idle', // textura inicial
       0, // frame por defecto
       100, // maxHealth (puedes ajustar este número)
       this.player, // → target: el jugador
-      this.hitGroup // → hitGroup: grupo compartido de HitBoxes
+      this.hitGroup, // → hitGroup: grupo compartido de HitBoxes
     );
     this.enemy.setFlipX(true);
 
@@ -96,7 +93,7 @@ export default class FightScene extends Phaser.Scene {
       const hit = objA instanceof HitBox ? (objA as HitBox) : (objB as HitBox);
       const enem = objA === hit ? (objB as Enemy) : (objA as Enemy);
 
-      if (hit.hitData.owner !== "player") return; // ← filtro
+      if (hit.hitData.owner !== 'player') return; // ← filtro
       hit.applyTo(enem);
       this.playHitEffects(hit);
     });
@@ -106,7 +103,7 @@ export default class FightScene extends Phaser.Scene {
       const hit = objA instanceof HitBox ? (objA as HitBox) : (objB as HitBox);
       const plyr = objA === hit ? (objB as Player) : (objA as Player);
 
-      if (hit.hitData.owner !== "enemy") return;
+      if (hit.hitData.owner !== 'enemy') return;
       hit.applyTo(plyr);
       this.playHitEffects(hit);
     });
@@ -115,12 +112,12 @@ export default class FightScene extends Phaser.Scene {
     this.playerHealthBar = this.add.graphics();
     this.enemyHealthBar = this.add.graphics();
     this.playerHealthText = this.add.text(20, 20, `${this.player.health}`, {
-      fontSize: "14px",
-      color: "#ffffff",
+      fontSize: '14px',
+      color: '#ffffff',
     });
     this.enemyHealthText = this.add.text(580, 20, `${this.enemy.health}`, {
-      fontSize: "14px",
-      color: "#ffffff",
+      fontSize: '14px',
+      color: '#ffffff',
     });
     this.add
       .text(
@@ -128,9 +125,9 @@ export default class FightScene extends Phaser.Scene {
         50,
         `Round ${RoundManager.round}  ${RoundManager.playerWins}-${RoundManager.enemyWins}`,
         {
-          fontSize: "14px",
-          color: "#ffffff",
-        }
+          fontSize: '14px',
+          color: '#ffffff',
+        },
       )
       .setOrigin(0.5, 0);
 
@@ -139,39 +136,38 @@ export default class FightScene extends Phaser.Scene {
       20,
       20,
       this.player.health,
-      this.player.maxHealth
+      this.player.maxHealth,
     );
     this.drawHealthBar(
       this.enemyHealthBar,
       580,
       20,
       this.enemy.health,
-      this.enemy.maxHealth
+      this.enemy.maxHealth,
     );
 
     this.startRoundCountdown();
 
-    this.player.on("healthChanged", (hp: number) => {
+    this.player.on('healthChanged', (hp: number) => {
       this.drawHealthBar(
         this.playerHealthBar,
         20,
         20,
         hp,
-        this.player.maxHealth
+        this.player.maxHealth,
       );
       this.playerHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
         this.handleLose();
-
       }
     });
-    this.enemy.on("healthChanged", (hp: number) => {
+    this.enemy.on('healthChanged', (hp: number) => {
       this.drawHealthBar(
         this.enemyHealthBar,
         580,
         20,
         hp,
-        this.enemy.maxHealth
+        this.enemy.maxHealth,
       );
       this.enemyHealthText.setText(`${hp}`);
       if (hp <= 0 && !this.ended) {
@@ -181,27 +177,27 @@ export default class FightScene extends Phaser.Scene {
 
     // 8️⃣ — Teclas de prueba para el enemigo
     const ATTACK_ANIMS = [
-      "enemy_punch",
-      "enemy_kick_light",
-      "enemy_kick_strong",
+      'enemy_punch',
+      'enemy_kick_light',
+      'enemy_kick_strong',
     ];
 
     const keyMap: Record<string, string> = {
-      P: "enemy_idle",
-      K: "enemy_walk",
-      V: "enemy_jump",
-      L: "enemy_punch",
-      O: "enemy_kick_light",
-      I: "enemy_kick_strong",
-      H: "enemy_guard_high",
-      J: "enemy_guard_low",
-      U: "enemy_hit_high",
-      Y: "enemy_hit_low",
-      W: "enemy_ko",
-      B: "enemy_blow",
+      P: 'enemy_idle',
+      K: 'enemy_walk',
+      V: 'enemy_jump',
+      L: 'enemy_punch',
+      O: 'enemy_kick_light',
+      I: 'enemy_kick_strong',
+      H: 'enemy_guard_high',
+      J: 'enemy_guard_low',
+      U: 'enemy_hit_high',
+      Y: 'enemy_hit_low',
+      W: 'enemy_ko',
+      B: 'enemy_blow',
     };
 
-    this.input.keyboard!.on("keydown", (evt: KeyboardEvent) => {
+    this.input.keyboard!.on('keydown', (evt: KeyboardEvent) => {
       const anim = keyMap[evt.key.toUpperCase()];
       if (!anim) return;
 
@@ -214,7 +210,7 @@ export default class FightScene extends Phaser.Scene {
       if (isAtk) {
         this.enemy.once(
           Phaser.Animations.Events.ANIMATION_COMPLETE,
-          () => ((this.enemy as any).isAttacking = false)
+          () => ((this.enemy as any).isAttacking = false),
         );
       }
     });
@@ -225,7 +221,7 @@ export default class FightScene extends Phaser.Scene {
     x: number,
     y: number,
     health: number,
-    maxHealth: number
+    maxHealth: number,
   ) {
     const width = 200;
     const height = 20;
@@ -253,15 +249,15 @@ export default class FightScene extends Phaser.Scene {
     this.canMove = false;
     RoundManager.stopEnemyAI();
     this.add
-      .text(400, 300, "You Win", {
-        fontSize: "32px",
-        color: "#ffffff",
+      .text(400, 300, 'You Win', {
+        fontSize: '32px',
+        color: '#ffffff',
       })
       .setOrigin(0.5);
     RoundManager.playerWins += 1;
     const next = () => {
       if (RoundManager.hasPlayerWon()) {
-        this.scene.start("VictoryScene");
+        this.scene.start('VictoryScene');
       } else {
         RoundManager.nextRound();
         this.scene.restart();
@@ -275,15 +271,15 @@ export default class FightScene extends Phaser.Scene {
     this.canMove = false;
     RoundManager.stopEnemyAI();
     this.add
-      .text(400, 300, "You Lose", {
-        fontSize: "32px",
-        color: "#ffffff",
+      .text(400, 300, 'You Lose', {
+        fontSize: '32px',
+        color: '#ffffff',
       })
       .setOrigin(0.5);
     RoundManager.enemyWins += 1;
     const next = () => {
       if (RoundManager.hasPlayerLost()) {
-        this.scene.start("GameOverScene");
+        this.scene.start('GameOverScene');
       } else {
         RoundManager.nextRound();
         this.scene.restart();
@@ -293,9 +289,9 @@ export default class FightScene extends Phaser.Scene {
   }
 
   private playHitEffects(hit: HitBox) {
-    this.sound.play("hit_sound");
+    this.sound.play('hit_sound');
     const { type, height } = hit.hitData as any;
-    if (type === "kick" || (type === "punch" && height === "high")) {
+    if (type === 'kick' || (type === 'punch' && height === 'high')) {
       this.cameras.main.shake(100, 0.01);
     }
   }
@@ -303,9 +299,9 @@ export default class FightScene extends Phaser.Scene {
   private startRoundCountdown() {
     this.canMove = false;
     const countdown = this.add
-      .text(400, 260, "3", {
-        fontSize: "32px",
-        color: "#ffffff",
+      .text(400, 260, '3', {
+        fontSize: '32px',
+        color: '#ffffff',
       })
       .setOrigin(0.5);
 
@@ -319,7 +315,7 @@ export default class FightScene extends Phaser.Scene {
           countdown.setText(String(value));
         } else {
           evt.remove(false);
-          countdown.setText("Fight!");
+          countdown.setText('Fight!');
           this.canMove = true;
           this.time.delayedCall(500, () => countdown.destroy());
         }
@@ -328,8 +324,8 @@ export default class FightScene extends Phaser.Scene {
   }
   private createPlayerAnimations(): void {
     this.anims.create({
-      key: "player_idle",
-      frames: this.anims.generateFrameNumbers("player_idle", {
+      key: 'player_idle',
+      frames: this.anims.generateFrameNumbers('player_idle', {
         start: 0,
         end: 1,
       }),
@@ -337,8 +333,8 @@ export default class FightScene extends Phaser.Scene {
       repeat: -1,
     });
     this.anims.create({
-      key: "player_guard_high",
-      frames: this.anims.generateFrameNumbers("player_guard_high", {
+      key: 'player_guard_high',
+      frames: this.anims.generateFrameNumbers('player_guard_high', {
         start: 0,
         end: 0,
       }),
@@ -346,8 +342,8 @@ export default class FightScene extends Phaser.Scene {
       repeat: -1,
     });
     this.anims.create({
-      key: "player_guard_low",
-      frames: this.anims.generateFrameNumbers("player_guard_low", {
+      key: 'player_guard_low',
+      frames: this.anims.generateFrameNumbers('player_guard_low', {
         start: 0,
         end: 0,
       }),
@@ -355,8 +351,8 @@ export default class FightScene extends Phaser.Scene {
       repeat: -1,
     });
     this.anims.create({
-      key: "player_locomotion",
-      frames: this.anims.generateFrameNumbers("player_locomotion", {
+      key: 'player_locomotion',
+      frames: this.anims.generateFrameNumbers('player_locomotion', {
         start: 0,
         end: 3,
       }),
@@ -364,8 +360,8 @@ export default class FightScene extends Phaser.Scene {
       repeat: -1,
     });
     this.anims.create({
-      key: "player_jump",
-      frames: this.anims.generateFrameNumbers("player_jump", {
+      key: 'player_jump',
+      frames: this.anims.generateFrameNumbers('player_jump', {
         start: 0,
         end: 2,
       }),
@@ -373,8 +369,8 @@ export default class FightScene extends Phaser.Scene {
       repeat: 0,
     });
     this.anims.create({
-      key: "player_punch",
-      frames: this.anims.generateFrameNumbers("player_punch", {
+      key: 'player_punch',
+      frames: this.anims.generateFrameNumbers('player_punch', {
         start: 0,
         end: 1,
       }),
@@ -382,8 +378,8 @@ export default class FightScene extends Phaser.Scene {
       repeat: 0,
     });
     this.anims.create({
-      key: "player_kick_light",
-      frames: this.anims.generateFrameNumbers("player_kick_soft", {
+      key: 'player_kick_light',
+      frames: this.anims.generateFrameNumbers('player_kick_soft', {
         start: 0,
         end: 1,
       }),
@@ -391,8 +387,8 @@ export default class FightScene extends Phaser.Scene {
       repeat: 0,
     });
     this.anims.create({
-      key: "player_kick_tight",
-      frames: this.anims.generateFrameNumbers("player_kick_tight", {
+      key: 'player_kick_tight',
+      frames: this.anims.generateFrameNumbers('player_kick_tight', {
         start: 0,
         end: 1,
       }),
@@ -400,8 +396,8 @@ export default class FightScene extends Phaser.Scene {
       repeat: 0,
     });
     this.anims.create({
-      key: "player_damage",
-      frames: this.anims.generateFrameNumbers("player_damage", {
+      key: 'player_damage',
+      frames: this.anims.generateFrameNumbers('player_damage', {
         start: 0,
         end: 1,
       }),
@@ -409,8 +405,8 @@ export default class FightScene extends Phaser.Scene {
       repeat: 0,
     });
     this.anims.create({
-      key: "player_ko",
-      frames: this.anims.generateFrameNumbers("player_ko", {
+      key: 'player_ko',
+      frames: this.anims.generateFrameNumbers('player_ko', {
         start: 0,
         end: 0,
       }),
@@ -418,8 +414,8 @@ export default class FightScene extends Phaser.Scene {
       repeat: 0,
     });
     this.anims.create({
-      key: "player_down",
-      frames: this.anims.generateFrameNumbers("player_down", {
+      key: 'player_down',
+      frames: this.anims.generateFrameNumbers('player_down', {
         start: 0,
         end: 0,
       }),

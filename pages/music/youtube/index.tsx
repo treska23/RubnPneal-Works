@@ -1,8 +1,8 @@
 // pages/music/youtube/index.tsx
-import SectionLayout from "@/components/SectionLayout";
-import Parser from "rss-parser";
+import SectionLayout from '@/components/SectionLayout';
+import Parser from 'rss-parser';
 
-const CHANNEL_ID = "UCAyA9gTo-GPaKNnlulvS8iw";
+const CHANNEL_ID = 'UCAyA9gTo-GPaKNnlulvS8iw';
 
 type YouTubeVideo = { id: string; title: string; thumbnail: string };
 
@@ -12,13 +12,13 @@ export async function getStaticProps() {
       `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`,
     );
     const videos: YouTubeVideo[] = feed.items.map((i) => ({
-      id: i.link?.split("v=")[1] ?? "",
-      title: i.title ?? "",
-      thumbnail: i["media:thumbnail"]?.url ?? "",
+      id: i.link?.split('v=')[1] ?? '',
+      title: i.title ?? '',
+      thumbnail: i['media:thumbnail']?.url ?? '',
     }));
     return { props: { videos } };
   } catch (err) {
-    console.error("Failed to fetch YouTube RSS feed:", err);
+    console.error('Failed to fetch YouTube RSS feed:', err);
     return { props: { videos: [] } };
   }
 }
@@ -54,10 +54,10 @@ export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
           className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(350deg, #ffffff 0 100px, transparent 10px 320px)",
+              'repeating-linear-gradient(350deg, #ffffff 0 100px, transparent 10px 320px)',
             animation:
-              "tv-scan-diag 8s linear infinite, flicker 3s steps(100) infinite",
-            imageRendering: "pixelated",
+              'tv-scan-diag 8s linear infinite, flicker 3s steps(100) infinite',
+            imageRendering: 'pixelated',
           }}
         />
 
@@ -73,7 +73,7 @@ export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
                 className="group relative overflow-hidden rounded-lg border-2 border-black transform transition-all duration-300 hover:-rotate-1 hover:scale-105"
               >
                 <iframe
-                  style={{ borderRadius: "12px" }}
+                  style={{ borderRadius: '12px' }}
                   src={`https://www.youtube.com/embed/${video.id}`}
                   width="100%"
                   height="240"

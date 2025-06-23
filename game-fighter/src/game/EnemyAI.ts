@@ -1,5 +1,5 @@
 // game-fighter/src/game/EnemyAI.ts
-export type EnemyDecision = "chase" | "attack" | "jump";
+export type EnemyDecision = 'chase' | 'attack' | 'jump';
 
 /**
  * Algoritmo local muy simple:
@@ -14,7 +14,7 @@ export async function requestEnemyAction(ctx: {
 }): Promise<EnemyDecision> {
   const d = ctx.distance;
 
-  if (d < 60) return "attack";
-  if (d < 140 && Math.random() < 0.15) return "jump";
-  return "chase";
+  if (d < 60) return 'attack';
+  if (d < 140 && Math.random() < 0.15) return 'jump';
+  return 'chase';
 }
