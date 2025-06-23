@@ -10,14 +10,14 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Nav />
+      <div className="fixed bottom-4 right-4 z-[9999] pointer-events-none">
+        <AvatarGuide />
+      </div>
       <div className="pt-16 w-full">
         <main className="w-full flex flex-col flex-1">
           <Component {...pageProps} />
         </main>
         <Footer />
-      </div>
-      <div className="fixed bottom-4 left-4 z-[9999]">
-        <AvatarGuide />
       </div>
     </>
   );
