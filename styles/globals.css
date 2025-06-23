@@ -196,16 +196,10 @@
     background-size: 100% 4px;
   }
 }
-@keyframes flicker {
-  0%,
-  100% {
-    opacity: 0.95;
-  }
-  5% {
-    opacity: 0.85;
-  }
-  10% {
-    opacity: 0.9;
+
+@keyframes avatar-animate {
+  to {
+    background-position-x: var(--shift);
   }
 }
 
@@ -220,17 +214,6 @@
     transparent 1px
   );
   background-size: 100% 4px;
-}
-@keyframes idle {
-  to {
-    background-position-x: calc(var(--frame-w) * -2);
-  }
-}
-
-@keyframes walk {
-  to {
-    background-position-x: calc(var(--frame-w) * -6);
-  }
 }
 
 .avatar-guide {
