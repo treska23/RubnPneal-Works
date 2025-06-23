@@ -250,3 +250,8 @@
   background-image: var(--sheet);
   animation: var(--anim-name) steps(var(--frames)) 0.8s infinite;
 }
+
+/* Oculta el círculo negro con la N que genera Next.js en modo dev */
+nextjs-portal {
+  display: none !important;
+}
