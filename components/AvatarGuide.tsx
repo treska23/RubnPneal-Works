@@ -1,51 +1,44 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import { createRoot } from 'react-dom/client';
 import idleSheet from '@/public/sprites/avatar-idle.png';
 import walkSheet from '@/public/sprites/avatar-walk.png';
+import { useRef, useEffect, useState } from 'react';
 
-const FRAME_W = idleSheet.width / 2; // 2 frames en idle (png = 2 columnas)
-const FRAME_H = idleSheet.height;
-const SHEET = { idle: idleSheet.src, walk: walkSheet.src } as const;
-const FRAMES = { idle: 2, walk: 6 } as const;
-const ROOT_ID = 'avatar-guide-root';
+// AvatarGuide.tsx (principio)
+const IDLE_W = idleSheet.width / 2; // 2 columnas → 384 px
+const IDLE_H = idleSheet.height; // 377 px
+const WALK_W = walkSheet.width / 6; // 6 columnas → 176 px
+const WALK_H = walkSheet.height; // 377 px
+const FRAMES = { idle: 2, walk: 6 };
+
+const SHEET: Record<'idle' | 'walk', string> = {
+  idle: idleSheet.src,
+  walk: walkSheet.src,
+};
 
 export default function AvatarGuide() {
   const ref = useRef<HTMLElement>(null);
   const [state, setState] = useState<'idle' | 'walk'>('idle');
-  
-  // ensure a single guide instance mounted in the page
-  useEffect(() => {
-    const already = document.getElementById(ROOT_ID);
-    if (already) return;
-    const div = document.createElement('div');
-    div.id = ROOT_ID;
-    document.body.appendChild(div);
-    createRoot(div).render(<AvatarGuide />);
-  }, []);
-
-  const rootExists =
-    typeof window !== 'undefined' && document.getElementById(ROOT_ID);
 
   // inicializa variables de tamaño al montar
   useEffect(() => {
-    if (!rootExists || !ref.current) return;
-    ref.current.style.setProperty('--frame-w', `${FRAME_W}px`);
-    ref.current.style.setProperty('--frame-h', `${FRAME_H}px`);
-  }, [rootExists]);
+    if (!ref.current) return;
 
-  // aplica animación y sprite en cada cambio de estado
-  useEffect(() => {
-    if (!rootExists || !ref.current) return;
-    const frames = FRAMES[state];
+    // datos según sprite
+    const w = state === 'idle' ? IDLE_W : WALK_W;
+    const h = state === 'idle' ? IDLE_H : WALK_H;
+    const frames = state === 'idle' ? FRAMES.idle : FRAMES.walk;
+
+    // ← propiedades CSS
+    ref.current.style.setProperty('--frame-w', `${w}px`);
+    ref.current.style.setProperty('--frame-h', `${h}px`);
     ref.current.style.setProperty('--frames', String(frames));
+    ref.current.style.setProperty('--shift', `${-w * (frames - 1)}px`);
     ref.current.style.setProperty('--anim-name', state);
-    ref.current.style.backgroundImage = `url(${SHEET[state]})`;
-  }, [state, rootExists]);
+    ref.current.style.backgroundImage = `url('${SHEET[state]}')`;
+  }, [state]);
 
   // detecta scroll para cambiar temporalmente a 'walk'
   useEffect(() => {
-    if (!rootExists) return;
     let timeout: NodeJS.Timeout | null = null;
     const onScroll = () => {
       setState('walk');
@@ -57,9 +50,7 @@ export default function AvatarGuide() {
       window.removeEventListener('scroll', onScroll);
       if (timeout) clearTimeout(timeout);
     };
-  }, [rootExists]);
-
-  if (!rootExists) return null;
+  }, []);
 
   return <figure ref={ref} className="avatar-guide" aria-hidden />;
 }

@@ -234,18 +234,31 @@
 }
 
 .avatar-guide {
+  /* tamaño relativo deseado --------- */
+  --scale: 0.25; /* 25 % del original */
+
+  /* posición fija en pantalla ------- */
   position: fixed;
   bottom: 2rem;
   right: 2rem;
   z-index: 50;
-  width: calc(var(--frame-w) * 0.75);
-  height: calc(var(--frame-h) * 0.75);
-  background: url('/sprites/avatar-idle.png') left bottom/auto;
+
+  /* ancho y alto de UN frame -------- */
+  width: calc(var(--frame-w) * var(--scale));
+  height: calc(var(--frame-h) * var(--scale));
+
+  /* aquí está la clave -------------- */
+  background-size: calc(var(--frame-w) * var(--frames) * var(--scale)) auto;
+  animation: avatar-scroll steps(var(--frames)) 0.8s infinite;
   image-rendering: pixelated;
-  animation: var(--anim-name) steps(var(--frames)) 0.8s infinite;
-  pointer-events: none;
-  filter: drop-shadow(0 0 3px #0008);
-  transform-origin: bottom right;
+  background: no-repeat;
+  image-rendering: pixelated;
+}
+
+@keyframes avatar-scroll {
+  to {
+    background-position-x: var(--shift);
+  }
 }
 
 /* Oculta el círculo negro con la N que genera Next.js en modo dev */
