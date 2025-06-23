@@ -1,6 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
+import { useEffect, useRef } from 'react';
 
 const ANIMS = {
   walk: { sheet: '/sprites/avatar-walk.png', frames: 6 },
@@ -9,18 +8,20 @@ const ANIMS = {
 
 export default function AvatarGuide() {
   const ref = useRef<HTMLDivElement>(null);
-  const [state, setState] = useState<'walk' | 'idle'>('idle');
 
   /* helper para iniciar animación sprite-sheet via CSS */
   const setAnim = (name: 'walk' | 'idle') => {
-    const { frames } = ANIMS[name];
+    const { sheet, frames } = ANIMS[name];
+    ref.current!.style.setProperty('--sheet', `url("${sheet}")`);
     ref.current!.style.setProperty('--frames', String(frames));
     ref.current!.style.setProperty('--anim-name', name);
-    setState(name);
   };
 
   useEffect(() => {
     /* On mount: listen scroll & nav clicks */
+    if (ref.current) {
+      ref.current.style.setProperty('--sheet', `url("${ANIMS.idle.sheet}")`);
+    }
     const scroll = () => {
       /* calcula sección más visible, mueve avatar */
     };
@@ -52,10 +53,8 @@ export default function AvatarGuide() {
     <div
       ref={ref}
       aria-hidden
-      className="fixed left-4 bottom-4 z-[9999] w-12 h-12 pointer-events-none
-                 bg-[image:var(--sheet,url('/sprites/avatar-idle.png'))]
-                 animate-[var(--anim-name,idle)_steps(var(--frames))_0.8s_infinite]"
-      style={{ '--frames': 4, '--anim-name': 'idle' } as any}
+      className="avatar-guide"
+      style={{ '--frames': 4, '--anim-name': 'idle' } as React.CSSProperties}
     />
   );
 }

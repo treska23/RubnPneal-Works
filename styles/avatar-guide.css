@@ -1,0 +1,23 @@
+.avatar-guide {
+  width: 32px;
+  height: 32px;
+  background-image: var(--sheet);
+  background-size: auto 100%;
+  animation: var(--anim-name) 0.8s steps(var(--frames)) infinite;
+}
+@keyframes idle {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -128px 0;
+  }
+}
+@keyframes walk {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -192px 0;
+  }
+}
