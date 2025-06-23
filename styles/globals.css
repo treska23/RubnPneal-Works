@@ -197,30 +197,33 @@
   }
 }
 
-@keyframes avatar-animate {
-  to {
-    background-position-x: var(--shift);
-  }
-}
-
 .avatar-guide {
-  /* tamaño relativo deseado --------- */
-  --scale: 0.25; /* 25 % del original */
-
-  /* posición fija en pantalla ------- */
+  --scale: 0.25; /* 25 % */
   position: fixed;
   bottom: 2rem;
   right: 2rem;
   z-index: 50;
-  width: calc(var(--frame-w) * 0.25);
-  height: calc(var(--frame-h) * 0.25);
-  background: url('/sprites/avatar-idle.png') left bottom/auto;
+
+  width: calc(var(--frame-w) * var(--scale));
+  height: calc(var(--frame-h) * var(--scale));
+
+  /* la anchura real de la lámina = nº frames × frame-w */
+  background: left bottom / calc(var(--frame-w) * var(--frames) * var(--scale))
+    auto no-repeat;
   image-rendering: pixelated;
-  animation: avatar-animate 0.8s steps(var(--frames)) infinite;
+
+  animation-name: avatar-anim; /* ⬅ solo el nombre      */
+  animation-duration: 0.8s; /*    valores por defecto */
+  animation-iteration-count: infinite;
   pointer-events: none;
   filter: drop-shadow(0 0 3px #0008);
   transform-origin: bottom right;
+}
 
+@keyframes avatar-anim {
+  to {
+    background-position-x: calc(var(--frame-w) * -var(--frames));
+  }
 }
 
 /* Oculta el círculo negro con la N que genera Next.js en modo dev */
