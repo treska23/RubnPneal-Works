@@ -203,19 +203,6 @@
   }
 }
 
-.crt-effect {
-  @apply border-4 border-red-700/50;
-  animation: flicker 0.15s infinite;
-}
-
-.scanlines {
-  background-image: linear-gradient(
-    rgba(255, 255, 255, 0.02) 1px,
-    transparent 1px
-  );
-  background-size: 100% 4px;
-}
-
 .avatar-guide {
   /* tamaño relativo deseado --------- */
   --scale: 0.25; /* 25 % del original */
@@ -225,23 +212,15 @@
   bottom: 2rem;
   right: 2rem;
   z-index: 50;
-
-  /* ancho y alto de UN frame -------- */
-  width: calc(var(--frame-w) * var(--scale));
-  height: calc(var(--frame-h) * var(--scale));
-
-  /* aquí está la clave -------------- */
-  background-size: calc(var(--frame-w) * var(--frames) * var(--scale)) auto;
-  animation: avatar-scroll steps(var(--frames)) 0.8s infinite;
+  width: calc(var(--frame-w) * 0.25);
+  height: calc(var(--frame-h) * 0.25);
+  background: url('/sprites/avatar-idle.png') left bottom/auto;
   image-rendering: pixelated;
-  background: no-repeat;
-  image-rendering: pixelated;
-}
+  animation: avatar-animate 0.8s steps(var(--frames)) infinite;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px #0008);
+  transform-origin: bottom right;
 
-@keyframes avatar-scroll {
-  to {
-    background-position-x: var(--shift);
-  }
 }
 
 /* Oculta el círculo negro con la N que genera Next.js en modo dev */
