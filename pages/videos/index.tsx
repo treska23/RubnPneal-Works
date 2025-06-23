@@ -1,8 +1,8 @@
 // pages/videos/index.tsx
-import React from "react";
-import Image from "next/image";
-import SectionLayout from "@/components/SectionLayout";
-import VideoGrid from "@/components/VideoGrid";
+import React from 'react';
+import Image from 'next/image';
+import SectionLayout from '@/components/SectionLayout';
+import VideoGrid from '@/components/VideoGrid';
 
 interface PlaylistItemsApiResponse {
   items: {
@@ -45,8 +45,13 @@ export default VideosPage;
 
 // ─── 3) getStaticProps ──────────────────────────────────────────────────
 export async function getStaticProps() {
-  const apiKey = process.env.YOUTUBE_API_KEY!;
-  const channelId = process.env.YOUTUBE_CHANNEL_ID!;
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  const channelId = process.env.YOUTUBE_CHANNEL_ID;
+
+  if (!apiKey || !channelId) {
+    console.warn('Missing YouTube API credentials');
+    return { props: { videos: [] } };
+  }
 
   // 1) Sacamos el playlist de “uploads”
   const chRes = await fetch(
@@ -57,7 +62,7 @@ export async function getStaticProps() {
   };
 
   if (!Array.isArray(chJson.items) || chJson.items.length === 0) {
-    console.warn("YouTube API fallo o canal vacío:", chJson);
+    console.warn('YouTube API fallo o canal vacío:', chJson);
     return { props: { videos: [] }, revalidate: 3600 };
   }
 
@@ -69,12 +74,12 @@ export async function getStaticProps() {
 
   do {
     const params = new URLSearchParams({
-      part: "snippet",
+      part: 'snippet',
       playlistId: uploadsId,
-      maxResults: "50", // el máximo permitido
+      maxResults: '50', // el máximo permitido
       key: apiKey,
     });
-    if (nextPageToken) params.set("pageToken", nextPageToken);
+    if (nextPageToken) params.set('pageToken', nextPageToken);
 
     const url = `https://www.googleapis.com/youtube/v3/playlistItems?${params}`;
     const res = await fetch(url);

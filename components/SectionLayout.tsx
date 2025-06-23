@@ -1,5 +1,5 @@
-import React from "react";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 // 1. Extiende de React.HTMLAttributes<HTMLElement> para heredar:
 //    - className?: string
@@ -13,17 +13,16 @@ export interface SectionLayoutProps extends React.HTMLAttributes<HTMLElement> {
 export default function SectionLayout({
   title,
   children,
-  className = "",
+  className = '',
   ...rest
 }: SectionLayoutProps) {
   return (
     <section
       className={cn(
-        "w-full",
-        "max-w-screen-lg",
-        "px-4",
-        "py-8",
-        "mx-auto",
+        'w-full',
+        'px-4 md:px-8 xl:px-12',
+        'py-8',
+        'mx-auto',
         className,
       )}
       {...rest}
