@@ -1,5 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+
 import idleSheet from '@/public/sprites/avatar-idle.png';
 import walkSheet from '@/public/sprites/avatar-walk.png';
 
@@ -7,10 +9,25 @@ const FRAME_W = idleSheet.width / 2; // 2 frames en idle (png = 2 columnas)
 const FRAME_H = idleSheet.height;
 const SHEET = { idle: idleSheet.src, walk: walkSheet.src } as const;
 const FRAMES = { idle: 2, walk: 6 } as const;
+const ROOT_ID = 'avatar-guide-root';
+
 
 export default function AvatarGuide() {
   const ref = useRef<HTMLElement>(null);
   const [state, setState] = useState<'idle' | 'walk'>('idle');
+
+  useEffect(() => {
+    const already = document.getElementById(ROOT_ID);
+    if (already) return;
+    const div = document.createElement('div');
+    div.id = ROOT_ID;
+    document.body.appendChild(div);
+    createRoot(div).render(<AvatarGuide />);
+  }, []);
+
+  if (typeof window !== 'undefined' && !document.getElementById(ROOT_ID)) {
+    return null;
+  }
 
   // inicializa variables de tamaño al montar
   useEffect(() => {

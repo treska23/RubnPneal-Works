@@ -235,16 +235,17 @@
 
 .avatar-guide {
   position: fixed;
-  left: 1rem;
-  bottom: 1rem;
+  bottom: 2rem;
+  right: 2rem;
   z-index: 50;
-  width: calc(var(--frame-w) * 3);
-  height: calc(var(--frame-h) * 3);
+  width: calc(var(--frame-w) * 0.75);
+  height: calc(var(--frame-h) * 0.75);
   background: url('/sprites/avatar-idle.png') left bottom/auto;
   image-rendering: pixelated;
   animation: var(--anim-name) steps(var(--frames)) 0.8s infinite;
   pointer-events: none;
   filter: drop-shadow(0 0 3px #0008);
+  transform-origin: bottom right;
 }
 
 /* Oculta el círculo negro con la N que genera Next.js en modo dev */
