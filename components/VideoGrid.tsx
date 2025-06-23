@@ -1,4 +1,6 @@
-import YouTube from "react-youtube";
+import dynamic from 'next/dynamic';
+
+const YouTube = dynamic(() => import('react-youtube'), { ssr: false });
 
 interface Props {
   videos: string[];

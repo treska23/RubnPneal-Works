@@ -1,21 +1,21 @@
 // components/ui/ComicReader.tsx
-"use client";
+'use client';
 
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef, useMemo, useEffect } from 'react';
 import {
   Worker,
   Viewer,
   SpecialZoomLevel,
   ScrollMode,
   PageChangeEvent,
-} from "@react-pdf-viewer/core";
-import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
-import { pageNavigationPlugin } from "@react-pdf-viewer/page-navigation";
-import type { ToolbarSlot } from "@react-pdf-viewer/toolbar";
-import MiniGame, { GameFighterHandle } from "./GameFighter";
+} from '@react-pdf-viewer/core';
+import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import { pageNavigationPlugin } from '@react-pdf-viewer/page-navigation';
+import type { ToolbarSlot } from '@react-pdf-viewer/toolbar';
+import MiniGame, { GameFighterHandle } from './GameFighter';
 
-import "@react-pdf-viewer/core/lib/styles/index.css";
-import "@react-pdf-viewer/default-layout/lib/styles/index.css";
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
 export default function ComicReader() {
   /* ─── plugins ─────────────────────────────────────────────────── */
@@ -47,10 +47,10 @@ export default function ComicReader() {
   const lockScroll = () => {
     const y = window.scrollY;
     document.body.dataset.scrollY = String(y);
-    document.body.style.overflow = "hidden";
-    document.body.style.position = "fixed";
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
     document.body.style.top = `-${y}px`;
-    document.body.style.width = "100%";
+    document.body.style.width = '100%';
   };
   const unlockScroll = () => {
     const y = +(document.body.dataset.scrollY || 0);
@@ -58,7 +58,7 @@ export default function ComicReader() {
       document.body.style.position =
       document.body.style.top =
       document.body.style.width =
-        "";
+        '';
     window.scrollTo(0, y);
   };
 
@@ -97,6 +97,13 @@ export default function ComicReader() {
   useEffect(() => {
     if (minigameVisible) setTimeout(() => miniRef.current?.focus(), 0);
   }, [minigameVisible]);
+
+  useEffect(
+    () => () => {
+      miniRef.current?.destroy();
+    },
+    [],
+  );
 
   /* ─────────────────────────── render ──────────────────────────── */
   return (
