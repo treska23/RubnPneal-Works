@@ -13,7 +13,7 @@ const ROOT_ID = 'avatar-guide-root';
 export default function AvatarGuide() {
   const ref = useRef<HTMLElement>(null);
   const [state, setState] = useState<'idle' | 'walk'>('idle');
-
+  
   // ensure a single guide instance mounted in the page
   useEffect(() => {
     const already = document.getElementById(ROOT_ID);
