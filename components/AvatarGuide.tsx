@@ -1,12 +1,12 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import { createRoot } from 'react-dom/client';
 import idleSheet from '@/public/sprites/avatar-idle.png';
 import walkSheet from '@/public/sprites/avatar-walk.png';
+import { useRef, useEffect, useState } from 'react';
 
 const SHEET = { idle: idleSheet.src, walk: walkSheet.src } as const;
 const FRAMES = { idle: 2, walk: 6 } as const;
 const ROOT_ID = 'avatar-guide-root';
+
 
 export default function AvatarGuide() {
   const ref = useRef<HTMLElement>(null);
@@ -53,9 +53,9 @@ export default function AvatarGuide() {
     el.style.animationName = 'avatar-animate';
   }, [rootExists, state, dims]);
 
+
   // detecta scroll para cambiar temporalmente a 'walk'
   useEffect(() => {
-    if (!rootExists) return;
     let timeout: NodeJS.Timeout | null = null;
     const onScroll = () => {
       setState('walk');
@@ -67,9 +67,7 @@ export default function AvatarGuide() {
       window.removeEventListener('scroll', onScroll);
       if (timeout) clearTimeout(timeout);
     };
-  }, [rootExists]);
-
-  if (!rootExists) return null;
+  }, []);
 
   return <figure ref={ref} className="avatar-guide" aria-hidden />;
 }

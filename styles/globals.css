@@ -204,6 +204,10 @@
 }
 
 .avatar-guide {
+  /* tamaño relativo deseado --------- */
+  --scale: 0.25; /* 25 % del original */
+
+  /* posición fija en pantalla ------- */
   position: fixed;
   bottom: 2rem;
   right: 2rem;
@@ -216,6 +220,7 @@
   pointer-events: none;
   filter: drop-shadow(0 0 3px #0008);
   transform-origin: bottom right;
+
 }
 
 /* Oculta el círculo negro con la N que genera Next.js en modo dev */
