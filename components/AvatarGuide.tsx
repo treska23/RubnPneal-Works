@@ -1,60 +1,61 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
+
+const FRAME_W = 176;
+const FRAME_H = 377;
 
 const ANIMS = {
-  walk: { sheet: '/sprites/avatar-walk.png', frames: 6 },
-  idle: { sheet: '/sprites/avatar-idle.png', frames: 4 },
-};
+  walk: { sheet: '/sprites/avatar-walk.png', frames: 4 },
+  idle: { sheet: '/sprites/avatar-idle.png', frames: 2 },
+} as const;
 
 export default function AvatarGuide() {
   const ref = useRef<HTMLDivElement>(null);
+  const [state, setState] = useState<'idle' | 'walk'>('idle');
 
-  /* helper para iniciar animación sprite-sheet via CSS */
-  const setAnim = (name: 'walk' | 'idle') => {
-    const { sheet, frames } = ANIMS[name];
-    ref.current!.style.setProperty('--sheet', `url("${sheet}")`);
-    ref.current!.style.setProperty('--frames', String(frames));
-    ref.current!.style.setProperty('--anim-name', name);
+  /* helper para aplicar CSS vars */
+  const apply = (name: 'idle' | 'walk') => {
+    const s = ANIMS[name];
+    if (!ref.current) return;
+    ref.current.style.setProperty('--sheet', `url("${s.sheet}")`);
+    ref.current.style.setProperty('--frames', String(s.frames));
   };
 
+  /* inicia y cambia a “walk” durante scroll */
   useEffect(() => {
-    /* On mount: listen scroll & nav clicks */
-    if (ref.current) {
-      ref.current.style.setProperty('--sheet', `url("${ANIMS.idle.sheet}")`);
-    }
-    const scroll = () => {
-      /* calcula sección más visible, mueve avatar */
+    apply('idle');
+
+    const onScroll = () => {
+      if (state === 'walk') return;
+      setState('walk');
+      apply('walk');
+      const done = () => {
+        setState('idle');
+        apply('idle');
+        window.removeEventListener('scrollend', done);
+      };
+      window.addEventListener('scrollend', done);
     };
-    window.addEventListener('scroll', scroll, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [state]);
 
-    /* nav links */
-    document.querySelectorAll("nav a[href^='#']").forEach((a) => {
-      a.addEventListener('click', (e) => {
-        const id = (e.currentTarget as HTMLAnchorElement).hash.slice(1);
-        const target = document.getElementById(id);
-        if (!target) return;
-        /* caminar */
-        setAnim('walk');
-        const y = target.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({ top: y - 64, behavior: 'smooth' });
-        /* cuando termina scroll */
-        const done = () => {
-          setAnim('idle');
-          window.removeEventListener('scrollend', done);
-        };
-        window.addEventListener('scrollend', done);
-      });
-    });
-
-    return () => window.removeEventListener('scroll', scroll);
+  useEffect(() => {
+    // evita montajes duplicados
+    if (document.getElementById('avatar-guide-root')) return;
+    ref.current!.id = 'avatar-guide-root';
   }, []);
 
   return (
     <div
       ref={ref}
-      aria-hidden
       className="avatar-guide"
-      style={{ '--frames': 4, '--anim-name': 'idle' } as React.CSSProperties}
+      style={{
+        '--frames': ANIMS[state].frames,
+        '--anim-name': state,
+        '--frame-w': `${FRAME_W}px`,
+        '--frame-h': `${FRAME_H}px`,
+      } as React.CSSProperties}
     />
   );
 }

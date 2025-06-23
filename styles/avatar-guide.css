@@ -1,23 +1,24 @@
 .avatar-guide {
-  width: 32px;
-  height: 32px;
-  background-image: var(--sheet);
-  background-size: auto 100%;
-  animation: var(--anim-name) 0.8s steps(var(--frames)) infinite;
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: calc(var(--frame-w) * 0.75);
+  height: calc(var(--frame-h) * 0.75);
+  background: url(var(--sheet)) no-repeat 0 0 / auto 100%;
+  animation: var(--anim-name) steps(var(--frames)) 1s infinite;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 9999;
 }
+
 @keyframes idle {
-  from {
-    background-position: 0 0;
-  }
   to {
-    background-position: -128px 0;
+    background-position-x: -200%;
   }
 }
+
 @keyframes walk {
-  from {
-    background-position: 0 0;
-  }
   to {
-    background-position: -192px 0;
+    background-position-x: -300%;
   }
 }
