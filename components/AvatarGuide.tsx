@@ -1,60 +1,56 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
-const ANIMS = {
-  walk: { sheet: '/sprites/avatar-walk.png', frames: 6 },
-  idle: { sheet: '/sprites/avatar-idle.png', frames: 4 },
+const SPRITES = {
+  idle: { url: '/sprites/avatar-idle.png', frames: 4, fps: 6, w: 32, h: 32 },
+  walk: { url: '/sprites/avatar-walk.png', frames: 6, fps: 8, w: 32, h: 32 },
 };
 
 export default function AvatarGuide() {
   const ref = useRef<HTMLDivElement>(null);
+  const [anim, setAnim] = useState<'idle' | 'walk'>('idle');
 
-  /* helper para iniciar animación sprite-sheet via CSS */
-  const setAnim = (name: 'walk' | 'idle') => {
-    const { sheet, frames } = ANIMS[name];
-    ref.current!.style.setProperty('--sheet', `url("${sheet}")`);
-    ref.current!.style.setProperty('--frames', String(frames));
-    ref.current!.style.setProperty('--anim-name', name);
+  /* helper para aplicar CSS vars */
+  const apply = (name: 'idle' | 'walk') => {
+    const s = SPRITES[name];
+    if (!ref.current) return;
+    ref.current.style.setProperty('--sheet', `url("${s.url}")`);
+    ref.current.style.setProperty('--frames', String(s.frames));
+    ref.current.style.setProperty('--w', `${s.w}px`);
+    ref.current.style.setProperty('--h', `${s.h}px`);
+    ref.current.style.setProperty('--dur', `${s.frames / s.fps}s`);
   };
 
+  /* inicia y cambia a “walk” durante scroll */
   useEffect(() => {
-    /* On mount: listen scroll & nav clicks */
-    if (ref.current) {
-      ref.current.style.setProperty('--sheet', `url("${ANIMS.idle.sheet}")`);
-    }
-    const scroll = () => {
-      /* calcula sección más visible, mueve avatar */
+    apply('idle');
+
+    const onScroll = () => {
+      if (anim === 'walk') return;
+      setAnim('walk');
+      apply('walk');
+      const done = () => {
+        setAnim('idle');
+        apply('idle');
+        window.removeEventListener('scrollend', done);
+      };
+      window.addEventListener('scrollend', done);
     };
-    window.addEventListener('scroll', scroll, { passive: true });
-
-    /* nav links */
-    document.querySelectorAll("nav a[href^='#']").forEach((a) => {
-      a.addEventListener('click', (e) => {
-        const id = (e.currentTarget as HTMLAnchorElement).hash.slice(1);
-        const target = document.getElementById(id);
-        if (!target) return;
-        /* caminar */
-        setAnim('walk');
-        const y = target.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({ top: y - 64, behavior: 'smooth' });
-        /* cuando termina scroll */
-        const done = () => {
-          setAnim('idle');
-          window.removeEventListener('scrollend', done);
-        };
-        window.addEventListener('scrollend', done);
-      });
-    });
-
-    return () => window.removeEventListener('scroll', scroll);
-  }, []);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [anim]);
 
   return (
     <div
       ref={ref}
-      aria-hidden
-      className="avatar-guide"
-      style={{ '--frames': 4, '--anim-name': 'idle' } as React.CSSProperties}
+      className="
+        fixed bottom-4 right-4 z-[9999] pointer-events-none
+        w-[var(--w)] h-[var(--h)]
+        [background-image:var(--sheet)]
+        bg-left/cover
+        animate-avatar
+        scale-[3] md:scale-150 lg:scale-200
+      "
     />
   );
 }
