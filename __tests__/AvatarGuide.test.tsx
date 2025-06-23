@@ -3,8 +3,9 @@ import AvatarGuide from '../components/AvatarGuide';
 
 test('renders AvatarGuide with idle state', async () => {
   const { container } = render(<AvatarGuide />);
-  const div = container.querySelector('div') as HTMLDivElement;
+  const fig = container.querySelector('figure') as HTMLElement;
   await waitFor(() => {
-    expect(div.style.getPropertyValue('--sheet')).toBe('url("/sprites/avatar-idle.png")');
+    expect(fig.classList.contains('avatar-guide')).toBe(true);
+    expect(fig.style.getPropertyValue('--frames')).toBe('2');
   });
 });

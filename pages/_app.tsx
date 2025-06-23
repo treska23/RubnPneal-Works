@@ -1,6 +1,5 @@
 // pages/_app.tsx
 import '../styles/globals.css';
-import '../styles/avatar-guide.css';
 import type { AppProps } from 'next/app';
 import Nav from '../components/Nav';
 import Footer from '../components/Footer';
