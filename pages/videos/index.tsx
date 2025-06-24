@@ -28,11 +28,11 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
       {/* — Fantasma animado como fondo — */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <Image
-          src="/images/ghost.png"
+          src="/images/Ghost.png"
           alt="Fantasma retro"
-          width={2160} // ajusta al tamaño que quieras
+          width={2160}
           height={2160}
-          className="absolute bottom-8 animate-ghost"
+          className="absolute bottom-8 animate-ghost w-full h-full object-cover"
           priority
         />
       </div>
@@ -41,8 +41,16 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
       <div className="relative z-10 px-4">
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {videos.map((v) => (
-            <div key={v}>
-              <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700 group">
+            <div
+              key={v}
+              className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700 group"
+            >
+              {activeVideo === v ? (
+                <div className="absolute inset-0 w-full h-full">
+                  <Arkanoid isActive videoId={v} />
+                </div>
+              ) : (
+
                 <YouTube
                   videoId={v}
                   className="absolute inset-0 w-full h-full"
@@ -53,14 +61,13 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                     playerVars: { playsinline: 1 },
                   }}
                 />
-                <button
-                  onClick={() => setActiveVideo(v)}
-                  className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition"
-                >
-                  ▶️ Jugar Arkanoid
-                </button>
-              </div>
-              <Arkanoid isActive={activeVideo === v} videoId={v} />
+              )}
+              <button
+                onClick={() => setActiveVideo(v)}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition"
+              >
+                ▶️ Jugar Arkanoid
+              </button>
             </div>
           ))}
         </div>

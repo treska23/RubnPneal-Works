@@ -10,7 +10,7 @@ export default function ArkanoidPage() {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Arkanoid</h1>
-      <Arkanoid isActive={true} />
+      <Arkanoid isActive={true} videoId="preview" />
     </div>
   );
 }

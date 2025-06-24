@@ -16,6 +16,7 @@ export interface ArkanoidProps {
  */
 export default function Arkanoid({ isActive, videoId }: ArkanoidProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [leftPressed, setLeftPressed] = useState(false);
   const [rightPressed, setRightPressed] = useState(false);
   // Reference the state to avoid the no-unused-vars lint error until
@@ -28,6 +29,11 @@ export default function Arkanoid({ isActive, videoId }: ArkanoidProps) {
 
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    if (!containerRef.current) return;
+    const { scrollWidth: w, scrollHeight: h } = containerRef.current;
+    canvas.width = w;
+    canvas.height = h;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -63,5 +69,9 @@ export default function Arkanoid({ isActive, videoId }: ArkanoidProps) {
     return <div className="w-full h-full bg-gray-800" />;
   }
 
-  return <canvas ref={canvasRef} className="w-full h-full" />;
+  return (
+    <div ref={containerRef} className="w-full h-full">
+      <canvas ref={canvasRef} className="w-full h-full" />
+    </div>
+  );
 }
