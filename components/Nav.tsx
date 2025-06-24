@@ -21,8 +21,8 @@ export default function Nav() {
   ];
 
   return (
-    <header className="fixed top-0 w-full z-50 h-16 bg-white/80 backdrop-blur-md shadow-sm">
-      <nav className="flex items-center justify-between w-full h-full px-4 sm:px-8 lg:px-16 max-w-4xl mx-auto">
+    <header className="fixed top-0 left-0 w-full z-50 bg-white bg-opacity-80 backdrop-blur-md shadow">
+      <nav className="h-16 flex items-center justify-between w-full px-4 sm:px-8 lg:px-16 max-w-4xl mx-auto">
         {/* --- Logo --- */}
         <div className="flex items-center space-x-2 flex-shrink-0">
           <Image src="/logo.svg" alt="Logo" width={40} height={40} priority />
