@@ -202,31 +202,23 @@ html {
 }
 
 .avatar-guide {
-  --scale: 0.25; /* 25 % */
+  --scale: 1;
   position: fixed;
   bottom: 2rem;
   right: 2rem;
   z-index: 50;
-
   width: calc(var(--frame-w) * var(--scale));
   height: calc(var(--frame-h) * var(--scale));
-
-  /* la anchura real de la lámina = nº frames × frame-w */
-  background: left bottom / calc(var(--frame-w) * var(--frames) * var(--scale))
-    auto no-repeat;
+  background: left bottom / calc(var(--frame-w) * 4) auto no-repeat;
   image-rendering: pixelated;
-
-  animation-name: avatar-anim; /* ⬅ solo el nombre      */
-  animation-duration: 0.8s; /*    valores por defecto */
-  animation-iteration-count: infinite;
+  animation: avatar-walk 0.8s steps(var(--frames)) infinite;
   pointer-events: none;
   filter: drop-shadow(0 0 3px #0008);
-  transform-origin: bottom right;
 }
 
-@keyframes avatar-anim {
+@keyframes avatar-walk {
   to {
-    background-position-x: calc(var(--frame-w) * -var(--frames));
+    background-position-x: calc(-1 * var(--frame-w) * var(--frames));
   }
 }
 
