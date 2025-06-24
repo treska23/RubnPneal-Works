@@ -22,10 +22,24 @@ export default function ArkanoidOverlay({ onClose }: Props) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    const blocks: Block[] = [];
+    function createBlocks() {
+      blocks.length = 0;
+      const bw = Math.min(80, canvas.width / 10);
+      const bh = 20;
+      const count = Math.floor(canvas.width / bw) * 2;
+      for (let i = 0; i < count; i++) {
+        const x = Math.random() * (canvas.width - bw);
+        const y = 60 + Math.random() * (canvas.height * 0.3 - bh);
+        blocks.push({ x, y, w: bw, h: bh, alive: true });
+      }
+    }
 
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      createBlocks();
+
     };
     resize();
     window.addEventListener('resize', resize);
@@ -37,19 +51,6 @@ export default function ArkanoidOverlay({ onClose }: Props) {
     let rightPressed = false;
 
     const ball = { x: canvas.width / 2, y: canvas.height / 2, r: 6, dx: 2, dy: -2 };
-
-    const blocks: Block[] = [];
-    const cols = 8;
-    const rows = 4;
-    const bw = 60;
-    const bh = 20;
-    for (let c = 0; c < cols; c++) {
-      for (let r = 0; r < rows; r++) {
-        const x = 60 + c * (bw + 10);
-        const y = 60 + r * (bh + 10);
-        blocks.push({ x, y, w: bw, h: bh, alive: true });
-      }
-    }
 
     let animationId: number;
 
@@ -76,7 +77,19 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       ball.x += ball.dx;
       ball.y += ball.dy;
       if (ball.x < ball.r || ball.x > canvas.width - ball.r) ball.dx *= -1;
-      if (ball.y < ball.r || ball.y > canvas.height - ball.r) ball.dy *= -1;
+      if (ball.y < ball.r) ball.dy *= -1;
+      const paddleY = canvas.height - 30;
+      if (
+        ball.dy > 0 &&
+        ball.y + ball.r >= paddleY &&
+        ball.x >= paddleX &&
+        ball.x <= paddleX + paddleWidth
+      ) {
+        ball.dy *= -1;
+        ball.y = paddleY - ball.r;
+      } else if (ball.y > canvas.height - ball.r) {
+        ball.dy *= -1;
+      }
 
       animationId = requestAnimationFrame(draw);
     };
