@@ -27,6 +27,7 @@ interface VideosPageProps {
 }
 
 function ArkanoidCard() {
+
   const [play, setPlay] = useState(false);
   return (
     <div className="rounded shadow relative group">

@@ -24,6 +24,7 @@ export default function Arkanoid({ isActive }: ArkanoidProps) {
   useEffect(() => {
     if (!isActive) return;
 
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
