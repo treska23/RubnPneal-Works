@@ -1,16 +1,9 @@
 // pages/videos/index.tsx
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import SectionLayout from '@/components/SectionLayout';
-
-const Arkanoid = dynamic(
-  () => import('@/components/ui/game-arkanoid/Arkanoid'),
-  {
-    ssr: false,
-  },
-);
+import Arkanoid from '../../components/ui/game-arkanoid/Arkanoid';
 const YouTube = dynamic(() => import('react-youtube'), { ssr: false });
 
 interface PlaylistItemsApiResponse {
@@ -26,43 +19,20 @@ interface VideosPageProps {
   videos: string[];
 }
 
-function ArkanoidCard() {
-
-  const [play, setPlay] = useState(false);
-  return (
-    <div className="rounded shadow relative group">
-      {play ? (
-        <Arkanoid isActive={play} />
-      ) : (
-        <canvas className="w-full h-48 object-cover" />
-      )}
-      {!play && (
-        <button
-          onClick={() => setPlay(true)}
-          className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition"
-        >
-          ▶️ Jugar Arkanoid
-        </button>
-      )}
-    </div>
-  );
-}
-
 // ─── 2) COMPONENTE PRINCIPAL ─────────────────────────────────────────────
 const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
-  const router = useRouter();
-  const videoId = router.query.videoId;
+  const [activeVideo, setActiveVideo] = useState<string | null>(null);
 
   return (
     <SectionLayout className="relative bg-gray-900 text-white">
       {/* — Fantasma animado como fondo — */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <Image
-          src="/images/ghost.png"
+          src="/images/Ghost.png"
           alt="Fantasma retro"
-          width={2160} // ajusta al tamaño que quieras
+          width={2160}
           height={2160}
-          className="absolute bottom-8 animate-ghost"
+          className="absolute bottom-8 animate-ghost w-full h-full object-cover"
           priority
         />
       </div>
@@ -70,26 +40,35 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
       {/* — CONTENIDO EN PRIMER PLANO — */}
       <div className="relative z-10 px-4">
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {videos.map((id) => (
+          {videos.map((v) => (
             <div
-              key={id}
-              className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
+              key={v}
+              className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700 group"
             >
-              <YouTube
-                videoId={id}
-                className="absolute inset-0 w-full h-full"
-                iframeClassName="w-full h-full"
-                opts={{
-                  width: '100%',
-                  height: '100%',
-                  playerVars: { playsinline: 1 },
-                }}
-              />
+              {activeVideo === v ? (
+                <div className="absolute inset-0 w-full h-full">
+                  <Arkanoid isActive videoId={v} />
+                </div>
+              ) : (
+                <YouTube
+                  videoId={v}
+                  className="absolute inset-0 w-full h-full"
+                  iframeClassName="w-full h-full"
+                  opts={{
+                    width: '100%',
+                    height: '100%',
+                    playerVars: { playsinline: 1 },
+                  }}
+                />
+              )}
+              <button
+                onClick={() => setActiveVideo(v)}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition"
+              >
+                ▶️ Jugar Arkanoid
+              </button>
             </div>
           ))}
-          <ArkanoidCard
-            videoId={typeof videoId === 'string' ? videoId : undefined}
-          />
         </div>
       </div>
     </SectionLayout>
