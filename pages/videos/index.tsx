@@ -50,6 +50,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                   <Arkanoid isActive videoId={v} />
                 </div>
               ) : (
+
                 <YouTube
                   videoId={v}
                   className="absolute inset-0 w-full h-full"
