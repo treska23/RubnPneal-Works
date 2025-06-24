@@ -6,13 +6,15 @@ import { useEffect, useRef, useState } from 'react';
 export interface ArkanoidProps {
   /** Whether the game should run */
   isActive: boolean;
+  /** Identifier used to reset the game when the active video changes */
+  videoId: string;
 }
 
 /**
  * Minimal Arkanoid canvas prepared for future logic.
  * When `isActive` is false a simple placeholder is rendered.
  */
-export default function Arkanoid({ isActive }: ArkanoidProps) {
+export default function Arkanoid({ isActive, videoId }: ArkanoidProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [leftPressed, setLeftPressed] = useState(false);
   const [rightPressed, setRightPressed] = useState(false);
@@ -23,7 +25,6 @@ export default function Arkanoid({ isActive }: ArkanoidProps) {
 
   useEffect(() => {
     if (!isActive) return;
-
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -56,7 +57,7 @@ export default function Arkanoid({ isActive }: ArkanoidProps) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isActive]);
+  }, [isActive, videoId]);
 
   if (!isActive) {
     return <div className="w-full h-full bg-gray-800" />;
