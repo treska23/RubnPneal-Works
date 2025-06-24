@@ -22,7 +22,6 @@ export default function ArkanoidOverlay({ onClose }: Props) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
     const blocks: Block[] = [];
     function createBlocks() {
       blocks.length = 0;
