@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import SectionLayout from '@/components/SectionLayout';
-import Arkanoid from '../../components/ui/game-arkanoid/Arkanoid';
+import ArkanoidOverlay from '@/components/ui/game-arkanoid/ArkanoidOverlay';
 const YouTube = dynamic(() => import('react-youtube'), { ssr: false });
 
 interface PlaylistItemsApiResponse {
@@ -21,9 +21,10 @@ interface VideosPageProps {
 
 // ─── 2) COMPONENTE PRINCIPAL ─────────────────────────────────────────────
 const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
-  const [activeVideo, setActiveVideo] = useState<string | null>(null);
+  const [showGame, setShowGame] = useState(false);
 
   return (
+    <>
     <SectionLayout className="relative bg-gray-900 text-white">
       {/* — Fantasma animado como fondo — */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -39,40 +40,37 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
 
       {/* — CONTENIDO EN PRIMER PLANO — */}
       <div className="relative z-10 px-4">
+        <button
+          className="mb-6 px-4 py-2 rounded bg-pink-600 text-white hover:bg-pink-700 font-semibold transition"
+          onClick={() => setShowGame(true)}
+        >
+          🚀 Jugar Arkanoid
+        </button>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {videos.map((v) => (
             <div
               key={v}
-              className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700 group"
+              className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
             >
-              {activeVideo === v ? (
-                <div className="absolute inset-0 w-full h-full">
-                  <Arkanoid isActive videoId={v} />
-                </div>
-              ) : (
-
-                <YouTube
-                  videoId={v}
-                  className="absolute inset-0 w-full h-full"
-                  iframeClassName="w-full h-full"
-                  opts={{
-                    width: '100%',
-                    height: '100%',
-                    playerVars: { playsinline: 1 },
-                  }}
-                />
-              )}
-              <button
-                onClick={() => setActiveVideo(v)}
-                className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition"
-              >
-                ▶️ Jugar Arkanoid
-              </button>
+              <YouTube
+                videoId={v}
+                className="absolute inset-0 w-full h-full"
+                iframeClassName="w-full h-full"
+                opts={{
+                  width: '100%',
+                  height: '100%',
+                  playerVars: { playsinline: 1 },
+                }}
+              />
             </div>
           ))}
         </div>
       </div>
     </SectionLayout>
+    {showGame && (
+      <ArkanoidOverlay onClose={() => setShowGame(false)} />
+    )}
+    </>
   );
 };
 
