@@ -7,9 +7,6 @@ const FRAME_W = walkSheet.width / 6; // 176 px
 const FRAME_H = walkSheet.height; // 377 px
 const FRAMES = { idle: 2, walk: 6 } as const;
 const SHEET = { idle: idleSheet.src, walk: walkSheet.src } as const;
-const FRAMES = { idle: 2, walk: 6 } as const;
-const FRAME_W = 176;
-const FRAME_H = 377;
 
 export default function AvatarGuide() {
   const ref = useRef<HTMLElement>(null);
@@ -30,7 +27,7 @@ export default function AvatarGuide() {
 
   // detecta scroll para cambiar temporalmente a 'walk'
   useEffect(() => {
-    let t: NodeJS.Timeout;
+    let timeout: NodeJS.Timeout | null = null;
     const onScroll = () => {
       setState('walk');
       if (timeout) clearTimeout(timeout);
@@ -40,7 +37,10 @@ export default function AvatarGuide() {
       }, 600);
     };
     addEventListener('scroll', onScroll, { passive: true });
-    return () => removeEventListener('scroll', onScroll);
+    return () => {
+      if (timeout) clearTimeout(timeout);
+      removeEventListener('scroll', onScroll);
+    };
   }, []);
 
   return (
