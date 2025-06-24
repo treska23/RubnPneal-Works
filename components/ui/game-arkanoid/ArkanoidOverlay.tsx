@@ -39,7 +39,6 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       createBlocks();
-
     };
     resize();
     window.addEventListener('resize', resize);
@@ -50,7 +49,13 @@ export default function ArkanoidOverlay({ onClose }: Props) {
     let leftPressed = false;
     let rightPressed = false;
 
-    const ball = { x: canvas.width / 2, y: canvas.height / 2, r: 6, dx: 2, dy: -2 };
+    const ball = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      r: 6,
+      dx: 2,
+      dy: -2,
+    };
 
     let animationId: number;
 
@@ -78,6 +83,20 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       ball.y += ball.dy;
       if (ball.x < ball.r || ball.x > canvas.width - ball.r) ball.dx *= -1;
       if (ball.y < ball.r) ball.dy *= -1;
+
+      for (const b of blocks) {
+        if (!b.alive) continue;
+        if (
+          ball.x + ball.r > b.x &&
+          ball.x - ball.r < b.x + b.w &&
+          ball.y + ball.r > b.y &&
+          ball.y - ball.r < b.y + b.h
+        ) {
+          b.alive = false;
+          ball.dy *= -1;
+          break;
+        }
+      }
       const paddleY = canvas.height - 30;
       if (
         ball.dy > 0 &&
