@@ -22,8 +22,6 @@ export default function ArkanoidOverlay({ onClose }: Props) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-
     const blocks: Block[] = [];
     function createBlocks() {
       blocks.length = 0;
@@ -41,6 +39,7 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       createBlocks();
+
     };
     resize();
     window.addEventListener('resize', resize);
@@ -52,7 +51,6 @@ export default function ArkanoidOverlay({ onClose }: Props) {
     let rightPressed = false;
 
     const ball = { x: canvas.width / 2, y: canvas.height / 2, r: 6, dx: 2, dy: -2 };
-
 
     let animationId: number;
 
