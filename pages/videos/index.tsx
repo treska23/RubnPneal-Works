@@ -26,12 +26,13 @@ interface VideosPageProps {
   videos: string[];
 }
 
-function ArkanoidCard({ videoId }: { videoId?: string }) {
+function ArkanoidCard() {
+
   const [play, setPlay] = useState(false);
   return (
     <div className="rounded shadow relative group">
       {play ? (
-        <Arkanoid videoId={videoId} />
+        <Arkanoid isActive={play} />
       ) : (
         <canvas className="w-full h-48 object-cover" />
       )}
