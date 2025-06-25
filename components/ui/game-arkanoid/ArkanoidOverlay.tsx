@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Props {
   onClose: () => void;
@@ -16,10 +16,15 @@ interface Block {
 
 export default function ArkanoidOverlay({ onClose }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [livesState, setLivesState] = useState(3);
 
   useEffect(() => {
-    let baseSpeed = 4; // velocidad pensada para un canvas de referencia (800 px)
+    const baseSpeed = 4; // velocidad pensada para un canvas de referencia (800 px)
     let speedFactor = 1;
+    const basePaddleSpeed = 8; // pensado para 800 px de ancho
+    let paddleSpeed = basePaddleSpeed * speedFactor;
+    let lives = 3;
+    setLivesState(3);
 
     const canvasNode = canvasRef.current;
     if (!canvasNode) return;
@@ -46,15 +51,14 @@ export default function ArkanoidOverlay({ onClose }: Props) {
 
       const maxDim = Math.max(window.innerWidth, window.innerHeight);
       speedFactor = maxDim / 800;
+      paddleSpeed = basePaddleSpeed * speedFactor;
       createBlocks();
     }
 
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    let paddleX = canvasEl.width / 2 - 40;
-    const paddleWidth = 80;
-    const paddleHeight = 10;
+    const paddle = { x: canvasEl.width / 2 - 40, w: 80, h: 10 };
     let leftPressed = false;
     let rightPressed = false;
 
@@ -72,7 +76,7 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
       ctx.fillStyle = 'white';
-      ctx.fillRect(paddleX, canvasEl.height - 30, paddleWidth, paddleHeight);
+      ctx.fillRect(paddle.x, canvasEl.height - 30, paddle.w, paddle.h);
 
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
@@ -84,15 +88,15 @@ export default function ArkanoidOverlay({ onClose }: Props) {
         ctx.fillRect(b.x, b.y, b.w, b.h);
       });
 
-      if (leftPressed) paddleX -= 5;
-      if (rightPressed) paddleX += 5;
-      paddleX = Math.max(0, Math.min(canvasEl.width - paddleWidth, paddleX));
+      const w = canvasRef.current!.width;
+      const h = canvasRef.current!.height;
+
+      if (rightPressed && paddle.x < w - paddle.w) paddle.x += paddleSpeed;
+      if (leftPressed && paddle.x > 0) paddle.x -= paddleSpeed;
+      paddle.x = Math.max(0, Math.min(w - paddle.w, paddle.x));
 
       ball.x += ball.dx;
       ball.y += ball.dy;
-
-      const w = canvasRef.current!.width;
-      const h = canvasRef.current!.height;
 
       if (ball.x < ball.r || ball.x > w - ball.r) ball.dx = -ball.dx;
       if (ball.y < ball.r || ball.y > h - ball.r) ball.dy = -ball.dy;
@@ -114,13 +118,23 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       if (
         ball.dy > 0 &&
         ball.y + ball.r >= paddleY &&
-        ball.x >= paddleX &&
-        ball.x <= paddleX + paddleWidth
+        ball.x >= paddle.x &&
+        ball.x <= paddle.x + paddle.w
       ) {
         ball.dy *= -1;
         ball.y = paddleY - ball.r;
       } else if (ball.y > h - ball.r) {
-        ball.dy *= -1;
+        lives -= 1;
+        setLivesState(lives);
+        if (lives === 0) {
+          onClose();
+          return;
+        }
+        ball.x = w / 2;
+        ball.y = h / 2;
+        const dir = Math.random() < 0.5 ? -1 : 1;
+        ball.dx = dir * baseSpeed * speedFactor;
+        ball.dy = -baseSpeed * speedFactor;
       }
 
       const dirX = Math.sign(ball.dx);
@@ -153,6 +167,9 @@ export default function ArkanoidOverlay({ onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90">
+      <div className="absolute top-4 left-4 text-white text-xl pointer-events-none">
+        {Array(livesState).fill('♥').join('')}
+      </div>
       <canvas ref={canvasRef} className="w-full h-full" />
       <button
         className="absolute top-4 right-4 text-white text-3xl pointer-events-auto"
