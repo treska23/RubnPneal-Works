@@ -1,5 +1,5 @@
 // pages/videos/index.tsx
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import type YouTubePlayer from 'react-youtube';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
@@ -24,11 +24,10 @@ interface VideosPageProps {
 const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
   const [showGame, setShowGame] = useState(false);
   const videoRectsRef = useRef<DOMRect[]>([]);
-
   const playersRef = useRef<Record<string, YouTubePlayer | null>>({});
   const currentPlaying = useRef<string | null>(null);
 
-  const handleVideoHit = (id: string) => {
+  const handleVideoHit = useCallback((id: string) => {
     const newPlayer = playersRef.current[id];
     if (!newPlayer) return;
 
@@ -46,7 +45,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
         currentPlaying.current = id;
       }
     });
-  };
+  }, []);
 
   return (
     <>

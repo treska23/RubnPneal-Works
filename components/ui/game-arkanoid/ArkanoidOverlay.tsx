@@ -18,6 +18,7 @@ interface Brick {
   alive: boolean;
   isTrigger?: boolean;
   videoId?: string;
+  cooldown?: number;
 }
 
 function bricksForRect(
@@ -86,7 +87,6 @@ export default function ArkanoidOverlay({
   onClose,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const currentPlaying = useRef<string | null>(null);
   const [livesState, setLivesState] = useState(3);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -147,6 +147,7 @@ export default function ArkanoidOverlay({
           alive: true,
           isTrigger: true,
           videoId: videoIds[idx],
+          cooldown: 0,
         });
       });
     }
@@ -260,27 +261,35 @@ export default function ArkanoidOverlay({
       if (ball.x < ball.r || ball.x > w - ball.r) ball.dx = -ball.dx;
       if (ball.y < ball.r || ball.y > h - ball.r) ball.dy = -ball.dy;
 
-      for (const b of bricks) {
+      for (let i = 0; i < bricks.length; i++) {
+        const b = bricks[i];
         if (!b.alive && !b.isTrigger) continue;
-        if (
-          ball.x + ball.r > b.x &&
-          ball.x - ball.r < b.x + b.w &&
-          ball.y + ball.r > b.y &&
-          ball.y - ball.r < b.y + b.h
-        ) {
-          ball.dy *= -1;
-          if (b.isTrigger) {
-            if (b.videoId) onVideoHit(b.videoId);
-          } else {
-            b.alive = false;
-            if (bricks.every((bk) => !bk.alive || bk.isTrigger) && !victory) {
-              victory = true;
-              startFireworks();
-              setTimeout(onClose, 4000);
-            }
+        const hit =
+          ball.x > b.x - ball.r &&
+          ball.x < b.x + b.w + ball.r &&
+          ball.y > b.y - ball.r &&
+          ball.y < b.y + b.h + ball.r;
+        if (!hit) continue;
+
+        if (ball.dy > 0) ball.y = b.y - ball.r - 0.5;
+        else ball.y = b.y + b.h + ball.r + 0.5;
+        ball.dy = -ball.dy;
+
+        if (b.isTrigger) {
+          if (b.cooldown === 0) {
+            b.cooldown = 20;
+            setTimeout(() => onVideoHit(b.videoId!), 0);
           }
-          break;
+        } else {
+          bricks.splice(i, 1);
+          i--;
+          if (bricks.every((bk) => bk.isTrigger) && !victory) {
+            victory = true;
+            startFireworks();
+            setTimeout(onClose, 4000);
+          }
         }
+        break;
       }
       const paddleY = h - 30;
       if (
@@ -308,6 +317,10 @@ export default function ArkanoidOverlay({
       ball.dx = dirX * baseSpeed * speedFactor;
       ball.dy = dirY * baseSpeed * speedFactor;
 
+      bricks.forEach((b) => {
+        if (b.cooldown && b.cooldown > 0) b.cooldown--;
+      });
+
       animationId = requestAnimationFrame(draw);
     };
     draw();
@@ -334,7 +347,6 @@ export default function ArkanoidOverlay({
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
       cancelAnimationFrame(animationId);
-      currentPlaying.current = null;
     };
   }, []);
 
