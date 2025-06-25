@@ -18,6 +18,9 @@ export default function ArkanoidOverlay({ onClose }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    let baseSpeed = 4; // velocidad pensada para un canvas de referencia (800 px)
+    let speedFactor = 1;
+
     const canvasNode = canvasRef.current;
     if (!canvasNode) return;
     const canvasEl = canvasNode as HTMLCanvasElement;
@@ -36,13 +39,18 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       }
     }
 
-    const resize = () => {
-      canvasEl.width = window.innerWidth;
-      canvasEl.height = window.innerHeight;
+    function resizeCanvas() {
+      if (!canvasRef.current) return;
+      canvasRef.current.width = window.innerWidth;
+      canvasRef.current.height = window.innerHeight;
+
+      const maxDim = Math.max(window.innerWidth, window.innerHeight);
+      speedFactor = maxDim / 800;
       createBlocks();
-    };
-    resize();
-    window.addEventListener('resize', resize);
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
     let paddleX = canvasEl.width / 2 - 40;
     const paddleWidth = 80;
@@ -51,11 +59,11 @@ export default function ArkanoidOverlay({ onClose }: Props) {
     let rightPressed = false;
 
     const ball = {
-      x: canvasEl.width / 2,
-      y: canvasEl.height / 2,
-      r: 6,
-      dx: 2,
-      dy: -2,
+      x: canvasRef.current!.width / 2,
+      y: canvasRef.current!.height / 2,
+      dx: baseSpeed * speedFactor,
+      dy: -baseSpeed * speedFactor,
+      r: 8,
     };
 
     let animationId: number;
@@ -82,8 +90,12 @@ export default function ArkanoidOverlay({ onClose }: Props) {
 
       ball.x += ball.dx;
       ball.y += ball.dy;
-      if (ball.x < ball.r || ball.x > canvasEl.width - ball.r) ball.dx *= -1;
-      if (ball.y < ball.r) ball.dy *= -1;
+
+      const w = canvasRef.current!.width;
+      const h = canvasRef.current!.height;
+
+      if (ball.x < ball.r || ball.x > w - ball.r) ball.dx = -ball.dx;
+      if (ball.y < ball.r || ball.y > h - ball.r) ball.dy = -ball.dy;
 
       for (const b of blocks) {
         if (!b.alive) continue;
@@ -98,7 +110,7 @@ export default function ArkanoidOverlay({ onClose }: Props) {
           break;
         }
       }
-      const paddleY = canvasEl.height - 30;
+      const paddleY = h - 30;
       if (
         ball.dy > 0 &&
         ball.y + ball.r >= paddleY &&
@@ -107,9 +119,14 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       ) {
         ball.dy *= -1;
         ball.y = paddleY - ball.r;
-      } else if (ball.y > canvasEl.height - ball.r) {
+      } else if (ball.y > h - ball.r) {
         ball.dy *= -1;
       }
+
+      const dirX = Math.sign(ball.dx);
+      const dirY = Math.sign(ball.dy);
+      ball.dx = dirX * baseSpeed * speedFactor;
+      ball.dy = dirY * baseSpeed * speedFactor;
 
       animationId = requestAnimationFrame(draw);
     };
@@ -127,7 +144,7 @@ export default function ArkanoidOverlay({ onClose }: Props) {
     window.addEventListener('keyup', keyUp);
 
     return () => {
-      window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
       cancelAnimationFrame(animationId);
