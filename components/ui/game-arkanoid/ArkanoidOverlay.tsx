@@ -107,22 +107,9 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
       bricks.push(...all);
     }
 
-    function resizeCanvas() {
-      if (!canvasRef.current) return;
-      canvasRef.current.width = window.innerWidth;
-      canvasRef.current.height = window.innerHeight;
+    let ballAttached = true;
 
-      const maxDim = Math.max(window.innerWidth, window.innerHeight);
-      speedFactor = maxDim / 800;
-      paddleSpeed = basePaddleSpeed * speedFactor || 6;
-      createBricks();
-      resetBall();
-    }
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    const paddle = { x: canvasEl.width / 2 - 40, w: 80, h: 10 };
+    const paddle = { x: 0, w: 80, h: 10 };
     let leftPressed = false;
     let rightPressed = false;
 
@@ -134,15 +121,28 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
       r: 8,
     };
 
-    function resetBall() {
-      const dirX = Math.random() < 0.5 ? -1 : 1;
-      const dirY = -1;
-      ball.x = canvasEl.width / 2;
-      ball.y = canvasEl.height * 0.3;
-      ball.dx = dirX * baseSpeed * speedFactor || dirX * 2;
-      ball.dy = dirY * baseSpeed * speedFactor || dirY * 2;
+    function stickBallToPaddle() {
+      ball.x = paddle.x + paddle.w / 2;
+      ball.y = canvasEl.height - 30 - ball.r - 2;
     }
-    resetBall();
+
+    function resizeCanvas() {
+      if (!canvasRef.current) return;
+      canvasRef.current.width = window.innerWidth;
+      canvasRef.current.height = window.innerHeight;
+
+      const maxDim = Math.max(window.innerWidth, window.innerHeight);
+      speedFactor = maxDim / 800;
+      paddleSpeed = basePaddleSpeed * speedFactor || 6;
+      paddle.x = canvasEl.width / 2 - paddle.w / 2;
+      createBricks();
+      ballAttached = true;
+      ball.dx = ball.dy = 0;
+      stickBallToPaddle();
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
     let animationId: number;
 
@@ -191,8 +191,12 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
       if (leftPressed && paddle.x > 0) paddle.x -= paddleSpeed;
       paddle.x = Math.max(0, Math.min(w - paddle.w, paddle.x));
 
-      ball.x += ball.dx;
-      ball.y += ball.dy;
+      if (ballAttached) {
+        stickBallToPaddle();
+      } else {
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+      }
 
       if (ball.x < ball.r || ball.x > w - ball.r) ball.dx = -ball.dx;
       if (ball.y < ball.r || ball.y > h - ball.r) ball.dy = -ball.dy;
@@ -245,7 +249,9 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
           onClose();
           return;
         }
-        resetBall();
+        ballAttached = true;
+        ball.dx = ball.dy = 0;
+        stickBallToPaddle();
       }
 
       const dirX = Math.sign(ball.dx);
@@ -260,6 +266,12 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
     const keyDown = (e: KeyboardEvent) => {
       if (e.code === 'ArrowLeft') leftPressed = true;
       if (e.code === 'ArrowRight') rightPressed = true;
+      if (e.code === 'Space' && ballAttached) {
+        const dirX = Math.random() < 0.5 ? -1 : 1;
+        ball.dx = dirX * baseSpeed * speedFactor || dirX * 2;
+        ball.dy = -baseSpeed * speedFactor || -2;
+        ballAttached = false;
+      }
     };
     const keyUp = (e: KeyboardEvent) => {
       if (e.code === 'ArrowLeft') leftPressed = false;
