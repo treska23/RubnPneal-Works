@@ -17,7 +17,6 @@ export default function Arkanoid() {
   void rightPressed;
 
   useEffect(() => {
-
     const canvas = canvasRef.current;
     if (!canvas) return;
 

@@ -25,51 +25,49 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
 
   return (
     <>
-    <SectionLayout className="relative bg-gray-900 text-white">
-      {/* — Fantasma animado como fondo — */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <Image
-          src="/images/Ghost.png"
-          alt="Fantasma retro"
-          width={2160}
-          height={2160}
-          className="absolute bottom-8 animate-ghost w-full h-full object-cover"
-          priority
-        />
-      </div>
-
-      {/* — CONTENIDO EN PRIMER PLANO — */}
-      <div className="relative z-10 px-4">
-        <button
-          className="mb-6 px-4 py-2 rounded bg-pink-600 text-white hover:bg-pink-700 font-semibold transition"
-          onClick={() => setShowGame(true)}
-        >
-          🚀 Jugar Arkanoid
-        </button>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {videos.map((v) => (
-            <div
-              key={v}
-              className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
-            >
-              <YouTube
-                videoId={v}
-                className="absolute inset-0 w-full h-full"
-                iframeClassName="w-full h-full"
-                opts={{
-                  width: '100%',
-                  height: '100%',
-                  playerVars: { playsinline: 1 },
-                }}
-              />
-            </div>
-          ))}
+      <SectionLayout className="relative bg-gray-900 text-white">
+        {/* — Fantasma animado como fondo — */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <Image
+            src="/images/Ghost.png"
+            alt="Fantasma retro"
+            width={2160}
+            height={2160}
+            className="absolute bottom-8 animate-ghost w-full h-full object-cover"
+            priority
+          />
         </div>
-      </div>
-    </SectionLayout>
-    {showGame && (
-      <ArkanoidOverlay onClose={() => setShowGame(false)} />
-    )}
+
+        {/* — CONTENIDO EN PRIMER PLANO — */}
+        <div className="relative z-10 px-4">
+          <button
+            className="mb-6 px-4 py-2 rounded bg-pink-600 text-white hover:bg-pink-700 font-semibold transition"
+            onClick={() => setShowGame(true)}
+          >
+            🚀 Jugar Arkanoid
+          </button>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {videos.map((v) => (
+              <div
+                key={v}
+                className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
+              >
+                <YouTube
+                  videoId={v}
+                  className="absolute inset-0 w-full h-full"
+                  iframeClassName="w-full h-full"
+                  opts={{
+                    width: '100%',
+                    height: '100%',
+                    playerVars: { playsinline: 1 },
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </SectionLayout>
+      {showGame && <ArkanoidOverlay onClose={() => setShowGame(false)} />}
     </>
   );
 };
