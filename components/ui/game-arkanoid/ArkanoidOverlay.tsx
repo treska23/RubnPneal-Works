@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 
 interface Props {
   hitboxes: HTMLDivElement[];
-  onVideoToggle: (id: string, state: 'hit') => void;
+  onVideoHit: (id: string) => void;
   onClose: () => void;
 }
 
@@ -16,7 +16,11 @@ interface Brick {
   alive: boolean;
 }
 
-function bricksForRect(rect: DOMRect, canvasW: number, canvasH: number): Brick[] {
+function bricksForRect(
+  rect: DOMRect,
+  canvasW: number,
+  canvasH: number,
+): Brick[] {
   const brickW = 60;
   const brickH = 20;
   const padding = 4;
@@ -25,8 +29,20 @@ function bricksForRect(rect: DOMRect, canvasW: number, canvasH: number): Brick[]
   const safeY = canvasH * 0.3;
 
   for (let x = rect.left; x <= rect.right - brickW; x += brickW + padding) {
-    const top = { x, y: rect.top - brickH - padding, w: brickW, h: brickH, alive: true };
-    const bottom = { x, y: rect.bottom + padding, w: brickW, h: brickH, alive: true };
+    const top = {
+      x,
+      y: rect.top - brickH - padding,
+      w: brickW,
+      h: brickH,
+      alive: true,
+    };
+    const bottom = {
+      x,
+      y: rect.bottom + padding,
+      w: brickW,
+      h: brickH,
+      alive: true,
+    };
     const cxT = top.x + brickW / 2;
     const cyT = top.y + brickH / 2;
     const cxB = bottom.x + brickW / 2;
@@ -35,8 +51,20 @@ function bricksForRect(rect: DOMRect, canvasW: number, canvasH: number): Brick[]
     if (Math.hypot(cxB - safeX, cyB - safeY) > 120) bricks.push(bottom);
   }
   for (let y = rect.top; y <= rect.bottom - brickH; y += brickH + padding) {
-    const left = { x: rect.left - brickW - padding, y, w: brickW, h: brickH, alive: true };
-    const right = { x: rect.right + padding, y, w: brickW, h: brickH, alive: true };
+    const left = {
+      x: rect.left - brickW - padding,
+      y,
+      w: brickW,
+      h: brickH,
+      alive: true,
+    };
+    const right = {
+      x: rect.right + padding,
+      y,
+      w: brickW,
+      h: brickH,
+      alive: true,
+    };
     const cxL = left.x + brickW / 2;
     const cyL = left.y + brickH / 2;
     const cxR = right.x + brickW / 2;
@@ -47,7 +75,11 @@ function bricksForRect(rect: DOMRect, canvasW: number, canvasH: number): Brick[]
   return bricks;
 }
 
-export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Props) {
+export default function ArkanoidOverlay({
+  hitboxes,
+  onVideoHit,
+  onClose,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const currentPlaying = useRef<string | null>(null);
   const [livesState, setLivesState] = useState(3);
@@ -63,6 +95,7 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
     const canvasNode = canvasRef.current;
     if (!canvasNode) return;
     const canvasEl = canvasNode as HTMLCanvasElement;
+    canvasNode.focus();
     const ctx = canvasEl.getContext('2d');
     if (!ctx) return;
     const bricks: Brick[] = [];
@@ -179,7 +212,11 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
         ctx.fillStyle = 'white';
         ctx.font = '64px "Press Start 2P", monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('🎉  Congratulation  🎉', canvasEl.width / 2, canvasEl.height / 2);
+        ctx.fillText(
+          '🎉  Congratulation  🎉',
+          canvasEl.width / 2,
+          canvasEl.height / 2,
+        );
         animationId = requestAnimationFrame(draw);
         return;
       }
@@ -229,7 +266,7 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
           ball.y < rect.bottom
         ) {
           const id = el.dataset.videoId;
-          if (id) onVideoToggle(id, 'hit');
+          if (id) onVideoHit(id);
           ball.dy = -ball.dy;
         }
       }
@@ -294,7 +331,11 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
       <div className="absolute top-4 left-4 text-white text-xl pointer-events-none">
         {Array(livesState).fill('♥').join('')}
       </div>
-      <canvas ref={canvasRef} className="w-full h-full pointer-events-auto" />
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full pointer-events-auto"
+        tabIndex={-1}
+      />
       <button
         className="absolute top-4 right-4 text-white text-3xl pointer-events-auto"
         onClick={onClose}

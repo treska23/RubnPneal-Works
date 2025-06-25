@@ -1,5 +1,6 @@
 // pages/videos/index.tsx
 import React, { useRef, useState } from 'react';
+import type YouTubePlayer from 'react-youtube';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import SectionLayout from '@/components/SectionLayout';
@@ -23,23 +24,28 @@ interface VideosPageProps {
 const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
   const [showGame, setShowGame] = useState(false);
   const hitboxRefs = useRef<HTMLDivElement[]>([]);
-  const playersRef = useRef<Record<string, any>>({});
+  const playersRef = useRef<Record<string, YouTubePlayer | null>>({});
   const currentPlaying = useRef<string | null>(null);
 
-  function handleVideoToggle(id: string) {
-    const player = playersRef.current[id];
-    if (!player) return;
-    if (currentPlaying.current === id) {
-      player.getPlayerState().then((state: number) => {
-        state === 1 ? player.pauseVideo() : player.playVideo();
-      });
-    } else {
-      if (currentPlaying.current)
-        playersRef.current[currentPlaying.current].pauseVideo();
-      player.playVideo();
-      currentPlaying.current = id;
+  const handleVideoHit = (id: string) => {
+    const newPlayer = playersRef.current[id];
+    if (!newPlayer) return;
+
+    if (currentPlaying.current && currentPlaying.current !== id) {
+      const oldP = playersRef.current[currentPlaying.current];
+      oldP?.internalPlayer.pauseVideo();
     }
-  }
+
+    newPlayer.internalPlayer.getPlayerState().then((state: number) => {
+      if (state === 1) {
+        newPlayer.internalPlayer.pauseVideo();
+        currentPlaying.current = null;
+      } else {
+        newPlayer.internalPlayer.playVideo();
+        currentPlaying.current = id;
+      }
+    });
+  };
 
   return (
     <>
@@ -97,7 +103,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
       {showGame && (
         <ArkanoidOverlay
           hitboxes={hitboxRefs.current}
-          onVideoToggle={handleVideoToggle}
+          onVideoHit={handleVideoHit}
           onClose={() => setShowGame(false)}
         />
       )}
