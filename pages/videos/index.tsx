@@ -24,6 +24,7 @@ interface VideosPageProps {
 const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
   const [showGame, setShowGame] = useState(false);
   const videoRectsRef = useRef<DOMRect[]>([]);
+
   const playersRef = useRef<Record<string, YouTubePlayer | null>>({});
   const currentPlaying = useRef<string | null>(null);
 
