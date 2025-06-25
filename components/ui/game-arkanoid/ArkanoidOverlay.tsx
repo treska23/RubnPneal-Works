@@ -1,10 +1,12 @@
 'use client';
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import { useEffect, useRef, useState } from 'react';
 
 interface Props {
-  hitboxes: HTMLDivElement[];
-  onVideoToggle: (id: string, state: 'hit') => void;
+  videoRects: DOMRect[];
+  videoIds: string[];
+  onVideoHit: (id: string) => void;
   onClose: () => void;
 }
 
@@ -14,9 +16,15 @@ interface Brick {
   w: number;
   h: number;
   alive: boolean;
+  isTrigger?: boolean;
+  videoId?: string;
 }
 
-function bricksForRect(rect: DOMRect, canvasW: number, canvasH: number): Brick[] {
+function bricksForRect(
+  rect: DOMRect,
+  canvasW: number,
+  canvasH: number,
+): Brick[] {
   const brickW = 60;
   const brickH = 20;
   const padding = 4;
@@ -25,8 +33,20 @@ function bricksForRect(rect: DOMRect, canvasW: number, canvasH: number): Brick[]
   const safeY = canvasH * 0.3;
 
   for (let x = rect.left; x <= rect.right - brickW; x += brickW + padding) {
-    const top = { x, y: rect.top - brickH - padding, w: brickW, h: brickH, alive: true };
-    const bottom = { x, y: rect.bottom + padding, w: brickW, h: brickH, alive: true };
+    const top = {
+      x,
+      y: rect.top - brickH - padding,
+      w: brickW,
+      h: brickH,
+      alive: true,
+    };
+    const bottom = {
+      x,
+      y: rect.bottom + padding,
+      w: brickW,
+      h: brickH,
+      alive: true,
+    };
     const cxT = top.x + brickW / 2;
     const cyT = top.y + brickH / 2;
     const cxB = bottom.x + brickW / 2;
@@ -35,8 +55,20 @@ function bricksForRect(rect: DOMRect, canvasW: number, canvasH: number): Brick[]
     if (Math.hypot(cxB - safeX, cyB - safeY) > 120) bricks.push(bottom);
   }
   for (let y = rect.top; y <= rect.bottom - brickH; y += brickH + padding) {
-    const left = { x: rect.left - brickW - padding, y, w: brickW, h: brickH, alive: true };
-    const right = { x: rect.right + padding, y, w: brickW, h: brickH, alive: true };
+    const left = {
+      x: rect.left - brickW - padding,
+      y,
+      w: brickW,
+      h: brickH,
+      alive: true,
+    };
+    const right = {
+      x: rect.right + padding,
+      y,
+      w: brickW,
+      h: brickH,
+      alive: true,
+    };
     const cxL = left.x + brickW / 2;
     const cyL = left.y + brickH / 2;
     const cxR = right.x + brickW / 2;
@@ -47,11 +79,17 @@ function bricksForRect(rect: DOMRect, canvasW: number, canvasH: number): Brick[]
   return bricks;
 }
 
-export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Props) {
+export default function ArkanoidOverlay({
+  videoRects,
+  videoIds,
+  onVideoHit,
+  onClose,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const currentPlaying = useRef<string | null>(null);
   const [livesState, setLivesState] = useState(3);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const baseSpeed = 4;
     let speedFactor = 1;
@@ -63,6 +101,7 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
     const canvasNode = canvasRef.current;
     if (!canvasNode) return;
     const canvasEl = canvasNode as HTMLCanvasElement;
+    canvasNode.focus();
     const ctx = canvasEl.getContext('2d');
     if (!ctx) return;
     const bricks: Brick[] = [];
@@ -95,16 +134,21 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
     }
     function createBricks() {
       bricks.length = 0;
-      const all = hitboxes
-        .map((el) =>
-          bricksForRect(
-            el.getBoundingClientRect(),
-            canvasEl.width,
-            canvasEl.height,
-          ),
-        )
-        .flat();
-      bricks.push(...all);
+      videoRects.forEach((rect, idx) => {
+        const around = bricksForRect(rect, canvasEl.width, canvasEl.height);
+        bricks.push(...around);
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        bricks.push({
+          x: cx - 30,
+          y: cy - 10,
+          w: 60,
+          h: 20,
+          alive: true,
+          isTrigger: true,
+          videoId: videoIds[idx],
+        });
+      });
     }
 
     let ballAttached = true;
@@ -147,6 +191,17 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
     let animationId: number;
 
     const draw = () => {
+      videoRects.forEach((rect, idx) => {
+        const trigger = bricks.find(
+          (b) => b.isTrigger && b.videoId === videoIds[idx],
+        );
+        if (trigger) {
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          trigger.x = cx - 30;
+          trigger.y = cy - 10;
+        }
+      });
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
       ctx.fillStyle = 'white';
@@ -179,7 +234,11 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
         ctx.fillStyle = 'white';
         ctx.font = '64px "Press Start 2P", monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('🎉  Congratulation  🎉', canvasEl.width / 2, canvasEl.height / 2);
+        ctx.fillText(
+          '🎉  Congratulation  🎉',
+          canvasEl.width / 2,
+          canvasEl.height / 2,
+        );
         animationId = requestAnimationFrame(draw);
         return;
       }
@@ -202,35 +261,25 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
       if (ball.y < ball.r || ball.y > h - ball.r) ball.dy = -ball.dy;
 
       for (const b of bricks) {
-        if (!b.alive) continue;
+        if (!b.alive && !b.isTrigger) continue;
         if (
           ball.x + ball.r > b.x &&
           ball.x - ball.r < b.x + b.w &&
           ball.y + ball.r > b.y &&
           ball.y - ball.r < b.y + b.h
         ) {
-          b.alive = false;
           ball.dy *= -1;
-          if (bricks.every((bk) => !bk.alive) && !victory) {
-            victory = true;
-            startFireworks();
-            setTimeout(onClose, 4000);
+          if (b.isTrigger) {
+            if (b.videoId) onVideoHit(b.videoId);
+          } else {
+            b.alive = false;
+            if (bricks.every((bk) => !bk.alive || bk.isTrigger) && !victory) {
+              victory = true;
+              startFireworks();
+              setTimeout(onClose, 4000);
+            }
           }
           break;
-        }
-      }
-
-      for (const el of hitboxes) {
-        const rect = el.getBoundingClientRect();
-        if (
-          ball.x > rect.left &&
-          ball.x < rect.right &&
-          ball.y > rect.top &&
-          ball.y < rect.bottom
-        ) {
-          const id = el.dataset.videoId;
-          if (id) onVideoToggle(id, 'hit');
-          ball.dy = -ball.dy;
         }
       }
       const paddleY = h - 30;
@@ -294,7 +343,11 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
       <div className="absolute top-4 left-4 text-white text-xl pointer-events-none">
         {Array(livesState).fill('♥').join('')}
       </div>
-      <canvas ref={canvasRef} className="w-full h-full pointer-events-auto" />
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full pointer-events-auto"
+        tabIndex={-1}
+      />
       <button
         className="absolute top-4 right-4 text-white text-3xl pointer-events-auto"
         onClick={onClose}
