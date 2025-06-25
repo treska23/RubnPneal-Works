@@ -18,40 +18,41 @@ export default function ArkanoidOverlay({ onClose }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const canvasNode = canvasRef.current;
+    if (!canvasNode) return;
+    const canvasEl = canvasNode as HTMLCanvasElement;
+    const ctx = canvasEl.getContext('2d');
     if (!ctx) return;
     const blocks: Block[] = [];
     function createBlocks() {
       blocks.length = 0;
-      const bw = Math.min(80, canvas.width / 10);
+      const bw = Math.min(80, canvasEl.width / 10);
       const bh = 20;
-      const count = Math.floor(canvas.width / bw) * 2;
+      const count = Math.floor(canvasEl.width / bw) * 2;
       for (let i = 0; i < count; i++) {
-        const x = Math.random() * (canvas.width - bw);
-        const y = 60 + Math.random() * (canvas.height * 0.3 - bh);
+        const x = Math.random() * (canvasEl.width - bw);
+        const y = 60 + Math.random() * (canvasEl.height * 0.3 - bh);
         blocks.push({ x, y, w: bw, h: bh, alive: true });
       }
     }
 
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      canvasEl.width = window.innerWidth;
+      canvasEl.height = window.innerHeight;
       createBlocks();
     };
     resize();
     window.addEventListener('resize', resize);
 
-    let paddleX = canvas.width / 2 - 40;
+    let paddleX = canvasEl.width / 2 - 40;
     const paddleWidth = 80;
     const paddleHeight = 10;
     let leftPressed = false;
     let rightPressed = false;
 
     const ball = {
-      x: canvas.width / 2,
-      y: canvas.height / 2,
+      x: canvasEl.width / 2,
+      y: canvasEl.height / 2,
       r: 6,
       dx: 2,
       dy: -2,
@@ -60,10 +61,10 @@ export default function ArkanoidOverlay({ onClose }: Props) {
     let animationId: number;
 
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
       ctx.fillStyle = 'white';
-      ctx.fillRect(paddleX, canvas.height - 30, paddleWidth, paddleHeight);
+      ctx.fillRect(paddleX, canvasEl.height - 30, paddleWidth, paddleHeight);
 
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
@@ -77,11 +78,11 @@ export default function ArkanoidOverlay({ onClose }: Props) {
 
       if (leftPressed) paddleX -= 5;
       if (rightPressed) paddleX += 5;
-      paddleX = Math.max(0, Math.min(canvas.width - paddleWidth, paddleX));
+      paddleX = Math.max(0, Math.min(canvasEl.width - paddleWidth, paddleX));
 
       ball.x += ball.dx;
       ball.y += ball.dy;
-      if (ball.x < ball.r || ball.x > canvas.width - ball.r) ball.dx *= -1;
+      if (ball.x < ball.r || ball.x > canvasEl.width - ball.r) ball.dx *= -1;
       if (ball.y < ball.r) ball.dy *= -1;
 
       for (const b of blocks) {
@@ -97,7 +98,7 @@ export default function ArkanoidOverlay({ onClose }: Props) {
           break;
         }
       }
-      const paddleY = canvas.height - 30;
+      const paddleY = canvasEl.height - 30;
       if (
         ball.dy > 0 &&
         ball.y + ball.r >= paddleY &&
@@ -106,7 +107,7 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       ) {
         ball.dy *= -1;
         ball.y = paddleY - ball.r;
-      } else if (ball.y > canvas.height - ball.r) {
+      } else if (ball.y > canvasEl.height - ball.r) {
         ball.dy *= -1;
       }
 
