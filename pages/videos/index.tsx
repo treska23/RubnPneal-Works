@@ -1,5 +1,6 @@
 // pages/videos/index.tsx
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
+import type YouTubePlayer from 'react-youtube';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import SectionLayout from '@/components/SectionLayout';
@@ -22,24 +23,29 @@ interface VideosPageProps {
 // ─── 2) COMPONENTE PRINCIPAL ─────────────────────────────────────────────
 const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
   const [showGame, setShowGame] = useState(false);
-  const hitboxRefs = useRef<HTMLDivElement[]>([]);
-  const playersRef = useRef<Record<string, any>>({});
+  const videoRectsRef = useRef<DOMRect[]>([]);
+  const playersRef = useRef<Record<string, YouTubePlayer | null>>({});
   const currentPlaying = useRef<string | null>(null);
 
-  function handleVideoToggle(id: string) {
-    const player = playersRef.current[id];
-    if (!player) return;
-    if (currentPlaying.current === id) {
-      player.getPlayerState().then((state: number) => {
-        state === 1 ? player.pauseVideo() : player.playVideo();
-      });
-    } else {
-      if (currentPlaying.current)
-        playersRef.current[currentPlaying.current].pauseVideo();
-      player.playVideo();
-      currentPlaying.current = id;
+  const handleVideoHit = useCallback((id: string) => {
+    const newPlayer = playersRef.current[id];
+    if (!newPlayer) return;
+
+    if (currentPlaying.current && currentPlaying.current !== id) {
+      const oldP = playersRef.current[currentPlaying.current];
+      oldP?.internalPlayer.pauseVideo();
     }
-  }
+
+    newPlayer.internalPlayer.getPlayerState().then((state: number) => {
+      if (state === 1) {
+        newPlayer.internalPlayer.pauseVideo();
+        currentPlaying.current = null;
+      } else {
+        newPlayer.internalPlayer.playVideo();
+        currentPlaying.current = id;
+      }
+    });
+  }, []);
 
   return (
     <>
@@ -72,7 +78,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                 key={v}
                 data-video-id={v}
                 ref={(el) => {
-                  if (el) hitboxRefs.current[i] = el;
+                  if (el) videoRectsRef.current[i] = el.getBoundingClientRect();
                 }}
                 className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
               >
@@ -96,8 +102,9 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
       </SectionLayout>
       {showGame && (
         <ArkanoidOverlay
-          hitboxes={hitboxRefs.current}
-          onVideoToggle={handleVideoToggle}
+          videoRects={videoRectsRef.current}
+          videoIds={videos}
+          onVideoHit={handleVideoHit}
           onClose={() => setShowGame(false)}
         />
       )}
