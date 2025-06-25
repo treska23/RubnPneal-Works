@@ -23,7 +23,8 @@ interface VideosPageProps {
 // ─── 2) COMPONENTE PRINCIPAL ─────────────────────────────────────────────
 const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
   const [showGame, setShowGame] = useState(false);
-  const hitboxRefs = useRef<HTMLDivElement[]>([]);
+  const videoRectsRef = useRef<DOMRect[]>([]);
+
   const playersRef = useRef<Record<string, YouTubePlayer | null>>({});
   const currentPlaying = useRef<string | null>(null);
 
@@ -78,7 +79,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                 key={v}
                 data-video-id={v}
                 ref={(el) => {
-                  if (el) hitboxRefs.current[i] = el;
+                  if (el) videoRectsRef.current[i] = el.getBoundingClientRect();
                 }}
                 className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
               >
@@ -102,7 +103,8 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
       </SectionLayout>
       {showGame && (
         <ArkanoidOverlay
-          hitboxes={hitboxRefs.current}
+          videoRects={videoRectsRef.current}
+          videoIds={videos}
           onVideoHit={handleVideoHit}
           onClose={() => setShowGame(false)}
         />
