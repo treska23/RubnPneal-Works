@@ -1,5 +1,5 @@
 // pages/videos/index.tsx
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import SectionLayout from '@/components/SectionLayout';
@@ -22,6 +22,24 @@ interface VideosPageProps {
 // ─── 2) COMPONENTE PRINCIPAL ─────────────────────────────────────────────
 const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
   const [showGame, setShowGame] = useState(false);
+  const hitboxRefs = useRef<HTMLDivElement[]>([]);
+  const playersRef = useRef<Record<string, any>>({});
+  const currentPlaying = useRef<string | null>(null);
+
+  function handleVideoToggle(id: string) {
+    const player = playersRef.current[id];
+    if (!player) return;
+    if (currentPlaying.current === id) {
+      player.getPlayerState().then((state: number) => {
+        state === 1 ? player.pauseVideo() : player.playVideo();
+      });
+    } else {
+      if (currentPlaying.current)
+        playersRef.current[currentPlaying.current].pauseVideo();
+      player.playVideo();
+      currentPlaying.current = id;
+    }
+  }
 
   return (
     <>
@@ -47,13 +65,20 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
             🚀 Jugar Arkanoid
           </button>
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {videos.map((v) => (
+            {videos.map((v, i) => (
               <div
                 key={v}
+                data-video-id={v}
+                ref={(el) => {
+                  if (el) hitboxRefs.current[i] = el;
+                }}
                 className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
               >
                 <YouTube
                   videoId={v}
+                  onReady={(e) => {
+                    playersRef.current[v] = e.target;
+                  }}
                   className="absolute inset-0 w-full h-full"
                   iframeClassName="w-full h-full"
                   opts={{
@@ -67,7 +92,13 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
           </div>
         </div>
       </SectionLayout>
-      {showGame && <ArkanoidOverlay onClose={() => setShowGame(false)} />}
+      {showGame && (
+        <ArkanoidOverlay
+          hitboxes={hitboxRefs.current}
+          onVideoToggle={handleVideoToggle}
+          onClose={() => setShowGame(false)}
+        />
+      )}
     </>
   );
 };

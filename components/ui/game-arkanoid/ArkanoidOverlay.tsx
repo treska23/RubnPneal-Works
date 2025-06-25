@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from 'react';
 
 interface Props {
+  hitboxes: HTMLDivElement[];
+  onVideoToggle: (id: string, state: 'hit') => void;
   onClose: () => void;
 }
 
-interface Block {
+interface Brick {
   x: number;
   y: number;
   w: number;
@@ -14,8 +16,25 @@ interface Block {
   alive: boolean;
 }
 
-export default function ArkanoidOverlay({ onClose }: Props) {
+function bricksForRect(rect: DOMRect): Brick[] {
+  const brickW = 60;
+  const brickH = 20;
+  const padding = 4;
+  const bricks: Brick[] = [];
+  for (let x = rect.left; x <= rect.right - brickW; x += brickW + padding) {
+    bricks.push({ x, y: rect.top - brickH - padding, w: brickW, h: brickH, alive: true });
+    bricks.push({ x, y: rect.bottom + padding, w: brickW, h: brickH, alive: true });
+  }
+  for (let y = rect.top; y <= rect.bottom - brickH; y += brickH + padding) {
+    bricks.push({ x: rect.left - brickW - padding, y, w: brickW, h: brickH, alive: true });
+    bricks.push({ x: rect.right + padding, y, w: brickW, h: brickH, alive: true });
+  }
+  return bricks;
+}
+
+export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const currentPlaying = useRef<string | null>(null);
   const [livesState, setLivesState] = useState(3);
 
   useEffect(() => {
@@ -31,17 +50,40 @@ export default function ArkanoidOverlay({ onClose }: Props) {
     const canvasEl = canvasNode as HTMLCanvasElement;
     const ctx = canvasEl.getContext('2d');
     if (!ctx) return;
-    const blocks: Block[] = [];
-    function createBlocks() {
-      blocks.length = 0;
-      const bw = Math.min(80, canvasEl.width / 10);
-      const bh = 20;
-      const count = Math.floor(canvasEl.width / bw) * 2;
-      for (let i = 0; i < count; i++) {
-        const x = Math.random() * (canvasEl.width - bw);
-        const y = 60 + Math.random() * (canvasEl.height * 0.3 - bh);
-        blocks.push({ x, y, w: bw, h: bh, alive: true });
+    const bricks: Brick[] = [];
+    let victory = false;
+
+    interface Particle {
+      x: number;
+      y: number;
+      dx: number;
+      dy: number;
+      life: number;
+      color: string;
+    }
+    let particles: Particle[] = [];
+
+    function startFireworks() {
+      const colors = ['#ff5959', '#59ff59', '#5995ff', '#ffff59', '#ffffff'];
+      for (let i = 0; i < 60; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 1;
+        particles.push({
+          x: canvasEl.width / 2,
+          y: canvasEl.height / 2,
+          dx: Math.cos(angle) * speed,
+          dy: Math.sin(angle) * speed,
+          life: 60 + Math.random() * 30,
+          color: colors[Math.floor(Math.random() * colors.length)],
+        });
       }
+    }
+    function createBricks() {
+      bricks.length = 0;
+      const all = hitboxes
+        .map((el) => bricksForRect(el.getBoundingClientRect()))
+        .flat();
+      bricks.push(...all);
     }
 
     function resizeCanvas() {
@@ -52,7 +94,7 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       const maxDim = Math.max(window.innerWidth, window.innerHeight);
       speedFactor = maxDim / 800;
       paddleSpeed = basePaddleSpeed * speedFactor;
-      createBlocks();
+      createBricks();
     }
 
     resizeCanvas();
@@ -82,11 +124,33 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
       ctx.fill();
 
-      blocks.forEach((b) => {
+      bricks.forEach((b) => {
         if (!b.alive) return;
         ctx.fillStyle = '#f472b6';
         ctx.fillRect(b.x, b.y, b.w, b.h);
       });
+
+      if (victory) {
+        ctx.fillStyle = '#0008';
+        ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
+        particles.forEach((p) => {
+          p.x += p.dx;
+          p.y += p.dy;
+          p.life -= 1;
+          ctx.fillStyle = p.color;
+          ctx.fillRect(p.x - 2, p.y, 4, 4);
+          ctx.fillRect(p.x + 2, p.y, 4, 4);
+          ctx.fillRect(p.x, p.y - 2, 4, 4);
+          ctx.fillRect(p.x, p.y + 2, 4, 4);
+        });
+        particles = particles.filter((p) => p.life > 0);
+        ctx.fillStyle = 'white';
+        ctx.font = '64px "Press Start 2P", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('🎉  Congratulation  🎉', canvasEl.width / 2, canvasEl.height / 2);
+        animationId = requestAnimationFrame(draw);
+        return;
+      }
 
       const w = canvasRef.current!.width;
       const h = canvasRef.current!.height;
@@ -101,7 +165,7 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       if (ball.x < ball.r || ball.x > w - ball.r) ball.dx = -ball.dx;
       if (ball.y < ball.r || ball.y > h - ball.r) ball.dy = -ball.dy;
 
-      for (const b of blocks) {
+      for (const b of bricks) {
         if (!b.alive) continue;
         if (
           ball.x + ball.r > b.x &&
@@ -111,7 +175,26 @@ export default function ArkanoidOverlay({ onClose }: Props) {
         ) {
           b.alive = false;
           ball.dy *= -1;
+          if (bricks.every((bk) => !bk.alive) && !victory) {
+            victory = true;
+            startFireworks();
+            setTimeout(onClose, 4000);
+          }
           break;
+        }
+      }
+
+      for (const el of hitboxes) {
+        const rect = el.getBoundingClientRect();
+        if (
+          ball.x > rect.left &&
+          ball.x < rect.right &&
+          ball.y > rect.top &&
+          ball.y < rect.bottom
+        ) {
+          const id = el.dataset.videoId;
+          if (id) onVideoToggle(id, 'hit');
+          ball.dy = -ball.dy;
         }
       }
       const paddleY = h - 30;
@@ -162,6 +245,7 @@ export default function ArkanoidOverlay({ onClose }: Props) {
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
       cancelAnimationFrame(animationId);
+      currentPlaying.current = null;
     };
   }, []);
 
