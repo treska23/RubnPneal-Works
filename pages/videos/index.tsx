@@ -43,7 +43,9 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
 
   return (
     <>
-      <SectionLayout className="relative bg-gray-900 text-white">
+      <SectionLayout
+        className={`relative bg-gray-900 text-white transition-all ${showGame ? 'xl:max-w-[75vw] mx-auto' : ''}`}
+      >
         {/* — Fantasma animado como fondo — */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image

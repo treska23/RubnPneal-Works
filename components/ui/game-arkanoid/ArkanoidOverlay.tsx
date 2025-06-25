@@ -16,18 +16,33 @@ interface Brick {
   alive: boolean;
 }
 
-function bricksForRect(rect: DOMRect): Brick[] {
+function bricksForRect(rect: DOMRect, canvasW: number, canvasH: number): Brick[] {
   const brickW = 60;
   const brickH = 20;
   const padding = 4;
   const bricks: Brick[] = [];
+  const safeX = canvasW / 2;
+  const safeY = canvasH * 0.3;
+
   for (let x = rect.left; x <= rect.right - brickW; x += brickW + padding) {
-    bricks.push({ x, y: rect.top - brickH - padding, w: brickW, h: brickH, alive: true });
-    bricks.push({ x, y: rect.bottom + padding, w: brickW, h: brickH, alive: true });
+    const top = { x, y: rect.top - brickH - padding, w: brickW, h: brickH, alive: true };
+    const bottom = { x, y: rect.bottom + padding, w: brickW, h: brickH, alive: true };
+    const cxT = top.x + brickW / 2;
+    const cyT = top.y + brickH / 2;
+    const cxB = bottom.x + brickW / 2;
+    const cyB = bottom.y + brickH / 2;
+    if (Math.hypot(cxT - safeX, cyT - safeY) > 120) bricks.push(top);
+    if (Math.hypot(cxB - safeX, cyB - safeY) > 120) bricks.push(bottom);
   }
   for (let y = rect.top; y <= rect.bottom - brickH; y += brickH + padding) {
-    bricks.push({ x: rect.left - brickW - padding, y, w: brickW, h: brickH, alive: true });
-    bricks.push({ x: rect.right + padding, y, w: brickW, h: brickH, alive: true });
+    const left = { x: rect.left - brickW - padding, y, w: brickW, h: brickH, alive: true };
+    const right = { x: rect.right + padding, y, w: brickW, h: brickH, alive: true };
+    const cxL = left.x + brickW / 2;
+    const cyL = left.y + brickH / 2;
+    const cxR = right.x + brickW / 2;
+    const cyR = right.y + brickH / 2;
+    if (Math.hypot(cxL - safeX, cyL - safeY) > 120) bricks.push(left);
+    if (Math.hypot(cxR - safeX, cyR - safeY) > 120) bricks.push(right);
   }
   return bricks;
 }
@@ -38,9 +53,9 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
   const [livesState, setLivesState] = useState(3);
 
   useEffect(() => {
-    const baseSpeed = 4; // velocidad pensada para un canvas de referencia (800 px)
+    const baseSpeed = 4;
     let speedFactor = 1;
-    const basePaddleSpeed = 8; // pensado para 800 px de ancho
+    const basePaddleSpeed = 8;
     let paddleSpeed = basePaddleSpeed * speedFactor;
     let lives = 3;
     setLivesState(3);
@@ -81,7 +96,13 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
     function createBricks() {
       bricks.length = 0;
       const all = hitboxes
-        .map((el) => bricksForRect(el.getBoundingClientRect()))
+        .map((el) =>
+          bricksForRect(
+            el.getBoundingClientRect(),
+            canvasEl.width,
+            canvasEl.height,
+          ),
+        )
         .flat();
       bricks.push(...all);
     }
@@ -93,8 +114,9 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
 
       const maxDim = Math.max(window.innerWidth, window.innerHeight);
       speedFactor = maxDim / 800;
-      paddleSpeed = basePaddleSpeed * speedFactor;
+      paddleSpeed = basePaddleSpeed * speedFactor || 6;
       createBricks();
+      resetBall();
     }
 
     resizeCanvas();
@@ -105,12 +127,22 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
     let rightPressed = false;
 
     const ball = {
-      x: canvasRef.current!.width / 2,
-      y: canvasRef.current!.height / 2,
-      dx: baseSpeed * speedFactor,
-      dy: -baseSpeed * speedFactor,
+      x: 0,
+      y: 0,
+      dx: 0,
+      dy: 0,
       r: 8,
     };
+
+    function resetBall() {
+      const dirX = Math.random() < 0.5 ? -1 : 1;
+      const dirY = -1;
+      ball.x = canvasEl.width / 2;
+      ball.y = canvasEl.height * 0.3;
+      ball.dx = dirX * baseSpeed * speedFactor || dirX * 2;
+      ball.dy = dirY * baseSpeed * speedFactor || dirY * 2;
+    }
+    resetBall();
 
     let animationId: number;
 
@@ -213,11 +245,7 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
           onClose();
           return;
         }
-        ball.x = w / 2;
-        ball.y = h / 2;
-        const dir = Math.random() < 0.5 ? -1 : 1;
-        ball.dx = dir * baseSpeed * speedFactor;
-        ball.dy = -baseSpeed * speedFactor;
+        resetBall();
       }
 
       const dirX = Math.sign(ball.dx);
@@ -237,8 +265,8 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
       if (e.code === 'ArrowLeft') leftPressed = false;
       if (e.code === 'ArrowRight') rightPressed = false;
     };
-    window.addEventListener('keydown', keyDown);
-    window.addEventListener('keyup', keyUp);
+    window.addEventListener('keydown', keyDown, { passive: true });
+    window.addEventListener('keyup', keyUp, { passive: true });
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
@@ -250,11 +278,11 @@ export default function ArkanoidOverlay({ hitboxes, onVideoToggle, onClose }: Pr
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90">
+    <div className="fixed inset-0 z-50 bg-black/90 pointer-events-none">
       <div className="absolute top-4 left-4 text-white text-xl pointer-events-none">
         {Array(livesState).fill('♥').join('')}
       </div>
-      <canvas ref={canvasRef} className="w-full h-full" />
+      <canvas ref={canvasRef} className="w-full h-full pointer-events-auto" />
       <button
         className="absolute top-4 right-4 text-white text-3xl pointer-events-auto"
         onClick={onClose}
