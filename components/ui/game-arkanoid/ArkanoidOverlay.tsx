@@ -80,6 +80,15 @@ function bricksForRect(
   return bricks;
 }
 
+function hitAABB(b: { x: number; y: number; r: number }, t: Brick) {
+  return (
+    b.x + b.r > t.x &&
+    b.x - b.r < t.x + t.w &&
+    b.y + b.r > t.y &&
+    b.y - b.r < t.y + t.h
+  );
+}
+
 export default function ArkanoidOverlay({
   videoRects,
   videoIds,
@@ -101,11 +110,11 @@ export default function ArkanoidOverlay({
     const canvasNode = canvasRef.current;
     if (!canvasNode) return;
     const canvasEl = canvasNode as HTMLCanvasElement;
-    canvasNode.focus();
     const ctx = canvasEl.getContext('2d');
     if (!ctx) return;
-    const bricks: Brick[] = [];
+    let bricks: Brick[] = [];
     let victory = false;
+    let score = 0;
 
     interface Particle {
       x: number;
@@ -132,31 +141,44 @@ export default function ArkanoidOverlay({
         });
       }
     }
+    const domElems = videoIds.map((id) =>
+      document.querySelector(`[data-video-id="${id}"]`),
+    );
+
     function createBricks() {
       bricks.length = 0;
-      videoRects.forEach((rect, idx) => {
+      const canvasRect = canvasEl.getBoundingClientRect();
+      domElems.forEach((el, idx) => {
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const rect = {
+          left: r.left - canvasRect.left,
+          top: r.top - canvasRect.top,
+          right: r.right - canvasRect.left,
+          bottom: r.bottom - canvasRect.top,
+          width: r.width,
+          height: r.height,
+        } as DOMRect;
         const around = bricksForRect(rect, canvasEl.width, canvasEl.height);
         bricks.push(...around);
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        bricks.push({
-          x: cx - 30,
-          y: cy - 10,
+        const trigger = {
+          x: rect.left + rect.width / 2 - 30,
+          y: rect.top + rect.height / 2 - 10,
           w: 60,
           h: 20,
           alive: true,
           isTrigger: true,
           videoId: videoIds[idx],
           cooldown: 0,
-        });
+        } as Brick;
+        bricks.push(trigger);
       });
     }
 
     let ballAttached = true;
 
     const paddle = { x: 0, w: 80, h: 10 };
-    let leftPressed = false;
-    let rightPressed = false;
+    const keyState = { left: false, right: false, space: false };
 
     const ball = {
       x: 0,
@@ -169,6 +191,13 @@ export default function ArkanoidOverlay({
     function stickBallToPaddle() {
       ball.x = paddle.x + paddle.w / 2;
       ball.y = canvasEl.height - 30 - ball.r - 2;
+    }
+
+    function launchBall() {
+      const dirX = Math.random() < 0.5 ? -1 : 1;
+      ball.dx = dirX * baseSpeed * speedFactor || dirX * 2;
+      ball.dy = -baseSpeed * speedFactor || -2;
+      ballAttached = false;
     }
 
     function resizeCanvas() {
@@ -192,16 +221,15 @@ export default function ArkanoidOverlay({
     let animationId: number;
 
     const draw = () => {
-      videoRects.forEach((rect, idx) => {
+      const canvasRect = canvasEl.getBoundingClientRect();
+      domElems.forEach((el, idx) => {
         const trigger = bricks.find(
           (b) => b.isTrigger && b.videoId === videoIds[idx],
         );
-        if (trigger) {
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
-          trigger.x = cx - 30;
-          trigger.y = cy - 10;
-        }
+        if (!el || !trigger) return;
+        const r = el.getBoundingClientRect();
+        trigger.x = r.left + r.width / 2 - 30 - canvasRect.left;
+        trigger.y = r.top + r.height / 2 - 10 - canvasRect.top;
       });
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
@@ -247,12 +275,13 @@ export default function ArkanoidOverlay({
       const w = canvasRef.current!.width;
       const h = canvasRef.current!.height;
 
-      if (rightPressed && paddle.x < w - paddle.w) paddle.x += paddleSpeed;
-      if (leftPressed && paddle.x > 0) paddle.x -= paddleSpeed;
+      if (keyState.right && paddle.x < w - paddle.w) paddle.x += paddleSpeed;
+      if (keyState.left && paddle.x > 0) paddle.x -= paddleSpeed;
       paddle.x = Math.max(0, Math.min(w - paddle.w, paddle.x));
 
       if (ballAttached) {
         stickBallToPaddle();
+        if (keyState.space) launchBall();
       } else {
         ball.x += ball.dx;
         ball.y += ball.dy;
@@ -261,35 +290,29 @@ export default function ArkanoidOverlay({
       if (ball.x < ball.r || ball.x > w - ball.r) ball.dx = -ball.dx;
       if (ball.y < ball.r || ball.y > h - ball.r) ball.dy = -ball.dy;
 
-      for (let i = 0; i < bricks.length; i++) {
-        const b = bricks[i];
-        if (!b.alive && !b.isTrigger) continue;
-        const hit =
-          ball.x > b.x - ball.r &&
-          ball.x < b.x + b.w + ball.r &&
-          ball.y > b.y - ball.r &&
-          ball.y < b.y + b.h + ball.r;
-        if (!hit) continue;
+      const bricksToDelete: Brick[] = [];
+      bricks.forEach((b) => {
+        if (!hitAABB(ball, b)) return;
 
-        if (ball.dy > 0) ball.y = b.y - ball.r - 0.5;
-        else ball.y = b.y + b.h + ball.r + 0.5;
+        if (ball.dy > 0) ball.y = b.y - ball.r - 0.1;
+        else ball.y = b.y + b.h + ball.r + 0.1;
         ball.dy = -ball.dy;
 
         if (b.isTrigger) {
           if (b.cooldown === 0) {
-            b.cooldown = 20;
+            b.cooldown = 30;
             setTimeout(() => onVideoHit(b.videoId!), 0);
           }
         } else {
-          bricks.splice(i, 1);
-          i--;
-          if (bricks.every((bk) => bk.isTrigger) && !victory) {
-            victory = true;
-            startFireworks();
-            setTimeout(onClose, 4000);
-          }
+          bricksToDelete.push(b);
+          score += 10;
         }
-        break;
+      });
+      bricks = bricks.filter((b) => !bricksToDelete.includes(b));
+      if (bricks.every((bk) => bk.isTrigger) && bricksToDelete.length > 0 && !victory) {
+        victory = true;
+        startFireworks();
+        setTimeout(onClose, 4000);
       }
       const paddleY = h - 30;
       if (
@@ -325,22 +348,17 @@ export default function ArkanoidOverlay({
     };
     draw();
 
-    const keyDown = (e: KeyboardEvent) => {
-      if (e.code === 'ArrowLeft') leftPressed = true;
-      if (e.code === 'ArrowRight') rightPressed = true;
-      if (e.code === 'Space' && ballAttached) {
-        const dirX = Math.random() < 0.5 ? -1 : 1;
-        ball.dx = dirX * baseSpeed * speedFactor || dirX * 2;
-        ball.dy = -baseSpeed * speedFactor || -2;
-        ballAttached = false;
-      }
-    };
-    const keyUp = (e: KeyboardEvent) => {
-      if (e.code === 'ArrowLeft') leftPressed = false;
-      if (e.code === 'ArrowRight') rightPressed = false;
-    };
+    function onKey(e: KeyboardEvent, pressed: boolean) {
+      if (e.code === 'ArrowLeft') keyState.left = pressed;
+      if (e.code === 'ArrowRight') keyState.right = pressed;
+      if (e.code === 'Space') keyState.space = pressed;
+    }
+    const keyDown = (e: KeyboardEvent) => onKey(e, true);
+    const keyUp = (e: KeyboardEvent) => onKey(e, false);
     window.addEventListener('keydown', keyDown, { passive: true });
     window.addEventListener('keyup', keyUp, { passive: true });
+
+    canvasEl.focus();
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
@@ -358,7 +376,7 @@ export default function ArkanoidOverlay({
       <canvas
         ref={canvasRef}
         className="w-full h-full pointer-events-auto"
-        tabIndex={-1}
+        tabIndex={0}
       />
       <button
         className="absolute top-4 right-4 text-white text-3xl pointer-events-auto"
