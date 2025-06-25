@@ -28,23 +28,22 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
   const currentPlaying = useRef<string | null>(null);
 
   const handleVideoHit = useCallback((id: string) => {
-    const newPlayer = playersRef.current[id];
-    if (!newPlayer) return;
+    const player = playersRef.current[id];
+    if (!player) return;
 
     if (currentPlaying.current && currentPlaying.current !== id) {
-      const oldP = playersRef.current[currentPlaying.current];
-      oldP?.internalPlayer.pauseVideo();
+      const old = playersRef.current[currentPlaying.current];
+      old?.pauseVideo();
     }
 
-    newPlayer.internalPlayer.getPlayerState().then((state: number) => {
-      if (state === 1) {
-        newPlayer.internalPlayer.pauseVideo();
-        currentPlaying.current = null;
-      } else {
-        newPlayer.internalPlayer.playVideo();
-        currentPlaying.current = id;
-      }
-    });
+    const state = player.getPlayerState();
+    if (state === 1) {
+      player.pauseVideo();
+      currentPlaying.current = null;
+    } else {
+      player.playVideo();
+      currentPlaying.current = id;
+    }
   }, []);
 
   return (
@@ -86,6 +85,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                   videoId={v}
                   onReady={(e) => {
                     playersRef.current[v] = e.target;
+                    e.target.mute();
                   }}
                   className="absolute inset-0 w-full h-full"
                   iframeClassName="w-full h-full"
