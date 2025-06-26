@@ -1,6 +1,6 @@
 'use client';
-import idleSheet from '@/public/sprites/avatar-idle.png';
-import walkSheet from '@/public/sprites/avatar-walk.png';
+import idleSheet from '/public/sprites/avatar-idle.png';
+import walkSheet from '/public/sprites/avatar-walk.png';
 import { useEffect, useRef, useState } from 'react';
 
 const FRAME_W = 173; // redondeado
