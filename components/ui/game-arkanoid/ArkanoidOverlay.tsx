@@ -4,7 +4,6 @@
 import { useEffect, useRef, useState } from 'react';
 
 interface Props {
-  videoRects: DOMRect[];
   videoIds: string[];
   onVideoHit: (id: string) => void;
   onClose: () => void;
@@ -90,7 +89,6 @@ function hitAABB(b: { x: number; y: number; r: number }, t: Brick) {
 }
 
 export default function ArkanoidOverlay({
-  videoRects,
   videoIds,
   onVideoHit,
   onClose,
@@ -114,7 +112,6 @@ export default function ArkanoidOverlay({
     if (!ctx) return;
     let bricks: Brick[] = [];
     let victory = false;
-    let score = 0;
 
     interface Particle {
       x: number;
@@ -141,8 +138,9 @@ export default function ArkanoidOverlay({
         });
       }
     }
-    const domElems = videoIds.map((id) =>
-      document.querySelector(`[data-video-id="${id}"]`),
+    const domElems = videoIds.map(
+      (id) =>
+        document.querySelector(`[data-video-id="${id}"]`) as HTMLElement | null,
     );
 
     function createBricks() {
@@ -305,11 +303,14 @@ export default function ArkanoidOverlay({
           }
         } else {
           bricksToDelete.push(b);
-          score += 10;
         }
       });
       bricks = bricks.filter((b) => !bricksToDelete.includes(b));
-      if (bricks.every((bk) => bk.isTrigger) && bricksToDelete.length > 0 && !victory) {
+      if (
+        bricks.every((bk) => bk.isTrigger) &&
+        bricksToDelete.length > 0 &&
+        !victory
+      ) {
         victory = true;
         startFireworks();
         setTimeout(onClose, 4000);
