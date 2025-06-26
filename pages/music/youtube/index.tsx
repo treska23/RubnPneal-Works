@@ -1,5 +1,5 @@
 // pages/music/youtube/index.tsx
-import SectionLayout from '@/components/SectionLayout';
+import SectionLayout from '@components/SectionLayout';
 import Parser from 'rss-parser';
 
 const CHANNEL_ID = 'UCAyA9gTo-GPaKNnlulvS8iw';

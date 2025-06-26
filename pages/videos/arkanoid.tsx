@@ -2,7 +2,7 @@
 import dynamic from 'next/dynamic';
 
 const Arkanoid = dynamic(
-  () => import('@/components/ui/game-arkanoid/Arkanoid'),
+  () => import('@components/ui/game-arkanoid/Arkanoid'),
   { ssr: false },
 );
 
