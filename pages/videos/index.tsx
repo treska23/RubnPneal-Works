@@ -7,6 +7,7 @@ const thumbUrl = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 import dynamic from 'next/dynamic';
 import SectionLayout from '@components/SectionLayout';
 import ArkanoidOverlay from '@components/ui/game-arkanoid/ArkanoidOverlay';
+import { isMobile } from 'helpers/mobile';
 const YouTube = dynamic(() => import('react-youtube'), { ssr: false });
 
 interface PlaylistItemsApiResponse {
@@ -28,7 +29,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
   const videoRectsRef = useRef<DOMRect[]>([]);
   const playersRef = useRef<Record<string, YouTubePlayer | null>>({});
   const currentPlaying = useRef<string | null>(null);
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 700;
+  const mobile = isMobile();
 
   const handleVideoHit = useCallback((id: string) => {
     const player = playersRef.current[id];
@@ -52,7 +53,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
   return (
     <>
       <SectionLayout
-        className={`relative bg-gray-900 text-white transition-all ${showGame ? 'xl:max-w-[75vw] mx-auto' : ''} ${showGame && isMobile ? 'max-w-[90vw] mx-auto' : ''}`}
+        className={`relative bg-gray-900 text-white transition-all ${showGame ? 'xl:max-w-[75vw] mx-auto' : ''} ${showGame && mobile ? 'max-w-[90vw] mx-auto' : ''}`}
       >
         {/* — Fantasma animado como fondo — */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -79,7 +80,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
               if (!v) return null;
               return (
                 <div
-                  className={`relative ${showGame && isMobile ? 'scale-75' : ''}`}
+                  className={`relative aspect-video transition-transform ${showGame && mobile ? 'scale-[0.60]' : ''}`}
                   key={v}
                 >
                   <div

@@ -123,9 +123,11 @@ export default function ArkanoidOverlay({
     let lives = 3;
     setLivesState(3);
 
-    let isMobile = window.innerWidth < 700;
-    let BOTTOM_SAFE = isMobile ? 140 : 60;
-    const PADDLE_OFFSET = 16;
+    let mobile = window.innerWidth <= 640;
+    let lastMobile = mobile;
+    let SAFE_TOP = mobile ? 150 : 60; // px libres arriba
+    let SIDE_MARGIN = mobile ? 12 : 0; // hueco ladrillo-pared
+    let BOTTOM_SAFE = mobile ? 140 : 60;
 
     const canvasNode = canvasRef.current;
     if (!canvasNode) return;
@@ -164,7 +166,8 @@ export default function ArkanoidOverlay({
       qs<HTMLElement>(document, `[data-video-id="${id}"]`),
     );
 
-    function createBricks() {
+    function buildBricks() {
+      const newBricks: Brick[] = [];
       bricks.length = 0;
       const canvasRect = canvasEl.getBoundingClientRect();
       domElems.forEach((el, idx) => {
@@ -184,7 +187,13 @@ export default function ArkanoidOverlay({
           canvasEl.height,
           BOTTOM_SAFE,
         );
-        bricks.push(...around);
+        around.forEach((brick) => {
+          if (brick.y < SAFE_TOP) return;
+          brick.x += SIDE_MARGIN;
+          if (brick.x + brick.w > canvasEl.width - SIDE_MARGIN)
+            brick.x = canvasEl.width - SIDE_MARGIN - brick.w;
+          newBricks.push(brick);
+        });
         const triggerY = rect.top + rect.height / 2 - 10;
         if (triggerY <= canvasEl.height - BOTTOM_SAFE) {
           const trigger = {
@@ -197,14 +206,16 @@ export default function ArkanoidOverlay({
             videoId: videoIds[idx],
             cooldown: 0,
           } as Brick;
-          bricks.push(trigger);
+          newBricks.push(trigger);
         }
       });
+      bricks = newBricks;
+      return newBricks;
     }
 
     let ballAttached = true;
 
-    const paddle = { x: 0, w: 80, h: 10 };
+    const paddle = { x: 0, y: 0, w: 80, h: 10 };
     const keyState = { left: false, right: false, space: false };
 
     const ball = {
@@ -217,7 +228,7 @@ export default function ArkanoidOverlay({
 
     function stickBallToPaddle() {
       ball.x = paddle.x + paddle.w / 2;
-      ball.y = canvasEl.height - PADDLE_OFFSET - ball.r - 2;
+      ball.y = paddle.y - ball.r - 2;
     }
 
     function launchBall() {
@@ -232,14 +243,21 @@ export default function ArkanoidOverlay({
       canvasRef.current.width = window.innerWidth;
       canvasRef.current.height = window.innerHeight;
 
-      isMobile = window.innerWidth < 700;
-      BOTTOM_SAFE = isMobile ? 140 : 60;
+      mobile = window.innerWidth <= 640;
+      SAFE_TOP = mobile ? 150 : 60;
+      SIDE_MARGIN = mobile ? 12 : 0;
+      if (lastMobile !== mobile) {
+        bricks = buildBricks();
+        lastMobile = mobile;
+      }
+      BOTTOM_SAFE = mobile ? 140 : 60;
 
       const maxDim = Math.max(window.innerWidth, window.innerHeight);
       speedFactor = maxDim / 800;
       paddleSpeed = basePaddleSpeed * speedFactor || 6;
       paddle.x = canvasEl.width / 2 - paddle.w / 2;
-      createBricks();
+      paddle.y = canvasEl.height - 32;
+      if (lastMobile === mobile) bricks = buildBricks();
       ballAttached = true;
       ball.dx = ball.dy = 0;
       stickBallToPaddle();
@@ -264,12 +282,7 @@ export default function ArkanoidOverlay({
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
       ctx.fillStyle = 'white';
-      ctx.fillRect(
-        paddle.x,
-        canvasEl.height - PADDLE_OFFSET,
-        paddle.w,
-        paddle.h,
-      );
+      ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
 
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
@@ -352,7 +365,7 @@ export default function ArkanoidOverlay({
         startFireworks();
         setTimeout(onClose, 4000);
       }
-      const paddleY = h - PADDLE_OFFSET;
+      const paddleY = paddle.y;
       if (
         ball.dy > 0 &&
         ball.y + ball.r >= paddleY &&
