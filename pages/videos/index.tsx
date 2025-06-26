@@ -7,7 +7,7 @@ const thumbUrl = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 import dynamic from 'next/dynamic';
 import SectionLayout from '@components/SectionLayout';
 import ArkanoidOverlay from '@components/ui/game-arkanoid/ArkanoidOverlay';
-import { isMobile } from 'helpers/mobile';
+import { isMobile } from '@/helpers/is-mobile';
 const YouTube = dynamic(() => import('react-youtube'), { ssr: false });
 
 interface PlaylistItemsApiResponse {

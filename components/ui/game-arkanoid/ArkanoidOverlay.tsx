@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { qs } from '@/lib/safe-dom';
+import { isMobile } from '@/helpers/is-mobile';
 
 interface Props {
   videoIds: string[];
@@ -123,7 +124,7 @@ export default function ArkanoidOverlay({
     let lives = 3;
     setLivesState(3);
 
-    let mobile = window.innerWidth <= 640;
+    let mobile = isMobile();
     let lastMobile = mobile;
     let SAFE_TOP = mobile ? 150 : 60; // px libres arriba
     let SIDE_MARGIN = mobile ? 12 : 0; // hueco ladrillo-pared
@@ -167,8 +168,7 @@ export default function ArkanoidOverlay({
     );
 
     function buildBricks() {
-      const newBricks: Brick[] = [];
-      bricks.length = 0;
+      bricks = [];
       const canvasRect = canvasEl.getBoundingClientRect();
       domElems.forEach((el, idx) => {
         if (!el) return;
@@ -187,30 +187,28 @@ export default function ArkanoidOverlay({
           canvasEl.height,
           BOTTOM_SAFE,
         );
-        around.forEach((brick) => {
-          if (brick.y < SAFE_TOP) return;
-          brick.x += SIDE_MARGIN;
-          if (brick.x + brick.w > canvasEl.width - SIDE_MARGIN)
-            brick.x = canvasEl.width - SIDE_MARGIN - brick.w;
-          newBricks.push(brick);
+        around.forEach((b) => {
+          if (b.y > canvasEl.height - SAFE_TOP) return;
+          b.x = Math.max(b.x, SIDE_MARGIN);
+          if (b.x + b.w > canvasEl.width - SIDE_MARGIN)
+            b.x = canvasEl.width - SIDE_MARGIN - b.w;
+          bricks.push(b);
         });
-        const triggerY = rect.top + rect.height / 2 - 10;
-        if (triggerY <= canvasEl.height - BOTTOM_SAFE) {
-          const trigger = {
-            x: rect.left + rect.width / 2 - 30,
-            y: triggerY,
-            w: 60,
-            h: 20,
-            alive: true,
-            isTrigger: true,
-            videoId: videoIds[idx],
-            cooldown: 0,
-          } as Brick;
-          newBricks.push(trigger);
-        }
+
+        const cx = rect.left + rect.width / 2 - 30 - canvasRect.left;
+        const cy = rect.top + rect.height / 2 - 10 - canvasRect.top;
+        if (cy > canvasEl.height - SAFE_TOP) return;
+        bricks.push({
+          x: cx,
+          y: cy,
+          w: 60,
+          h: 20,
+          isTrigger: true,
+          videoId: videoIds[idx],
+          cooldown: 0,
+        });
       });
-      bricks = newBricks;
-      return newBricks;
+      return bricks;
     }
 
     let ballAttached = true;
@@ -227,6 +225,7 @@ export default function ArkanoidOverlay({
     };
 
     function stickBallToPaddle() {
+      paddle.y = canvasEl.height - 32;
       ball.x = paddle.x + paddle.w / 2;
       ball.y = paddle.y - ball.r - 2;
     }
@@ -243,7 +242,7 @@ export default function ArkanoidOverlay({
       canvasRef.current.width = window.innerWidth;
       canvasRef.current.height = window.innerHeight;
 
-      mobile = window.innerWidth <= 640;
+      mobile = isMobile();
       SAFE_TOP = mobile ? 150 : 60;
       SIDE_MARGIN = mobile ? 12 : 0;
       if (lastMobile !== mobile) {
