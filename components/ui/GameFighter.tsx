@@ -38,7 +38,6 @@ const GameFighter = forwardRef<GameFighterHandle, Props>(
     };
 
     useImperativeHandle(ref, () => ({
-      focus() {
         const canvas = safeQuery<HTMLCanvasElement>(
           container.current,
           'canvas',
