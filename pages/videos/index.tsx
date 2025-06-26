@@ -2,6 +2,8 @@
 import React, { useRef, useState, useCallback } from 'react';
 import type YouTubePlayer from 'react-youtube';
 import Image from 'next/image';
+
+const thumbUrl = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 import dynamic from 'next/dynamic';
 import SectionLayout from '@/components/SectionLayout';
 import ArkanoidOverlay from '@/components/ui/game-arkanoid/ArkanoidOverlay';
@@ -72,40 +74,47 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
             🚀 Jugar Arkanoid
           </button>
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {videos.map((v, i) => (
-              <div
-                key={v}
-                data-video-id={v}
-                ref={(el) => {
-                  if (el) videoRectsRef.current[i] = el.getBoundingClientRect();
-                }}
-                className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
-              >
-                <Image
-                  src={`https://i.ytimg.com/vi/${v}/hqdefault.jpg`}
-                  alt="thumb"
-                  fill
-                  sizes="(max-width:600px) 100vw, 25vw"
-                  className="object-cover rounded-lg"
-                  placeholder="blur"
-                  blurDataURL="/images/thumb-placeholder.jpg"
-                />
-                <YouTube
-                  videoId={v}
-                  onReady={(e) => {
-                    playersRef.current[v] = e.target;
-                    e.target.mute();
+            {videos.map((v, i) => {
+              if (!v) return null;
+              return (
+                <div
+                  key={v}
+                  data-video-id={v}
+                  ref={(el) => {
+                    if (el)
+                      videoRectsRef.current[i] = el.getBoundingClientRect();
                   }}
-                  className="absolute inset-0 w-full h-full"
-                  iframeClassName="w-full h-full"
-                  opts={{
-                    width: '100%',
-                    height: '100%',
-                    playerVars: { playsinline: 1 },
-                  }}
-                />
-              </div>
-            ))}
+                  className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
+                >
+                  <Image
+                    src={thumbUrl(v)}
+                    alt="thumbnail"
+                    fill
+                    sizes="(max-width:600px) 100vw, 25vw"
+                    className="object-cover rounded-lg"
+                    priority
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.src = '/images/thumb-placeholder.svg';
+                    }}
+                  />
+                  <YouTube
+                    videoId={v}
+                    onReady={(e) => {
+                      playersRef.current[v] = e.target;
+                      e.target.mute();
+                    }}
+                    className="absolute inset-0 w-full h-full"
+                    iframeClassName="w-full h-full"
+                    opts={{
+                      width: '100%',
+                      height: '100%',
+                      playerVars: { playsinline: 1 },
+                    }}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       </SectionLayout>
