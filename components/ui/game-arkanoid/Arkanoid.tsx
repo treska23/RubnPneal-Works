@@ -2,8 +2,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { safeScrollHeight, safeScrollWidth } from '@/lib/utils';
-
+import { safeScrollHeight, safeScrollWidth } from '@/lib/safe-dom';
 /**
  * Minimal Arkanoid canvas prepared for future logic.
  */

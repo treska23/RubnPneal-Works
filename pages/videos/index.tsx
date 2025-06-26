@@ -3,8 +3,7 @@ import React, { useRef, useState, useCallback } from 'react';
 import type YouTubePlayer from 'react-youtube';
 import Image from 'next/image';
 
-const thumbUrl = (id: string) =>
-  `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+const thumbUrl = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 import dynamic from 'next/dynamic';
 import SectionLayout from '@/components/SectionLayout';
 import ArkanoidOverlay from '@/components/ui/game-arkanoid/ArkanoidOverlay';
@@ -82,7 +81,8 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                   key={v}
                   data-video-id={v}
                   ref={(el) => {
-                    if (el) videoRectsRef.current[i] = el.getBoundingClientRect();
+                    if (el)
+                      videoRectsRef.current[i] = el.getBoundingClientRect();
                   }}
                   className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
                 >
@@ -98,20 +98,20 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                       target.src = '/images/thumb-placeholder.svg';
                     }}
                   />
-                <YouTube
-                  videoId={v}
-                  onReady={(e) => {
-                    playersRef.current[v] = e.target;
-                    e.target.mute();
-                  }}
-                  className="absolute inset-0 w-full h-full"
-                  iframeClassName="w-full h-full"
-                  opts={{
-                    width: '100%',
-                    height: '100%',
-                    playerVars: { playsinline: 1 },
-                  }}
-                />
+                  <YouTube
+                    videoId={v}
+                    onReady={(e) => {
+                      playersRef.current[v] = e.target;
+                      e.target.mute();
+                    }}
+                    className="absolute inset-0 w-full h-full"
+                    iframeClassName="w-full h-full"
+                    opts={{
+                      width: '100%',
+                      height: '100%',
+                      playerVars: { playsinline: 1 },
+                    }}
+                  />
                 </div>
               );
             })}
