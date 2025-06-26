@@ -7,8 +7,8 @@ import {
   CardTitle,
   CardDescription,
   CardAction,
-} from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+} from '@components/ui/Card';
+import { Button } from '@components/ui/Button';
 
 export interface FeaturedItem {
   id: string | number;
