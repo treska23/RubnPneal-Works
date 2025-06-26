@@ -81,6 +81,15 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                 }}
                 className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
               >
+                <Image
+                  src={`https://i.ytimg.com/vi/${v}/hqdefault.jpg`}
+                  alt="thumb"
+                  fill
+                  sizes="(max-width:600px) 100vw, 25vw"
+                  className="object-cover rounded-lg"
+                  placeholder="blur"
+                  blurDataURL="/images/thumb-placeholder.jpg"
+                />
                 <YouTube
                   videoId={v}
                   onReady={(e) => {
@@ -102,7 +111,6 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
       </SectionLayout>
       {showGame && (
         <ArkanoidOverlay
-          videoRects={videoRectsRef.current}
           videoIds={videos}
           onVideoHit={handleVideoHit}
           onClose={() => setShowGame(false)}
