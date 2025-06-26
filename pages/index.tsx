@@ -3,7 +3,7 @@
 import type { GetStaticProps, NextPage } from 'next';
 
 import HeroCarousel from '../components/ui/HeroCarousel';
-import BigTitle from '@/components/BigTitle';
+import BigTitle from '@components/BigTitle';
 import AboutAuthor from '../components/AboutAuthor';
 import SectionLayout from '../components/SectionLayout';
 import FeaturedGrid, { FeaturedItem } from '../components/FeaturedGrid';

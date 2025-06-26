@@ -1,8 +1,8 @@
 // pages/_app.tsx
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
-import AvatarGuide from '@/components/AvatarGuide';
-import Nav from '@/components/Nav';
+import AvatarGuide from '@components/AvatarGuide';
+import Nav from '@components/Nav';
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (

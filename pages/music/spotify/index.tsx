@@ -1,5 +1,5 @@
 // pages/music/spotify/index.tsx
-import SectionLayout from '@/components/SectionLayout';
+import SectionLayout from '@components/SectionLayout';
 
 const trackIds = [
   '5Q3jx7MeOdXMORcYRVrZCr',
