@@ -2,6 +2,7 @@
 'use client';
 
 import { forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
+import { safeQuery } from '@/lib/safe-dom';
 import RoundManager from 'game-fighter/src/game/RoundManager';
 import Phaser from 'phaser';
 
@@ -38,9 +39,10 @@ const GameFighter = forwardRef<GameFighterHandle, Props>(
 
     useImperativeHandle(ref, () => ({
       focus() {
-        const canvas = container.current?.querySelector(
+        const canvas = safeQuery<HTMLCanvasElement>(
+          container.current,
           'canvas',
-        ) as HTMLCanvasElement | null;
+        );
         canvas?.focus();
       },
       destroy: destroyGame,

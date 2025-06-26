@@ -13,11 +13,13 @@ export default function Leaderboard() {
   useEffect(() => {
     const raw = localStorage.getItem('arkanoid-scores');
     let parsed: Score[] = [];
-    try {
-      parsed = raw ? JSON.parse(raw) : [];
-    } catch {
-      console.warn('LocalStorage arkanoid-scores corrupto; se reinicia.');
-      localStorage.removeItem('arkanoid-scores');
+    if (raw) {
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        console.warn('LocalStorage arkanoid-scores corrupto; se reinicia.');
+        localStorage.removeItem('arkanoid-scores');
+      }
     }
     setScores(parsed);
   }, []);
@@ -38,11 +40,13 @@ export default function Leaderboard() {
 export function saveScore(next: Score) {
   const raw = localStorage.getItem('arkanoid-scores');
   let scores: Score[] = [];
-  try {
-    scores = raw ? JSON.parse(raw) : [];
-  } catch {
-    console.warn('LocalStorage arkanoid-scores corrupto; se reinicia.');
-    localStorage.removeItem('arkanoid-scores');
+  if (raw) {
+    try {
+      scores = JSON.parse(raw);
+    } catch {
+      console.warn('LocalStorage arkanoid-scores corrupto; se reinicia.');
+      localStorage.removeItem('arkanoid-scores');
+    }
   }
   const nextScores = [...scores, next];
   localStorage.setItem('arkanoid-scores', JSON.stringify(nextScores));

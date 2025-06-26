@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { useEffect, useRef, useState } from 'react';
+import { safeQuery } from '@/lib/safe-dom';
 
 interface Props {
   videoIds: string[];
@@ -138,9 +139,8 @@ export default function ArkanoidOverlay({
         });
       }
     }
-    const domElems = videoIds.map(
-      (id) =>
-        document.querySelector(`[data-video-id="${id}"]`) as HTMLElement | null,
+    const domElems = videoIds.map((id) =>
+      safeQuery<HTMLElement>(document, `[data-video-id="${id}"]`),
     );
 
     function createBricks() {
