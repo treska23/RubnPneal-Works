@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { useEffect, useRef, useState } from 'react';
-import { safeQuery } from '@/lib/safe-dom';
+import { qs } from '@/lib/safe-dom';
 
 interface Props {
   videoIds: string[];
@@ -140,7 +140,7 @@ export default function ArkanoidOverlay({
       }
     }
     const domElems = videoIds.map((id) =>
-      safeQuery<HTMLElement>(document, `[data-video-id="${id}"]`),
+      qs<HTMLElement>(document, `[data-video-id="${id}"]`),
     );
 
     function createBricks() {
@@ -270,8 +270,8 @@ export default function ArkanoidOverlay({
         return;
       }
 
-      const w = canvasRef.current!.width;
-      const h = canvasRef.current!.height;
+      const w = canvasEl.width;
+      const h = canvasEl.height;
 
       if (keyState.right && paddle.x < w - paddle.w) paddle.x += paddleSpeed;
       if (keyState.left && paddle.x > 0) paddle.x -= paddleSpeed;
