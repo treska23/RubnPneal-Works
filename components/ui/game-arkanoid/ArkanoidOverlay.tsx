@@ -25,6 +25,7 @@ function bricksForRect(
   rect: DOMRect,
   canvasW: number,
   canvasH: number,
+  bottomSafe: number,
 ): Brick[] {
   const brickW = 60;
   const brickH = 20;
@@ -52,8 +53,16 @@ function bricksForRect(
     const cyT = top.y + brickH / 2;
     const cxB = bottom.x + brickW / 2;
     const cyB = bottom.y + brickH / 2;
-    if (Math.hypot(cxT - safeX, cyT - safeY) > 120) bricks.push(top);
-    if (Math.hypot(cxB - safeX, cyB - safeY) > 120) bricks.push(bottom);
+    if (
+      top.y <= canvasH - bottomSafe &&
+      Math.hypot(cxT - safeX, cyT - safeY) > 120
+    )
+      bricks.push(top);
+    if (
+      bottom.y <= canvasH - bottomSafe &&
+      Math.hypot(cxB - safeX, cyB - safeY) > 120
+    )
+      bricks.push(bottom);
   }
   for (let y = rect.top; y <= rect.bottom - brickH; y += brickH + padding) {
     const left = {
@@ -74,8 +83,16 @@ function bricksForRect(
     const cyL = left.y + brickH / 2;
     const cxR = right.x + brickW / 2;
     const cyR = right.y + brickH / 2;
-    if (Math.hypot(cxL - safeX, cyL - safeY) > 120) bricks.push(left);
-    if (Math.hypot(cxR - safeX, cyR - safeY) > 120) bricks.push(right);
+    if (
+      left.y <= canvasH - bottomSafe &&
+      Math.hypot(cxL - safeX, cyL - safeY) > 120
+    )
+      bricks.push(left);
+    if (
+      right.y <= canvasH - bottomSafe &&
+      Math.hypot(cxR - safeX, cyR - safeY) > 120
+    )
+      bricks.push(right);
   }
   return bricks;
 }
@@ -105,6 +122,10 @@ export default function ArkanoidOverlay({
     let paddleSpeed = basePaddleSpeed * speedFactor;
     let lives = 3;
     setLivesState(3);
+
+    let isMobile = window.innerWidth < 700;
+    let BOTTOM_SAFE = isMobile ? 140 : 60;
+    const PADDLE_OFFSET = 16;
 
     const canvasNode = canvasRef.current;
     if (!canvasNode) return;
@@ -157,19 +178,27 @@ export default function ArkanoidOverlay({
           width: r.width,
           height: r.height,
         } as DOMRect;
-        const around = bricksForRect(rect, canvasEl.width, canvasEl.height);
+        const around = bricksForRect(
+          rect,
+          canvasEl.width,
+          canvasEl.height,
+          BOTTOM_SAFE,
+        );
         bricks.push(...around);
-        const trigger = {
-          x: rect.left + rect.width / 2 - 30,
-          y: rect.top + rect.height / 2 - 10,
-          w: 60,
-          h: 20,
-          alive: true,
-          isTrigger: true,
-          videoId: videoIds[idx],
-          cooldown: 0,
-        } as Brick;
-        bricks.push(trigger);
+        const triggerY = rect.top + rect.height / 2 - 10;
+        if (triggerY <= canvasEl.height - BOTTOM_SAFE) {
+          const trigger = {
+            x: rect.left + rect.width / 2 - 30,
+            y: triggerY,
+            w: 60,
+            h: 20,
+            alive: true,
+            isTrigger: true,
+            videoId: videoIds[idx],
+            cooldown: 0,
+          } as Brick;
+          bricks.push(trigger);
+        }
       });
     }
 
@@ -188,7 +217,7 @@ export default function ArkanoidOverlay({
 
     function stickBallToPaddle() {
       ball.x = paddle.x + paddle.w / 2;
-      ball.y = canvasEl.height - 30 - ball.r - 2;
+      ball.y = canvasEl.height - PADDLE_OFFSET - ball.r - 2;
     }
 
     function launchBall() {
@@ -202,6 +231,9 @@ export default function ArkanoidOverlay({
       if (!canvasRef.current) return;
       canvasRef.current.width = window.innerWidth;
       canvasRef.current.height = window.innerHeight;
+
+      isMobile = window.innerWidth < 700;
+      BOTTOM_SAFE = isMobile ? 140 : 60;
 
       const maxDim = Math.max(window.innerWidth, window.innerHeight);
       speedFactor = maxDim / 800;
@@ -232,7 +264,12 @@ export default function ArkanoidOverlay({
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
       ctx.fillStyle = 'white';
-      ctx.fillRect(paddle.x, canvasEl.height - 30, paddle.w, paddle.h);
+      ctx.fillRect(
+        paddle.x,
+        canvasEl.height - PADDLE_OFFSET,
+        paddle.w,
+        paddle.h,
+      );
 
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
@@ -315,7 +352,7 @@ export default function ArkanoidOverlay({
         startFireworks();
         setTimeout(onClose, 4000);
       }
-      const paddleY = h - 30;
+      const paddleY = h - PADDLE_OFFSET;
       if (
         ball.dy > 0 &&
         ball.y + ball.r >= paddleY &&
