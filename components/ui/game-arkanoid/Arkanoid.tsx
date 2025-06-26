@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { safeScrollHeight, safeScrollWidth } from '@/lib/utils';
 
 /**
  * Minimal Arkanoid canvas prepared for future logic.
@@ -20,8 +21,8 @@ export default function Arkanoid() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    if (!containerRef.current) return;
-    const { scrollWidth: w, scrollHeight: h } = containerRef.current;
+    const w = safeScrollWidth(containerRef.current) || window.innerWidth;
+    const h = safeScrollHeight(containerRef.current) || window.innerHeight;
     canvas.width = w;
     canvas.height = h;
 
