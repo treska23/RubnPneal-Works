@@ -1,15 +1,9 @@
 'use client';
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  forwardRef,
-  useImperativeHandle,
-} from 'react';
-import { qs } from '@/lib/safe-dom';
+import { useEffect, useRef, useState } from 'react';
 import MobileControls from './MobileControls';
-import { isMobile } from '@/helpers/mobile';
+import { isMobile } from '@/helpers/is-mobile';
+
 import Phaser from 'phaser';
 import BootScene from 'game-fighter/src/scenes/BootScene';
 import PreloadScene from 'game-fighter/src/scenes/PreloadScene';
@@ -22,15 +16,10 @@ interface Props {
   onSolved: () => void;
 }
 
-export interface FightSceneHandle {
-  focus: () => void;
-  destroy: () => void;
-}
-
-const FightScene = forwardRef<FightSceneHandle, Props>(({ onSolved }, ref) => {
+export default function FightScene({ onSolved }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
-  const cleanupRef = useRef<() => void>();
+
   const [dir, setDir] = useState<'left' | 'right' | 'up' | 'down' | 'none'>('none');
   const [punch, setPunch] = useState(false);
   const [kick, setKick] = useState(false);
@@ -59,14 +48,12 @@ const FightScene = forwardRef<FightSceneHandle, Props>(({ onSolved }, ref) => {
     canvas?.addEventListener('touchstart', prevent, opt);
     canvas?.addEventListener('touchmove', prevent, opt);
 
-    cleanupRef.current = () => {
+    return () => {
       canvas?.removeEventListener('touchstart', prevent);
       canvas?.removeEventListener('touchmove', prevent);
       RoundManager.stopEnemyAI();
       gameRef.current?.destroy(true);
     };
-
-    return cleanupRef.current;
   }, [onSolved]);
 
   const dispatchKey = (code: string, type: 'keydown' | 'keyup') => {
@@ -100,16 +87,6 @@ const FightScene = forwardRef<FightSceneHandle, Props>(({ onSolved }, ref) => {
     dispatchKey('KeyS', kick ? 'keydown' : 'keyup');
   }, [kick]);
 
-  useImperativeHandle(ref, () => ({
-    focus() {
-      const canvas = qs<HTMLCanvasElement>(container.current, 'canvas');
-      canvas?.focus();
-    },
-    destroy() {
-      cleanupRef.current?.();
-    },
-  }));
-
   const mobile = isMobile();
 
   return (
@@ -125,8 +102,5 @@ const FightScene = forwardRef<FightSceneHandle, Props>(({ onSolved }, ref) => {
       )}
     </div>
   );
-});
+}
 
-FightScene.displayName = 'FightScene';
-
-export default FightScene;
