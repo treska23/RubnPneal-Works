@@ -54,8 +54,13 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
 
     const state = await player.getPlayerState();
     const playing = state === 1;
-    playing ? player.pauseVideo() : player.playVideo();
-    currentPlaying.current = playing ? null : id;
+    if (playing) {
+      player.pauseVideo();
+      currentPlaying.current = null;
+    } else {
+      player.playVideo();
+      currentPlaying.current = id;
+    }
   }, []);
 
   return (
@@ -118,10 +123,8 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                     {/* iframe */}
                     <YouTube
                       videoId={v}
-                      onReady={(e) => {
-                        // @ts-ignore: e.target is the YouTube Player instance
+                      onReady={(e: { target: YouTubePlayer }) => {
                         playersRef.current[v] = e.target;
-                        // @ts-ignore
                         e.target.mute();
                       }}
                       className="absolute inset-0 w-full h-full"

@@ -3,6 +3,7 @@ import { Player } from '../game/Player';
 import { HitBox } from '../game/HitBox'; // ⬅️ nuevo import
 import { Enemy } from '../game/Enemy';
 import RoundManager from '../game/RoundManager';
+import { isMobile } from '@/helpers/is-mobile';
 
 //import type { HitData } from '../game/HitBox';
 
@@ -36,6 +37,9 @@ export default class FightScene extends Phaser.Scene {
   create(): void {
     this.canMove = false;
     this.ended = false;
+
+    const mobile = isMobile();
+    if (mobile) this.game.events.emit('show-controls');
 
     // 0️⃣ — Carga animaciones (solo una vez)
     Enemy.createAnimations(this.anims);
