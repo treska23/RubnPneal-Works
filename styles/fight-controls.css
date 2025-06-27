@@ -1,0 +1,13 @@
+.stick-base {
+  @apply w-24 h-24 rounded-full bg-white/10 fixed left-4 bottom-4;
+  touch-action: none;
+}
+.stick-knob {
+  @apply w-12 h-12 rounded-full bg-white/30 translate-x-1/2 translate-y-1/2;
+}
+.btn-a {
+  @apply w-16 h-16 rounded-full bg-pink-600 fixed right-20 bottom-6 text-white text-lg flex items-center justify-center;
+}
+.btn-b {
+  @apply w-16 h-16 rounded-full bg-blue-600 fixed right-4 bottom-20 text-white text-lg flex items-center justify-center;
+}
