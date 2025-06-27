@@ -41,9 +41,11 @@ export default function ArkanoidOverlay({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [livesState, setLivesState] = useState(3);
+  const [started, setStarted] = useState(false);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    if (!started) return;
     const baseSpeed = 4;
     let speedFactor = 1;
     const basePaddleSpeed = 8;
@@ -330,18 +332,40 @@ export default function ArkanoidOverlay({
     window.addEventListener('keydown', keyDown, { passive: true });
     window.addEventListener('keyup', keyUp, { passive: true });
 
+    const handleTouch = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvasEl.getBoundingClientRect();
+      paddle.x = touch.clientX - rect.left - paddle.w / 2;
+    };
+    canvasEl.addEventListener('touchstart', handleTouch, { passive: false });
+    canvasEl.addEventListener('touchmove', handleTouch, { passive: false });
+
     canvasEl.focus();
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('keydown', keyDown);
       window.removeEventListener('keyup', keyUp);
+      canvasEl.removeEventListener('touchstart', handleTouch);
+      canvasEl.removeEventListener('touchmove', handleTouch);
       cancelAnimationFrame(animationId);
     };
-  }, []);
+  }, [started]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 pointer-events-none">
+    <div className="fixed inset-0 z-50 bg-black/90 pointer-events-auto">
+      {!started && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+          <p className="text-white text-2xl">Pulsa empezar para jugar</p>
+          <button
+            className="bg-white text-black px-4 py-2 rounded"
+            onClick={() => setStarted(true)}
+          >
+            Empezar
+          </button>
+        </div>
+      )}
       <div className="absolute top-4 left-4 text-white text-xl pointer-events-none">
         {Array(livesState).fill('♥').join('')}
       </div>
