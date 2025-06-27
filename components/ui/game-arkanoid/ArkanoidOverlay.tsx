@@ -22,82 +22,6 @@ interface Brick {
   cooldown?: number;
 }
 
-function bricksForRect(
-  rect: DOMRect,
-  canvasW: number,
-  canvasH: number,
-  bottomSafe: number,
-): Brick[] {
-  const brickW = 60;
-  const brickH = 20;
-  const padding = 4;
-  const bricks: Brick[] = [];
-  const safeX = canvasW / 2;
-  const safeY = canvasH * 0.3;
-
-  for (let x = rect.left; x <= rect.right - brickW; x += brickW + padding) {
-    const top = {
-      x,
-      y: rect.top - brickH - padding,
-      w: brickW,
-      h: brickH,
-      alive: true,
-    };
-    const bottom = {
-      x,
-      y: rect.bottom + padding,
-      w: brickW,
-      h: brickH,
-      alive: true,
-    };
-    const cxT = top.x + brickW / 2;
-    const cyT = top.y + brickH / 2;
-    const cxB = bottom.x + brickW / 2;
-    const cyB = bottom.y + brickH / 2;
-    if (
-      top.y <= canvasH - bottomSafe &&
-      Math.hypot(cxT - safeX, cyT - safeY) > 120
-    )
-      bricks.push(top);
-    if (
-      bottom.y <= canvasH - bottomSafe &&
-      Math.hypot(cxB - safeX, cyB - safeY) > 120
-    )
-      bricks.push(bottom);
-  }
-  for (let y = rect.top; y <= rect.bottom - brickH; y += brickH + padding) {
-    const left = {
-      x: rect.left - brickW - padding,
-      y,
-      w: brickW,
-      h: brickH,
-      alive: true,
-    };
-    const right = {
-      x: rect.right + padding,
-      y,
-      w: brickW,
-      h: brickH,
-      alive: true,
-    };
-    const cxL = left.x + brickW / 2;
-    const cyL = left.y + brickH / 2;
-    const cxR = right.x + brickW / 2;
-    const cyR = right.y + brickH / 2;
-    if (
-      left.y <= canvasH - bottomSafe &&
-      Math.hypot(cxL - safeX, cyL - safeY) > 120
-    )
-      bricks.push(left);
-    if (
-      right.y <= canvasH - bottomSafe &&
-      Math.hypot(cxR - safeX, cyR - safeY) > 120
-    )
-      bricks.push(right);
-  }
-  return bricks;
-}
-
 function hitAABB(b: { x: number; y: number; r: number }, t: Brick) {
   return (
     b.x + b.r > t.x &&
@@ -124,11 +48,10 @@ export default function ArkanoidOverlay({
     let lives = 3;
     setLivesState(3);
 
+    const HEADER_H = 180;
+    const SAFE_TOP = HEADER_H + 40;
     let mobile = isMobile();
     let lastMobile = mobile;
-    let SAFE_TOP = mobile ? 150 : 60; // px libres arriba
-    let SIDE_MARGIN = mobile ? 12 : 0; // hueco ladrillo-pared
-    let BOTTOM_SAFE = mobile ? 140 : 60;
 
     const canvasNode = canvasRef.current;
     if (!canvasNode) return;
@@ -169,36 +92,15 @@ export default function ArkanoidOverlay({
 
     function buildBricks() {
       bricks = [];
-      const canvasRect = canvasEl.getBoundingClientRect();
+      const cvRect = canvasEl.getBoundingClientRect();
+      const triggers: Brick[] = [];
+
       domElems.forEach((el, idx) => {
         if (!el) return;
-        const r = el.getBoundingClientRect();
-        const rect = {
-          left: r.left - canvasRect.left,
-          top: r.top - canvasRect.top,
-          right: r.right - canvasRect.left,
-          bottom: r.bottom - canvasRect.top,
-          width: r.width,
-          height: r.height,
-        } as DOMRect;
-        const around = bricksForRect(
-          rect,
-          canvasEl.width,
-          canvasEl.height,
-          BOTTOM_SAFE,
-        );
-        around.forEach((b) => {
-          if (b.y > canvasEl.height - SAFE_TOP) return;
-          b.x = Math.max(b.x, SIDE_MARGIN);
-          if (b.x + b.w > canvasEl.width - SIDE_MARGIN)
-            b.x = canvasEl.width - SIDE_MARGIN - b.w;
-          bricks.push(b);
-        });
-
-        const cx = rect.left + rect.width / 2 - 30 - canvasRect.left;
-        const cy = rect.top + rect.height / 2 - 10 - canvasRect.top;
-        if (cy > canvasEl.height - SAFE_TOP) return;
-        bricks.push({
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2 - 30 - cvRect.left;
+        const cy = 60;
+        triggers.push({
           x: cx,
           y: cy,
           w: 60,
@@ -206,8 +108,24 @@ export default function ArkanoidOverlay({
           isTrigger: true,
           videoId: videoIds[idx],
           cooldown: 0,
+          alive: true,
         });
       });
+
+      const overlap = (x1: number, w1: number, x2: number, w2: number) =>
+        !(x1 + w1 < x2 || x2 + w2 < x1);
+
+      const cols = Math.floor(canvasEl.width / 64);
+      for (let row = 0; row < 3; row++) {
+        for (let c = 0; c < cols; c++) {
+          const x = c * 64 + 2;
+          const y = 20 + row * 26;
+          if (triggers.some((t) => overlap(x, 60, t.x, 60))) continue;
+          bricks.push({ x, y, w: 60, h: 20, alive: true });
+        }
+      }
+
+      bricks.push(...triggers);
       return bricks;
     }
 
@@ -243,13 +161,10 @@ export default function ArkanoidOverlay({
       canvasRef.current.height = window.innerHeight;
 
       mobile = isMobile();
-      SAFE_TOP = mobile ? 150 : 60;
-      SIDE_MARGIN = mobile ? 12 : 0;
       if (lastMobile !== mobile) {
         bricks = buildBricks();
         lastMobile = mobile;
       }
-      BOTTOM_SAFE = mobile ? 140 : 60;
 
       const maxDim = Math.max(window.innerWidth, window.innerHeight);
       speedFactor = maxDim / 800;
@@ -276,7 +191,7 @@ export default function ArkanoidOverlay({
         if (!el || !trigger) return;
         const r = el.getBoundingClientRect();
         trigger.x = r.left + r.width / 2 - 30 - canvasRect.left;
-        trigger.y = r.top + r.height / 2 - 10 - canvasRect.top;
+        trigger.y = 60;
       });
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
@@ -335,7 +250,8 @@ export default function ArkanoidOverlay({
       }
 
       if (ball.x < ball.r || ball.x > w - ball.r) ball.dx = -ball.dx;
-      if (ball.y < ball.r || ball.y > h - ball.r) ball.dy = -ball.dy;
+      if (ball.y > h - ball.r) ball.dy = -ball.dy;
+      if (ball.y - ball.r < SAFE_TOP) ball.dy = -ball.dy;
 
       const bricksToDelete: Brick[] = [];
       bricks.forEach((b) => {
@@ -348,7 +264,7 @@ export default function ArkanoidOverlay({
         if (b.isTrigger) {
           if (b.cooldown === 0) {
             b.cooldown = 30;
-            setTimeout(() => onVideoHit(b.videoId!), 0);
+            onVideoHit(b.videoId!);
           }
         } else {
           bricksToDelete.push(b);
