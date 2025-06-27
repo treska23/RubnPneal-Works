@@ -23,7 +23,7 @@ interface Brick {
   hideUntil?: number;
 }
 
-const TRIGGER_COOLDOWN_MS = 1500; // 1.5 s invisibles
+const TRIGGER_COOLDOWN_MS = 15000; // 1.5 s invisibles
 
 function hitAABB(b: { x: number; y: number; r: number }, t: Brick) {
   return (
