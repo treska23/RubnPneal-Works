@@ -42,7 +42,7 @@ export default function ArkanoidOverlay({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [livesState, setLivesState] = useState(3);
   const [started, setStarted] = useState(false);
-
+  const launchBallRef = useRef<() => void>(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!started) return;
@@ -157,6 +157,7 @@ export default function ArkanoidOverlay({
       ball.dy = -baseSpeed * speedFactor || -2;
       ballAttached = false;
     }
+    launchBallRef.current = launchBall;
 
     function resizeCanvas() {
       if (!canvasRef.current) return;
@@ -311,6 +312,7 @@ export default function ArkanoidOverlay({
         ballAttached = true;
         ball.dx = ball.dy = 0;
         stickBallToPaddle();
+        setStarted(false);
       }
 
       const dirX = Math.sign(ball.dx);
@@ -361,7 +363,10 @@ export default function ArkanoidOverlay({
           <p className="text-white text-2xl">Pulsa empezar para jugar</p>
           <button
             className="bg-white text-black px-4 py-2 rounded"
-            onClick={() => setStarted(true)}
+            onClick={() => {
+              setStarted(true);
+              launchBallRef.current();
+            }}
           >
             Empezar
           </button>
