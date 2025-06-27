@@ -19,7 +19,8 @@ interface Brick {
   alive: boolean;
   isTrigger?: boolean;
   videoId?: string;
-  cooldown?: number;
+  disabled?: boolean;
+  reenableAt?: number;
 }
 
 function hitAABB(b: { x: number; y: number; r: number }, t: Brick) {
@@ -105,7 +106,8 @@ export default function ArkanoidOverlay({
           h: 20,
           isTrigger: true,
           videoId: videoIds[idx],
-          cooldown: 0,
+          disabled: false,
+          reenableAt: 0,
           alive: true,
         });
       });
@@ -205,6 +207,7 @@ export default function ArkanoidOverlay({
         ctx.fillRect(b.x, b.y, b.w, b.h);
       });
       triggers.forEach((t) => {
+        if (t.disabled) return;
         ctx.fillStyle = '#db2777';
         ctx.fillRect(t.x, t.y, t.w, t.h);
       });
@@ -267,13 +270,19 @@ export default function ArkanoidOverlay({
         bricksToDelete.push(b);
       });
       triggers.forEach((tr) => {
+        if (tr.disabled) {
+          if (ball.y > tr.reenableAt!) tr.disabled = false;
+          else return;
+        }
         if (hitAABB(ball, tr)) {
-          if (tr.cooldown === 0) {
-            tr.cooldown = 30;
-            onVideoHit(tr.videoId!);
-            ball.dy = -ball.dy;
-          }
-        } else if (tr.cooldown > 0) tr.cooldown--;
+          onVideoHit(tr.videoId!);
+          ball.dy = -ball.dy;
+          tr.disabled = true;
+          tr.reenableAt = canvasEl.height / 2;
+          setTimeout(() => {
+            tr.disabled = false;
+          }, 3000);
+        }
       });
       bricks = bricks.filter((b) => !bricksToDelete.includes(b));
       if (bricks.length === 0 && bricksToDelete.length > 0 && !victory) {
