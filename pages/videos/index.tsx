@@ -1,14 +1,25 @@
 // pages/videos/index.tsx
-import React, { useRef, useState, useCallback } from 'react';
-import type YouTubePlayer from 'react-youtube';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
+import type { YouTubePlayer } from 'youtube-player/dist/types';
 import Image from 'next/image';
-
-const thumbUrl = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 import dynamic from 'next/dynamic';
+
 import SectionLayout from '@components/SectionLayout';
 import ArkanoidOverlay from '@components/ui/game-arkanoid/ArkanoidOverlay';
-import { isMobile } from '@/helpers/is-mobile';
+
 const YouTube = dynamic(() => import('react-youtube'), { ssr: false });
+const thumbUrl = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setMobile(window.innerWidth <= 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+  return mobile;
+}
 
 interface PlaylistItemsApiResponse {
   items: {
@@ -26,48 +37,46 @@ interface VideosPageProps {
 // ─── 2) COMPONENTE PRINCIPAL ─────────────────────────────────────────────
 const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
   const [showGame, setShowGame] = useState(false);
+
   const videoRectsRef = useRef<DOMRect[]>([]);
   const playersRef = useRef<Record<string, YouTubePlayer | null>>({});
   const currentPlaying = useRef<string | null>(null);
-  const mobile = isMobile();
 
-  const handleVideoHit = useCallback((id: string) => {
+  const mobile = useIsMobile();
+
+  const handleVideoHit = useCallback(async (id: string) => {
     const player = playersRef.current[id];
     if (!player) return;
 
     if (currentPlaying.current && currentPlaying.current !== id) {
-      const old = playersRef.current[currentPlaying.current];
-      old?.pauseVideo();
+      playersRef.current[currentPlaying.current]?.pauseVideo?.();
     }
 
-    const state = player.getPlayerState();
-    if (state === 1) {
-      player.pauseVideo();
-      currentPlaying.current = null;
-    } else {
-      player.playVideo();
-      currentPlaying.current = id;
-    }
+    const state = await player.getPlayerState();
+    const playing = state === 1;
+    playing ? player.pauseVideo() : player.playVideo();
+    currentPlaying.current = playing ? null : id;
   }, []);
 
   return (
     <>
       <SectionLayout
-        className={`relative bg-gray-900 text-white transition-all ${showGame ? 'xl:max-w-[75vw] mx-auto' : ''} ${showGame && mobile ? 'max-w-[90vw] mx-auto' : ''}`}
+        className={`relative bg-gray-900 text-white transition-all
+                    ${showGame ? 'xl:max-w-[75vw] mx-auto' : ''}
+                    ${showGame && mobile ? 'max-w-[90vw] mx-auto' : ''}`}
       >
-        {/* — Fantasma animado como fondo — */}
+        {/* fondo fantasma */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image
             src="/images/Ghost.png"
             alt="Fantasma retro"
-            width={2160}
-            height={2160}
-            className="absolute bottom-8 animate-ghost w-full h-full object-cover"
+            fill
+            className="animate-ghost object-cover"
             priority
           />
         </div>
 
-        {/* — CONTENIDO EN PRIMER PLANO — */}
+        {/* contenido */}
         <div className="relative z-10 px-4">
           <button
             className="mb-6 px-4 py-2 rounded bg-pink-600 text-white hover:bg-pink-700 font-semibold transition"
@@ -75,13 +84,15 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
           >
             🚀 Jugar Arkanoid
           </button>
+
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {videos.map((v, i) => {
-              if (!v) return null;
-              return (
+            {videos.map((v, i) =>
+              v ? (
                 <div
-                  className={`relative aspect-video transition-transform ${showGame && mobile ? 'scale-[0.60]' : ''}`}
                   key={v}
+                  /* ⬇️ aquí aplicamos la escala al 60 % en móvil + overlay */
+                  className={`relative aspect-video transition-transform
+                              ${showGame && mobile ? 'scale-[0.60] origin-top-left' : ''}`}
                 >
                   <div
                     data-video-id={v}
@@ -91,6 +102,7 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                     }}
                     className="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-700"
                   >
+                    {/* miniatura */}
                     <Image
                       src={thumbUrl(v)}
                       alt="thumbnail"
@@ -99,14 +111,17 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                       className="object-cover rounded-lg"
                       priority
                       onError={(e) => {
-                        const target = e.currentTarget as HTMLImageElement;
-                        target.src = '/images/thumb-placeholder.svg';
+                        (e.currentTarget as HTMLImageElement).src =
+                          '/images/thumb-placeholder.svg';
                       }}
                     />
+                    {/* iframe */}
                     <YouTube
                       videoId={v}
                       onReady={(e) => {
+                        // @ts-ignore: e.target is the YouTube Player instance
                         playersRef.current[v] = e.target;
+                        // @ts-ignore
                         e.target.mute();
                       }}
                       className="absolute inset-0 w-full h-full"
@@ -119,11 +134,12 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
                     />
                   </div>
                 </div>
-              );
-            })}
+              ) : null,
+            )}
           </div>
         </div>
       </SectionLayout>
+
       {showGame && (
         <ArkanoidOverlay
           videoIds={videos}
