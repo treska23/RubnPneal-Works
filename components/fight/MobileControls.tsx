@@ -5,13 +5,16 @@ export interface MobileControlsProps {
   onAction: (btn: 'A' | 'B', pressed: boolean) => void;
 }
 
-export default function MobileControls({ onDir, onAction }: MobileControlsProps) {
+export default function MobileControls({
+  onDir,
+  onAction,
+}: MobileControlsProps) {
   const stickBase = useRef<HTMLDivElement>(null);
   const aBtn = useRef<HTMLButtonElement>(null);
   const bBtn = useRef<HTMLButtonElement>(null);
 
   const lastDir = useRef<'left' | 'right' | 'up' | 'down' | 'none'>('none');
-  const interval = useRef<number>();
+  const interval = useRef<number | undefined>(undefined);
   const start = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -115,8 +118,12 @@ export default function MobileControls({ onDir, onAction }: MobileControlsProps)
       <div ref={stickBase} className="stick-base">
         <div className="stick-knob" />
       </div>
-      <button ref={aBtn} className="btn-a">A</button>
-      <button ref={bBtn} className="btn-b">B</button>
+      <button ref={aBtn} className="btn-a">
+        A
+      </button>
+      <button ref={bBtn} className="btn-b">
+        B
+      </button>
     </>
   );
 }

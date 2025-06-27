@@ -39,7 +39,9 @@ const GameFighter = forwardRef<GameFighterHandle, Props>(
   ({ onSolved }, ref) => {
     const container = useRef<HTMLDivElement>(null);
     const gameRef = useRef<Phaser.Game | null>(null);
-    const [dir, setDir] = useState<'left' | 'right' | 'up' | 'down' | 'none'>('none');
+    const [dir, setDir] = useState<'left' | 'right' | 'up' | 'down' | 'none'>(
+      'none',
+    );
     const [punch, setPunch] = useState(false);
     const [kick, setKick] = useState(false);
     const [showControls, setShowControls] = useState(false);

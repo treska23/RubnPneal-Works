@@ -18,7 +18,9 @@ interface Props {
 export default function FightScene({ onSolved }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
-  const [dir, setDir] = useState<'left' | 'right' | 'up' | 'down' | 'none'>('none');
+  const [dir, setDir] = useState<'left' | 'right' | 'up' | 'down' | 'none'>(
+    'none',
+  );
   const [punch, setPunch] = useState(false);
   const [kick, setKick] = useState(false);
 
@@ -32,7 +34,13 @@ export default function FightScene({ onSolved }: Props) {
       height: 600,
       backgroundColor: '#000',
       physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 980 } } },
-      scene: [BootScene, PreloadScene, FightScenePhaser, GameOverScene, VictoryScene],
+      scene: [
+        BootScene,
+        PreloadScene,
+        FightScenePhaser,
+        GameOverScene,
+        VictoryScene,
+      ],
     });
 
     gameRef.current.events.once('minigameSolved', () => {
