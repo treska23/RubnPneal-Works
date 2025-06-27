@@ -23,7 +23,7 @@ interface Brick {
   hideUntil?: number;
 }
 
-const TRIGGER_COOLDOWN_MS = 1500; // 1.5 s invisibles
+const TRIGGER_COOLDOWN_MS = 15000; // 1.5 s invisibles
 
 function hitAABB(b: { x: number; y: number; r: number }, t: Brick) {
   return (
@@ -43,9 +43,9 @@ export default function ArkanoidOverlay({
   const [livesState, setLivesState] = useState(3);
   const [started, setStarted] = useState(false);
   const launchBallRef = useRef<() => void>(() => {});
-
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    if (!started) return;
     const baseSpeed = 4;
     let speedFactor = 1;
     const basePaddleSpeed = 8;
@@ -322,6 +322,7 @@ export default function ArkanoidOverlay({
 
       animationId = requestAnimationFrame(draw);
     };
+    launchBall();
     draw();
 
     function onKey(e: KeyboardEvent, pressed: boolean) {
@@ -353,7 +354,7 @@ export default function ArkanoidOverlay({
       canvasEl.removeEventListener('touchmove', handleTouch);
       cancelAnimationFrame(animationId);
     };
-  }, []);
+  }, [started]);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90 pointer-events-auto">
