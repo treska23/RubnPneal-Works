@@ -48,7 +48,6 @@ export default function ArkanoidOverlay({
     let paddleSpeed = basePaddleSpeed * speedFactor;
     let lives = 3;
     setLivesState(3);
-
     const HEADER_H = 180;
     let mobile = isMobile();
     let lastMobile = mobile;
@@ -95,7 +94,6 @@ export default function ArkanoidOverlay({
       bricks = [];
       triggers = [];
       const cvRect = canvasEl.getBoundingClientRect();
-
       domElems.forEach((el, idx) => {
         if (!el) return;
         const rect = el.getBoundingClientRect();
@@ -127,7 +125,6 @@ export default function ArkanoidOverlay({
           if (brick.y < HEADER_H) bricks.push(brick);
         }
       }
-
       return bricks;
     }
 
@@ -262,7 +259,6 @@ export default function ArkanoidOverlay({
         ball.y = ball.r;
         ball.dy = -ball.dy;
       }
-
       const bricksToDelete: Brick[] = [];
       bricks.forEach((b) => {
         if (!hitAABB(ball, b)) return;
@@ -278,7 +274,6 @@ export default function ArkanoidOverlay({
           if (ball.y > tr.reenableAt!) tr.disabled = false;
           else return;
         }
-
         if (hitAABB(ball, tr)) {
           onVideoHit(tr.videoId!);
           ball.dy = -ball.dy;
