@@ -320,6 +320,7 @@ export default function ArkanoidOverlay({
 
       animationId = requestAnimationFrame(draw);
     };
+    launchBall();
     draw();
 
     function onKey(e: KeyboardEvent, pressed: boolean) {
