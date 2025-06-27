@@ -12,7 +12,7 @@ import {
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import { pageNavigationPlugin } from '@react-pdf-viewer/page-navigation';
 import type { ToolbarSlot } from '@react-pdf-viewer/toolbar';
-import MiniGame, { GameFighterHandle } from './GameFighter';
+import FightScene, { FightSceneHandle } from '../fight/FightScene';
 
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
@@ -93,7 +93,7 @@ export default function ComicReader() {
   };
 
   /* ─── foco al canvas cuando se abre el juego ──────────────────── */
-  const miniRef = useRef<GameFighterHandle>(null);
+  const miniRef = useRef<FightSceneHandle>(null);
   useEffect(() => {
     if (minigameVisible) setTimeout(() => miniRef.current?.focus(), 0);
   }, [minigameVisible]);
@@ -134,7 +134,7 @@ export default function ComicReader() {
 
       {/* ===== Minijuego ===== */}
       {minigameVisible && (
-        <MiniGame
+        <FightScene
           ref={miniRef}
           onSolved={() => {
             setMinigameSolved(true);

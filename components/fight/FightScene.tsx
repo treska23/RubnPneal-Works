@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import MobileControls from './MobileControls';
 import { isMobile } from '@/helpers/is-mobile';
+
 import Phaser from 'phaser';
 import BootScene from 'game-fighter/src/scenes/BootScene';
 import PreloadScene from 'game-fighter/src/scenes/PreloadScene';
@@ -18,6 +19,7 @@ interface Props {
 export default function FightScene({ onSolved }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
+
   const [dir, setDir] = useState<'left' | 'right' | 'up' | 'down' | 'none'>('none');
   const [punch, setPunch] = useState(false);
   const [kick, setKick] = useState(false);
@@ -101,3 +103,4 @@ export default function FightScene({ onSolved }: Props) {
     </div>
   );
 }
+
