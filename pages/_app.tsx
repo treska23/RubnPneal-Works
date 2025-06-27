@@ -1,5 +1,6 @@
 // pages/_app.tsx
 import '../styles/globals.css';
+import '../styles/fight-controls.css';
 import type { AppProps } from 'next/app';
 import AvatarGuide from '@components/AvatarGuide';
 import Nav from '@components/Nav';
