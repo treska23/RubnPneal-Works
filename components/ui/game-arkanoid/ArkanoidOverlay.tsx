@@ -261,14 +261,13 @@ export default function ArkanoidOverlay({
       }
       const bricksToDelete: Brick[] = [];
       bricks.forEach((b) => {
+        if (!b.alive) return;
         if (!hitAABB(ball, b)) return;
-
-        if (ball.dy > 0) ball.y = b.y - ball.r - 0.1;
-        else ball.y = b.y + b.h + ball.r + 0.1;
+        b.alive = false; // 🔸  ya no se dibujará más
         ball.dy = -ball.dy;
-
-        bricksToDelete.push(b);
       });
+      bricks = bricks.filter((b) => b.alive);
+
       triggers.forEach((tr) => {
         if (tr.disabled) {
           if (ball.y > tr.reenableAt!) tr.disabled = false;
@@ -281,7 +280,7 @@ export default function ArkanoidOverlay({
           tr.reenableAt = canvasEl.height / 2;
           setTimeout(() => {
             tr.disabled = false;
-          }, 3000);
+          }, 12000);
         }
       });
       bricks = bricks.filter((b) => !bricksToDelete.includes(b));
