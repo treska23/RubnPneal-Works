@@ -47,9 +47,7 @@ export default function ArkanoidOverlay({
     let paddleSpeed = basePaddleSpeed * speedFactor;
     let lives = 3;
     setLivesState(3);
-
     const HEADER_H = 180;
-    const SAFE_TOP = HEADER_H + 40;
     let mobile = isMobile();
     let lastMobile = mobile;
 
@@ -59,6 +57,7 @@ export default function ArkanoidOverlay({
     const ctx = canvasEl.getContext('2d');
     if (!ctx) return;
     let bricks: Brick[] = [];
+    let triggers: Brick[] = [];
     let victory = false;
 
     interface Particle {
@@ -92,14 +91,13 @@ export default function ArkanoidOverlay({
 
     function buildBricks() {
       bricks = [];
+      triggers = [];
       const cvRect = canvasEl.getBoundingClientRect();
-      const triggers: Brick[] = [];
-
       domElems.forEach((el, idx) => {
         if (!el) return;
         const rect = el.getBoundingClientRect();
         const cx = rect.left + rect.width / 2 - 30 - cvRect.left;
-        const cy = 60;
+        const cy = rect.top + rect.height / 2 - 10 - cvRect.top;
         triggers.push({
           x: cx,
           y: cy,
@@ -121,11 +119,10 @@ export default function ArkanoidOverlay({
           const x = c * 64 + 2;
           const y = 20 + row * 26;
           if (triggers.some((t) => overlap(x, 60, t.x, 60))) continue;
-          bricks.push({ x, y, w: 60, h: 20, alive: true });
+          const brick = { x, y, w: 60, h: 20, alive: true };
+          if (brick.y < HEADER_H) bricks.push(brick);
         }
       }
-
-      bricks.push(...triggers);
       return bricks;
     }
 
@@ -183,15 +180,15 @@ export default function ArkanoidOverlay({
     let animationId: number;
 
     const draw = () => {
-      const canvasRect = canvasEl.getBoundingClientRect();
-      domElems.forEach((el, idx) => {
-        const trigger = bricks.find(
-          (b) => b.isTrigger && b.videoId === videoIds[idx],
+      const cv = canvasEl.getBoundingClientRect();
+      triggers.forEach((tr) => {
+        const dom = document.querySelector<HTMLElement>(
+          `[data-video-id="${tr.videoId}"]`,
         );
-        if (!el || !trigger) return;
-        const r = el.getBoundingClientRect();
-        trigger.x = r.left + r.width / 2 - 30 - canvasRect.left;
-        trigger.y = 60;
+        if (!dom) return;
+        const r = dom.getBoundingClientRect();
+        tr.x = r.left + r.width / 2 - 30 - cv.left;
+        tr.y = r.top + r.height / 2 - 10 - cv.top;
       });
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
@@ -206,6 +203,10 @@ export default function ArkanoidOverlay({
         if (!b.alive) return;
         ctx.fillStyle = '#f472b6';
         ctx.fillRect(b.x, b.y, b.w, b.h);
+      });
+      triggers.forEach((t) => {
+        ctx.fillStyle = '#db2777';
+        ctx.fillRect(t.x, t.y, t.w, t.h);
       });
 
       if (victory) {
@@ -251,8 +252,10 @@ export default function ArkanoidOverlay({
 
       if (ball.x < ball.r || ball.x > w - ball.r) ball.dx = -ball.dx;
       if (ball.y > h - ball.r) ball.dy = -ball.dy;
-      if (ball.y - ball.r < SAFE_TOP) ball.dy = -ball.dy;
-
+      if (ball.y - ball.r < 0) {
+        ball.y = ball.r;
+        ball.dy = -ball.dy;
+      }
       const bricksToDelete: Brick[] = [];
       bricks.forEach((b) => {
         if (!hitAABB(ball, b)) return;
@@ -261,21 +264,19 @@ export default function ArkanoidOverlay({
         else ball.y = b.y + b.h + ball.r + 0.1;
         ball.dy = -ball.dy;
 
-        if (b.isTrigger) {
-          if (b.cooldown === 0) {
-            b.cooldown = 30;
-            onVideoHit(b.videoId!);
+        bricksToDelete.push(b);
+      });
+      triggers.forEach((tr) => {
+        if (hitAABB(ball, tr)) {
+          if (tr.cooldown === 0) {
+            tr.cooldown = 30;
+            onVideoHit(tr.videoId!);
+            ball.dy = -ball.dy;
           }
-        } else {
-          bricksToDelete.push(b);
-        }
+        } else if (tr.cooldown > 0) tr.cooldown--;
       });
       bricks = bricks.filter((b) => !bricksToDelete.includes(b));
-      if (
-        bricks.every((bk) => bk.isTrigger) &&
-        bricksToDelete.length > 0 &&
-        !victory
-      ) {
+      if (bricks.length === 0 && bricksToDelete.length > 0 && !victory) {
         victory = true;
         startFireworks();
         setTimeout(onClose, 4000);
@@ -305,10 +306,6 @@ export default function ArkanoidOverlay({
       const dirY = Math.sign(ball.dy);
       ball.dx = dirX * baseSpeed * speedFactor;
       ball.dy = dirY * baseSpeed * speedFactor;
-
-      bricks.forEach((b) => {
-        if (b.cooldown && b.cooldown > 0) b.cooldown--;
-      });
 
       animationId = requestAnimationFrame(draw);
     };
