@@ -1,6 +1,13 @@
 // pages/music/youtube/index.tsx
 import SectionLayout from '@components/SectionLayout';
 import Parser from 'rss-parser';
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const MusicGalaxianOverlay = dynamic(
+  () => import('@components/ui/music-galaxian/MusicGalaxianOverlay'),
+  { ssr: false },
+);
 
 const CHANNEL_ID = 'UCAyA9gTo-GPaKNnlulvS8iw';
 
@@ -24,6 +31,8 @@ export async function getStaticProps() {
 }
 
 export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
+  const [showGame, setShowGame] = useState(false);
+  const ids = videos.map((v) => v.id);
   return (
     <>
       <style jsx global>{`
@@ -61,6 +70,13 @@ export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
           }}
         />
 
+        <button
+          className="mb-6 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 font-semibold"
+          onClick={() => setShowGame(true)}
+        >
+          🎮 Jugar Galaxian
+        </button>
+
         <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
           {videos.length === 0 ? (
             <p className="col-span-full text-center py-8">
@@ -89,6 +105,9 @@ export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
           )}
         </div>
       </SectionLayout>
+      {showGame && (
+        <MusicGalaxianOverlay videoIds={ids} onClose={() => setShowGame(false)} />
+      )}
     </>
   );
 }

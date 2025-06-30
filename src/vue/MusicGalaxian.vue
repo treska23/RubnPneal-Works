@@ -15,7 +15,10 @@
       </div>
     </div>
     <!-- YouTube player oculto/fijo -->
-    <div ref="ytRef" class="fixed bottom-4 right-4 w-72 rounded-xl shadow-xl overflow-hidden"></div>
+    <div
+      ref="ytRef"
+      :class="['fixed bottom-4 right-4 w-72 rounded-xl shadow-xl overflow-hidden', { hidden: !ytVisible }]"
+    ></div>
   </div>
 </template>
 
@@ -63,6 +66,7 @@ const videoIds = [
 
 // YouTube
 const ytRef = ref(null)
+const ytVisible = ref(false)
 let ytPlayer
 let apiLoaded = false
 
@@ -105,6 +109,7 @@ function resetGame() {
   player.x = canvasRef.value.width / 2 - player.width / 2
   player.y = canvasRef.value.height - player.height - 10
   bullet.active = false
+  ytVisible.value = false
   animId = requestAnimationFrame(gameLoop)
 }
 
@@ -182,6 +187,7 @@ function checkCollisions() {
         if (ytPlayer && e.videoId) {
           ytPlayer.loadVideoById(e.videoId)
           ytPlayer.playVideo()
+          ytVisible.value = true
         }
         break
       }
