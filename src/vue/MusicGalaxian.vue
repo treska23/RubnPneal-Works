@@ -27,7 +27,7 @@ const DEBUG = false
 const fps = ref(0)
 let lastTime = performance.now()
 
-const { playerFrames, enemyFrames, explosionFrames } = useSprites()
+const { playerSheet, enemySheets, explosionSheet } = useSprites()
 
 const canvasRef = ref(null)
 let ctx
@@ -80,15 +80,22 @@ let animId
 
 const shootSound = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA='
 const explosionSound = 'data:audio/wav;base64,UklGRlIAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA='
-const soundsEnabled = ref(true)
+const soundsEnabled = ref(false)
 function playSound(src){ if(!soundsEnabled.value) return; new Audio(src).play() }
+
+function drawSprite(ctx, sheet, frame, x, y, w, h){
+  const fw = sheet.img.width / sheet.frames
+  ctx.drawImage(sheet.img, frame*fw, 0, fw, sheet.img.height, x, y, w, h)
+}
 
 function updateScale(){
   const canvas = canvasRef.value
   if(!canvas) return
   canvas.width = canvas.clientWidth
   canvas.height = canvas.clientWidth * 9 / 16
-  speedFactor.value = clamp(canvas.width / 900, 0.8, 2.0)
+  const baseFactor = canvas.width / 900
+  // Nuevo factor: +50 % respecto a v2
+  speedFactor.value = clamp(baseFactor * 1.5, 1.0, 3.0)
   enemySpeed = baseEnemySpeed * speedFactor.value
   bulletSpeed = baseBulletSpeed * speedFactor.value
   descendInterval = baseDescendInterval / speedFactor.value
@@ -126,6 +133,7 @@ function resetGame(){
   victory.value = false
   bullet.active = false
   explosions.splice(0)
+  soundsEnabled.value = false
   updateScale()
   initEnemies()
   lastDescend = performance.now()
@@ -147,7 +155,11 @@ function loadYouTubeAPI(){
 function createPlayer(){
   ytPlayer = new YT.Player(ytRef.value, {
     height: '200', width: '100%', playerVars:{ rel:0, modestbranding:1 }
-
+  })
+  ytPlayer.addEventListener('onStateChange', e => {
+    if(e.data === YT.PlayerState.PLAYING){
+      soundsEnabled.value = true
+    }
   })
 }
 
@@ -194,7 +206,7 @@ function updateExplosions(now){
   for(let i=explosions.length-1;i>=0;i--){
     const ex=explosions[i]
     const frame=Math.floor((now-ex.start)/60)
-    if(frame>=explosionFrames.length){ explosions.splice(i,1) }
+    if(frame>=explosionSheet.frames){ explosions.splice(i,1) }
     else ex.frame=frame
   }
 }
@@ -208,12 +220,11 @@ function checkCollisions(){
         bullet.active=false
         score.value +=10
         explosions.push({x:e.x,y:e.y,start:performance.now(),frame:0})
-        playSound(explosionSound)
+        new Audio(explosionSound).play()
         if(hitPlay){
           videosPlayed.value++
           if(ytPlayer && e.videoId){
             ytPlayer.loadVideoById(e.videoId)
-            ytPlayer.playVideo()
             ytVisible.value=true
           }
 
@@ -228,6 +239,7 @@ function checkCollisions(){
       loseLife(); e.alive=false
     }else if(e.y+e.height>=canvasRef.value.height){ gameOver() }
   }
+  enemies = enemies.filter(e=>e.alive)
 }
 
 function loseLife(){ lives.value--; if(lives.value<=0) gameOver() }
@@ -244,22 +256,17 @@ function checkVictory(){
 
 function draw(now){
   ctx.clearRect(0,0,canvasRef.value.width, canvasRef.value.height)
-  const pFrame = playerFrames[bullet.active?1:0]
-  ctx.drawImage(pFrame, player.x, player.y, player.width, player.height)
+  const pFrame = bullet.active?1:0
+  drawSprite(ctx, playerSheet, pFrame, player.x, player.y, player.width, player.height)
   if(bullet.active){ ctx.fillStyle='#ff0'; ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height) }
   const eFrame = Math.floor(now/300)%2
   for(const e of enemies){
     if(!e.alive) continue
-    ctx.drawImage(enemyFrames[e.type][eFrame], e.x, e.y, e.width, e.height)
-    ctx.fillStyle='#fff'
-    ctx.beginPath()
-    const px=e.x+e.width/2-8; const py=e.y+e.height/2-8
-    ctx.moveTo(px, py)
-    ctx.lineTo(px, py+16)
-    ctx.lineTo(px+16, py+8)
-    ctx.fill()
+    drawSprite(ctx, enemySheets[e.type], eFrame, e.x, e.y, e.width, e.height)
   }
-  for(const ex of explosions){ ctx.drawImage(explosionFrames[ex.frame], ex.x, ex.y, enemySize.width, enemySize.height) }
+  for(const ex of explosions){
+    drawSprite(ctx, explosionSheet, ex.frame, ex.x, ex.y, enemySize.width, enemySize.height)
+  }
 }
 
 function gameLoop(now){
@@ -294,26 +301,22 @@ onUnmounted(()=>{
   window.removeEventListener('keyup', keyup)
   window.removeEventListener('resize', updateScale)
   cancelAnimationFrame(animId)
+  if(ytPlayer && ytPlayer.destroy) ytPlayer.destroy()
 })
 
 function useSprites(){
-  const p1='PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNiIgeT0iMCIgd2lkdGg9IjQiIGhlaWdodD0iMiIgZmlsbD0iIzAwZmYwMCIvPjxyZWN0IHg9IjQiIHk9IjIiIHdpZHRoPSI4IiBoZWlnaHQ9IjIiIGZpbGw9IiMwMGZmMDAiLz48cmVjdCB4PSIyIiB5PSI0IiB3aWR0aD0iMTIiIGhlaWdodD0iMiIgZmlsbD0iIzAwZmYwMCIvPjxyZWN0IHg9IjAiIHk9IjYiIHdpZHRoPSIxNiIgaGVpZ2h0PSI0IiBmaWxsPSIjMDBmZjAwIi8+PHJlY3QgeD0iMiIgeT0iMTAiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDBmZjAwIi8+PHJlY3QgeD0iNCIgeT0iMTIiIHdpZHRoPSI4IiBoZWlnaHQ9IjIiIGZpbGw9IiMwMGZmMDAiLz48cmVjdCB4PSI2IiB5PSIxNCIgd2lkdGg9IjQiIGhlaWdodD0iMiIgZmlsbD0iIzAwZmYwMCIvPjwvc3ZnPg=='
-  const p2='PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNiIgeT0iMCIgd2lkdGg9IjQiIGhlaWdodD0iMiIgZmlsbD0iIzAwZmYwMCIvPjxyZWN0IHg9IjQiIHk9IjIiIHdpZHRoPSI4IiBoZWlnaHQ9IjIiIGZpbGw9IiMwMGZmMDAiLz48cmVjdCB4PSIyIiB5PSI0IiB3aWR0aD0iMTIiIGhlaWdodD0iMiIgZmlsbD0iIzAwZmYwMCIvPjxyZWN0IHg9IjAiIHk9IjYiIHdpZHRoPSIxNiIgaGVpZ2h0PSI0IiBmaWxsPSIjMDBjYzAwIi8+PHJlY3QgeD0iMiIgeT0iMTAiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDBmZjAwIi8+PHJlY3QgeD0iNCIgeT0iMTIiIHdpZHRoPSI4IiBoZWlnaHQ9IjIiIGZpbGw9IiMwMGZmMDAiLz48cmVjdCB4PSI2IiB5PSIxNCIgd2lkdGg9IjQiIGhlaWdodD0iMiIgZmlsbD0iIzAwZmYwMCIvPjwvc3ZnPg=='
-
-  const e1a='PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNCIgeT0iMCIgd2lkdGg9IjgiIGhlaWdodD0iMiIgZmlsbD0iI2ZmMDAwMCIvPjxyZWN0IHg9IjIiIHk9IjIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSIjZmYwMDAwIi8+PHJlY3QgeD0iMCIgeT0iNCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZjAwMDAiLz48cmVjdCB4PSIyIiB5PSI4IiB3aWR0aD0iMTIiIGhlaWdodD0iMiIgZmlsbD0iI2ZmMDAwMCIvPjxyZWN0IHg9IjQiIHk9IjEwIiB3aWR0aD0iOCIgaGVpZ2h0PSIyIiBmaWxsPSIjZmYwMDAwIi8+PHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNmZjAwMDAiLz48L3N2Zz4='
-  const e1b='PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNCIgeT0iMCIgd2lkdGg9IjgiIGhlaWdodD0iMiIgZmlsbD0iI2NjMDAwMCIvPjxyZWN0IHg9IjIiIHk9IjIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSIjY2MwMDAwIi8+PHJlY3QgeD0iMCIgeT0iNCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjQiIGZpbGw9IiNjYzAwMDAiLz48cmVjdCB4PSIyIiB5PSI4IiB3aWR0aD0iMTIiIGhlaWdodD0iMiIgZmlsbD0iI2NjMDAwMCIvPjxyZWN0IHg9IjQiIHk9IjEwIiB3aWR0aD0iOCIgaGVpZ2h0PSIyIiBmaWxsPSIjY2MwMDAwIi8+PHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNjYzAwMDAiLz48L3N2Zz4='
-  const e2a='PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNCIgeT0iMCIgd2lkdGg9IjgiIGhlaWdodD0iMiIgZmlsbD0iIzAwMDBmZiIvPjxyZWN0IHg9IjIiIHk9IjIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDAwMGZmIi8+PHJlY3QgeD0iMCIgeT0iNCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjQiIGZpbGw9IiMwMDAwZmYiLz48cmVjdCB4PSIyIiB5PSI4IiB3aWR0aD0iMTIiIGhlaWdodD0iMiIgZmlsbD0iIzAwMDBmZiIvPjxyZWN0IHg9IjQiIHk9IjEwIiB3aWR0aD0iOCIgaGVpZ2h0PSIyIiBmaWxsPSIjMDAwMGZmIi8+PHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiMwMDAwZmYiLz48L3N2Zz4='
-  const e2b='PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNCIgeT0iMCIgd2lkdGg9IjgiIGhlaWdodD0iMiIgZmlsbD0iIzAwMDBjYyIvPjxyZWN0IHg9IjIiIHk9IjIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDAwMGNjIi8+PHJlY3QgeD0iMCIgeT0iNCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjQiIGZpbGw9IiMwMDAwY2MiLz48cmVjdCB4PSIyIiB5PSI4IiB3aWR0aD0iMTIiIGhlaWdodD0iMiIgZmlsbD0iIzAwMDBjYyIvPjxyZWN0IHg9IjQiIHk9IjEwIiB3aWR0aD0iOCIgaGVpZ2h0PSIyIiBmaWxsPSIjMDAwMGNjIi8+PHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiMwMDAwY2MiLz48L3N2Zz4='
-  const e3a='PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNCIgeT0iMCIgd2lkdGg9IjgiIGhlaWdodD0iMiIgZmlsbD0iI2ZmZmYwMCIvPjxyZWN0IHg9IjIiIHk9IjIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSIjZmZmZjAwIi8+PHJlY3QgeD0iMCIgeT0iNCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmZmMDAiLz48cmVjdCB4PSIyIiB5PSI4IiB3aWR0aD0iMTIiIGhlaWdodD0iMiIgZmlsbD0iI2ZmZmYwMCIvPjxyZWN0IHg9IjQiIHk9IjEwIiB3aWR0aD0iOCIgaGVpZ2h0PSIyIiBmaWxsPSIjZmZmZjAwIi8+PHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNmZmZmMDAiLz48L3N2Zz4='
-  const e3b='PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNCIgeT0iMCIgd2lkdGg9IjgiIGhlaWdodD0iMiIgZmlsbD0iI2NjY2MwMCIvPjxyZWN0IHg9IjIiIHk9IjIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSIjY2NjYzAwIi8+PHJlY3QgeD0iMCIgeT0iNCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjQiIGZpbGw9IiNjY2NjMDAiLz48cmVjdCB4PSIyIiB5PSI4IiB3aWR0aD0iMTIiIGhlaWdodD0iMiIgZmlsbD0iI2NjY2MwMCIvPjxyZWN0IHg9IjQiIHk9IjEwIiB3aWR0aD0iOCIgaGVpZ2h0PSIyIiBmaWxsPSIjY2NjYzAwIi8+PHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNjY2NjMDAiLz48L3N2Zz4='
-  const exps=[
-'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNy4wIiB5PSIwIiB3aWR0aD0iMi4wIiBoZWlnaHQ9IjE2IiBmaWxsPSIjZmZjYzAwIi8+PHJlY3QgeD0iMCIgeT0iNy4wIiB3aWR0aD0iMTYiIGhlaWdodD0iMi4wIiBmaWxsPSIjZmZjYzAwIi8+PC9zdmc+','PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNi41IiB5PSIwIiB3aWR0aD0iMy4wIiBoZWlnaHQ9IjE2IiBmaWxsPSIjZmZjYzAwIi8+PHJlY3QgeD0iMCIgeT0iNi41IiB3aWR0aD0iMTYiIGhlaWdodD0iMy4wIiBmaWxsPSIjZmZjYzAwIi8+PC9zdmc+','PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNi4wIiB5PSIwIiB3aWR0aD0iNC4wIiBoZWlnaHQ9IjE2IiBmaWxsPSIjZmZjYzAwIi8+PHJlY3QgeD0iMCIgeT0iNi4wIiB3aWR0aD0iMTYiIGhlaWdodD0iNC4wIiBmaWxsPSIjZmZjYzAwIi8+PC9zdmc+','PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNS41IiB5PSIwIiB3aWR0aD0iNS4wIiBoZWlnaHQ9IjE2IiBmaWxsPSIjZmZjYzAwIi8+PHJlY3QgeD0iMCIgeT0iNS41IiB3aWR0aD0iMTYiIGhlaWdodD0iNS4wIiBmaWxsPSIjZmZjYzAwIi8+PC9zdmc+','PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3QgeD0iNS4wIiB5PSIwIiB3aWR0aD0iNi4wIiBoZWlnaHQ9IjE2IiBmaWxsPSIjZmZjYzAwIi8+PHJlY3QgeD0iMCIgeT0iNS4wIiB3aWR0aD0iMTYiIGhlaWdodD0iNi4wIiBmaWxsPSIjZmZjYzAwIi8+PC9zdmc+'
-  ]
-  const toImgs = arr => arr.map(src=>{const i=new Image(); i.src='data:image/svg+xml;base64,'+src; return i})
+  const base = {
+    player: 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAYAAAB3AH1ZAAAAR0lEQVR4nO2TwQoAIAhDtf//59e5xEJCPOs7uskYTKT5HfUOAItQ1dW++EfkaQYm1Z7cGC5NRP3lDXSAXkEqIIAcV1HeQAeYuY0eDnNvsPYAAAAASUVORK5CYII=',
+    enemy1: 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAYAAAB3AH1ZAAAAS0lEQVR4nGNgGAUjHTASUvCfgeE/Fk1U08dEyCBaA7wOwOYLfOLk6Bu8IUBNX+KTx+kAQgkNlzyp+gZvFDAwUM+X+MQHPARGwYADAJVpFBIj3NO1AAAAAElFTkSuQmCC',
+    enemy2: 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAYAAAB3AH1ZAAAAMklEQVR4nGNgGAUjHTBiCv3/T4Q2LPrg2gnrZ0ToZyJsGW3BqANGHTDqgAF3wCgYcAAAZ5MFEqQDgFAAAAAASUVORK5CYII=',
+    enemy3: 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAYAAAB3AH1ZAAAAWUlEQVR4nO2UwQoAIAhDtS/vz+0qqbNLGOROwWs2RSJq/S6GdJKoM77rSZSffb9fVD9sWR5EgH8LMtJil2UDoO5POOre4Q9OoDxAtmQZD7Y94uUTKP8HWuVaaUMUEAMoHusAAAAASUVORK5CYII=',
+    explosion: 'iVBORw0KGgoAAAANSUhEUgAAAGAAAAAQCAYAAADpunr5AAAAv0lEQVR4nO2XSw6AIAxEp16T83FOXJEYYstHsK3yEjdasMwABcJHSRGpfEcB1BP/BmxCXmkRsjRCS3zAsAG9M5hrw5H70hQfMGqAJApngraQoyw14CpKbfbeteGwtIU8ZYkBIzO41k7qx7MBh/QxRaT8rE6k9x853rP4gGBAObDWgdbivAs2G3EFbNazDVCGNaAslq2nmFpcaz9/YZ+ClNn3AGVMbgd/ugmbLMKcyNIq6q0tFEAW6pF6ArPxtoWdEu9lGNRUkp0AAAAASUVORK5CYII='
+  }
+  const toSheet = (src, frames) => ({ img: Object.assign(new Image(), { src: 'data:image/png;base64,'+src }), frames })
   return {
-    playerFrames: toImgs([p1,p2]),
-    enemyFrames: [toImgs([e1a,e1b]), toImgs([e2a,e2b]), toImgs([e3a,e3b])],
-    explosionFrames: toImgs(exps)
+    playerSheet: toSheet(base.player, 2),
+    enemySheets: [toSheet(base.enemy1,2), toSheet(base.enemy2,2), toSheet(base.enemy3,2)],
+    explosionSheet: toSheet(base.explosion,6)
   }
 }
 
@@ -329,10 +332,9 @@ canvas { image-rendering: pixelated; }
 3. Puedes ajustar velocidad y dificultad modificando `difficulty` y los valores base al inicio del script.
 */
 
-/* ➜ Registro de cambios v2
- - Sprites con animaciones pixel-art y explosiones
- - Velocidad escalable según ancho del canvas
- - Modo DEBUG opcional y limpieza de RAF para evitar bloqueos
- - Refactor a helper `useSprites()`
-
+/* ➜ Registro de cambios v3
+   - +50 % de velocidad en pantallas grandes
+   - Nuevos sprites arcade (3 enemigos, jugador, explosión)
+   - Sonido solo al reproducir vídeo (bugfix)
+   - Limpieza de arrays y listeners
 */
