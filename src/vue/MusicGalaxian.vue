@@ -62,6 +62,7 @@ let lastDescend = 0
 const player = reactive({ x: 0, y: 0, width: 40, height: 20 })
 const bullet = reactive({ x: 0, y: 0, width: 4, height: 10, active: false })
 let lastShot = 0
+
 const rows = 5
 const cols = 6
 const enemySize = { width: 40, height: 30 }
@@ -73,7 +74,6 @@ const explosions = reactive([])
 const score = ref(0)
 const lives = ref(difficulty.lives)
 const videosPlayed = ref(0)
-
 const showModal = ref(false)
 const victory = ref(false)
 let animId
@@ -139,6 +139,7 @@ function loadYouTubeAPI(){
     const tag = document.createElement('script')
     tag.src = 'https://www.youtube.com/iframe_api'
     window.onYouTubeIframeAPIReady = () => { apiLoaded = true; resolve() }
+
     document.body.appendChild(tag)
   })
 }
@@ -146,6 +147,7 @@ function loadYouTubeAPI(){
 function createPlayer(){
   ytPlayer = new YT.Player(ytRef.value, {
     height: '200', width: '100%', playerVars:{ rel:0, modestbranding:1 }
+
   })
 }
 
@@ -214,6 +216,7 @@ function checkCollisions(){
             ytPlayer.playVideo()
             ytVisible.value=true
           }
+
         }
         break
       }
@@ -280,6 +283,7 @@ onMounted(async ()=>{
   window.addEventListener('keydown', keydown)
   window.addEventListener('keyup', keyup)
   window.addEventListener('resize', updateScale)
+
   await loadYouTubeAPI()
   createPlayer()
   animId = requestAnimationFrame(gameLoop)
@@ -312,6 +316,7 @@ function useSprites(){
     explosionFrames: toImgs(exps)
   }
 }
+
 </script>
 
 <style scoped>
@@ -329,4 +334,5 @@ canvas { image-rendering: pixelated; }
  - Velocidad escalable según ancho del canvas
  - Modo DEBUG opcional y limpieza de RAF para evitar bloqueos
  - Refactor a helper `useSprites()`
+
 */
