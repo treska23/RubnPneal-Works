@@ -36,7 +36,6 @@ playerImg.src =
 const enemyImg = new Image()
 enemyImg.src =
   'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+CiAgPHJlY3QgeD0iNCIgeT0iMCIgd2lkdGg9IjgiIGhlaWdodD0iMiIgZmlsbD0iI2ZmMDAwMCIvPgogIDxyZWN0IHg9IjIiIHk9IjIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSIjZmYwMDAwIi8+CiAgPHJlY3QgeD0iMCIgeT0iNCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZjAwMDAiLz4KICA8cmVjdCB4PSIyIiB5PSI4IiB3aWR0aD0iMTIiIGhlaWdodD0iNCIgZmlsbD0iI2ZmMDAwMCIvPgogIDxyZWN0IHg9IjQiIHk9IjEyIiB3aWR0aD0iOCIgaGVpZ2h0PSIyIiBmaWxsPSIjZmYwMDAwIi8+CiAgPHJlY3QgeD0iNiIgeT0iMTQiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNmZjAwMDAiLz4KPC9zdmc+Cg=='
-
 // Jugador
 const player = reactive({ x: 0, y: 0, width: 40, height: 20 })
 
