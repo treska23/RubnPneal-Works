@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+// Sprite sheet only contains the explosion frames
 const SPRITE_SRC = '/sprites/galaxian_sprites.svg';
 
 interface Props {
@@ -37,8 +38,6 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   const [fps, setFps] = useState(0);
   const lastFrame = useRef(performance.now());
   const spriteImg = useRef<HTMLImageElement | null>(null);
-  const animFrame = useRef(0);
-  const lastAnim = useRef(0);
   const explosions = useRef<{ x: number; y: number; start: number }[]>([]);
 
   const rows = 5;
@@ -47,15 +46,21 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
 
   const FRAME_W = 16;
   const FRAME_H = 16;
-  const enemyInfo = [
-    { sx: 0, frames: 2 },
-    { sx: FRAME_W * 2, frames: 2 },
-    { sx: FRAME_W * 4, frames: 2 },
-  ];
-  const playerInfo = { sx: FRAME_W * 6, frames: 2 };
   const explosionInfo = { sx: FRAME_W * 8, frames: 6 };
   const explosionSound =
     'data:audio/wav;base64,UklGRlIAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
+
+  // Visual definitions for player and enemies
+  const playerColor = '#00e0ff';
+  const enemyColors = ['#ff5555', '#55ff55', '#5599ff'];
+  const playerPath = new Path2D(
+    'M0 -10 L6 -2 L6 2 L8 6 L4 6 L4 8 L-4 8 L-4 6 L-8 6 L-6 2 L-6 -2 Z',
+  );
+  const enemyPaths = [
+    new Path2D('M0 -8 L6 -2 L8 4 L6 8 L-6 8 L-8 4 L-6 -2 Z'),
+    new Path2D('M0 -8 L8 -4 L8 4 L4 8 L-4 8 L-8 4 L-8 -4 Z'),
+    new Path2D('M-8 -2 L0 -8 L8 -2 L6 8 L-6 8 Z'),
+  ];
 
   function calcSpeedFactor() {
     const canvas = canvasRef.current!;
@@ -87,6 +92,23 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     sh: number,
   ) {
     ctx.drawImage(img, sx + frame * sw, sy, sw, sh, x, y, w, h);
+  }
+
+  function drawPath(
+    ctx: CanvasRenderingContext2D,
+    path: Path2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    color: string,
+  ) {
+    ctx.save();
+    ctx.translate(x + w / 2, y + h / 2);
+    ctx.scale(w / 20, h / 20);
+    ctx.fillStyle = color;
+    ctx.fill(path);
+    ctx.restore();
   }
 
   function initEnemies() {
@@ -235,18 +257,14 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     const ctx = ctxRef.current!;
     ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height);
     if (!spriteImg.current) return;
-    drawSprite(
+    drawPath(
       ctx,
-      spriteImg.current,
-      animFrame.current,
+      playerPath,
       player.current.x,
       player.current.y,
       player.current.width,
       player.current.height,
-      playerInfo.sx,
-      0,
-      FRAME_W,
-      FRAME_H,
+      playerColor,
     );
     if (bullet.current.active) {
       ctx.fillStyle = '#ff0';
@@ -259,19 +277,14 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     }
     for (const e of enemies.current) {
       if (!e.alive) continue;
-      const info = enemyInfo[e.type];
-      drawSprite(
+      drawPath(
         ctx,
-        spriteImg.current,
-        animFrame.current,
+        enemyPaths[e.type % enemyPaths.length],
         e.x,
         e.y,
         e.width,
         e.height,
-        info.sx,
-        0,
-        FRAME_W,
-        FRAME_H,
+        enemyColors[e.type % enemyColors.length],
       );
     }
     for (let i = explosions.current.length - 1; i >= 0; i--) {
@@ -300,10 +313,6 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   function gameLoop() {
     enemies.current = enemies.current.filter((e) => e.alive);
     const now = performance.now();
-    if (now - lastAnim.current > 300) {
-      animFrame.current = (animFrame.current + 1) % 2;
-      lastAnim.current = now;
-    }
     updatePlayer();
     updateBullet();
     updateEnemies();
