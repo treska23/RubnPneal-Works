@@ -28,7 +28,7 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   const enemies = useRef<Enemy[]>([]);
   const enemyDir = useRef(1);
   const enemySpeed = useRef(1);
-  const animRef = useRef<number>();
+  const animRef = useRef<number | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
   const rows = 5;
@@ -63,8 +63,7 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     setVictory(false);
     initEnemies();
     player.current.x = canvasRef.current!.width / 2 - player.current.width / 2;
-    player.current.y =
-      canvasRef.current!.height - player.current.height - 10;
+    player.current.y = canvasRef.current!.height - player.current.height - 10;
     bullet.current.active = false;
     animRef.current = requestAnimationFrame(gameLoop);
   }
@@ -265,7 +264,9 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
       </div>
       {showModal && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white space-y-4">
-          <h2 className="text-2xl font-bold">{victory ? '¡Victoria!' : 'Game Over'}</h2>
+          <h2 className="text-2xl font-bold">
+            {victory ? '¡Victoria!' : 'Game Over'}
+          </h2>
           <button
             onClick={resetGame}
             className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
