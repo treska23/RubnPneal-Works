@@ -28,6 +28,14 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 const canvasRef = ref(null)
 let ctx
 
+// Sprites en SVG para aspecto 8 bits
+const playerImg = new Image()
+playerImg.src =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+CiAgPHJlY3QgeD0iNiIgeT0iMCIgd2lkdGg9IjQiIGhlaWdodD0iMiIgZmlsbD0iIzAwZmYwMCIvPgogIDxyZWN0IHg9IjQiIHk9IjIiIHdpZHRoPSI4IiBoZWlnaHQ9IjIiIGZpbGw9IiMwMGZmMDAiLz4KICA8cmVjdCB4PSIyIiB5PSI0IiB3aWR0aD0iMTIiIGhlaWdodD0iMiIgZmlsbD0iIzAwZmYwMCIvPgogIDxyZWN0IHg9IjAiIHk9IjYiIHdpZHRoPSIxNiIgaGVpZ2h0PSI0IiBmaWxsPSIjMDBmZjAwIi8+CiAgPHJlY3QgeD0iMiIgeT0iMTAiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDBmZjAwIi8+CiAgPHJlY3QgeD0iNCIgeT0iMTIiIHdpZHRoPSI4IiBoZWlnaHQ9IjIiIGZpbGw9IiMwMGZmMDAiLz4KICA8cmVjdCB4PSI2IiB5PSIxNCIgd2lkdGg9IjQiIGhlaWdodD0iMiIgZmlsbD0iIzAwZmYwMCIvPgo8L3N2Zz4K'
+
+const enemyImg = new Image()
+enemyImg.src =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+CiAgPHJlY3QgeD0iNCIgeT0iMCIgd2lkdGg9IjgiIGhlaWdodD0iMiIgZmlsbD0iI2ZmMDAwMCIvPgogIDxyZWN0IHg9IjIiIHk9IjIiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiBmaWxsPSIjZmYwMDAwIi8+CiAgPHJlY3QgeD0iMCIgeT0iNCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZjAwMDAiLz4KICA8cmVjdCB4PSIyIiB5PSI4IiB3aWR0aD0iMTIiIGhlaWdodD0iNCIgZmlsbD0iI2ZmMDAwMCIvPgogIDxyZWN0IHg9IjQiIHk9IjEyIiB3aWR0aD0iOCIgaGVpZ2h0PSIyIiBmaWxsPSIjZmYwMDAwIi8+CiAgPHJlY3QgeD0iNiIgeT0iMTQiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNmZjAwMDAiLz4KPC9zdmc+Cg=='
 // Jugador
 const player = reactive({ x: 0, y: 0, width: 40, height: 20 })
 
@@ -83,15 +91,24 @@ function playSound(src) {
 function initEnemies() {
   enemies.splice(0)
   const margin = 50
+  const playSize = 16
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
+      const x = margin + c * (enemySize.width + 20)
+      const y = margin + r * (enemySize.height + 20)
       enemies.push({
-        x: margin + c * (enemySize.width + 20),
-        y: margin + r * (enemySize.height + 20),
+        x,
+        y,
         width: enemySize.width,
         height: enemySize.height,
         alive: true,
-        videoId: videoIds[r * cols + c]
+        videoId: videoIds[r * cols + c],
+        playBox: {
+          x: x + enemySize.width / 2 - playSize / 2,
+          y: y + enemySize.height / 2 - playSize / 2,
+          width: playSize,
+          height: playSize
+        }
       })
     }
   }
@@ -167,24 +184,40 @@ function updateEnemies() {
   for (const e of enemies) {
     if (!e.alive) continue
     e.x += enemyDir * enemySpeed
+    e.playBox.x += enemyDir * enemySpeed
     if (e.x + e.width >= canvasRef.value.width - 10 || e.x <= 10) shift = true
   }
   if (shift) {
     enemyDir *= -1
-    enemies.forEach(e => { e.y += descendAmount })
+    enemies.forEach(e => {
+      e.y += descendAmount
+      e.playBox.y += descendAmount
+    })
   }
 }
 
 function checkCollisions() {
   if (bullet.active) {
     for (const e of enemies) {
-      if (e.alive && bullet.x < e.x + e.width && bullet.x + bullet.width > e.x && bullet.y < e.y + e.height && bullet.y + bullet.height > e.y) {
+      if (
+        e.alive &&
+        bullet.x < e.x + e.width &&
+        bullet.x + bullet.width > e.x &&
+        bullet.y < e.y + e.height &&
+        bullet.y + bullet.height > e.y
+      ) {
+        const hitsPlay =
+          bullet.x < e.playBox.x + e.playBox.width &&
+          bullet.x + bullet.width > e.playBox.x &&
+          bullet.y < e.playBox.y + e.playBox.height &&
+          bullet.y + bullet.height > e.playBox.y
+
         e.alive = false
         bullet.active = false
         score.value += 10
-        videosPlayed.value++
+        if (hitsPlay) videosPlayed.value++
         playSound(explosionSound)
-        if (ytPlayer && e.videoId) {
+        if (hitsPlay && ytPlayer && e.videoId) {
           ytPlayer.loadVideoById(e.videoId)
           ytPlayer.playVideo()
           ytVisible.value = true
@@ -224,15 +257,22 @@ function checkVictory() {
 
 function draw() {
   ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
-  ctx.fillStyle = '#0f0'
-  ctx.fillRect(player.x, player.y, player.width, player.height)
+  ctx.drawImage(playerImg, player.x, player.y, player.width, player.height)
   if (bullet.active) {
     ctx.fillStyle = '#ff0'
     ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height)
   }
-  ctx.fillStyle = '#f00'
   for (const e of enemies) {
-    if (e.alive) ctx.fillRect(e.x, e.y, e.width, e.height)
+    if (!e.alive) continue
+    ctx.drawImage(enemyImg, e.x, e.y, e.width, e.height)
+    // Símbolo de play
+    ctx.fillStyle = '#fff'
+    ctx.beginPath()
+    ctx.moveTo(e.playBox.x, e.playBox.y)
+    ctx.lineTo(e.playBox.x, e.playBox.y + e.playBox.height)
+    ctx.lineTo(e.playBox.x + e.playBox.width, e.playBox.y + e.playBox.height / 2)
+    ctx.closePath()
+    ctx.fill()
   }
 }
 
@@ -275,5 +315,5 @@ canvas { image-rendering: pixelated; }
 /* ➜ Instrucciones de uso
 1. Registra el componente en tu router Vue asignando la ruta "/music" a MusicGalaxian.vue.
 2. Edita la lista de IDs de YouTube en el array `videoIds` dentro del script.
-3. Puedes tunear velocidad de enemigos (`enemySpeed`), tamaño de canvas y otras constantes al inicio del script.
+3. Puedes tunear velocidad de enemigos (`enemySpeed`), tamaño de canvas y otras constantes al inicio del script. Los vídeos sólo se reproducen si disparas al triángulo de play dibujado sobre cada enemigo.
 */
