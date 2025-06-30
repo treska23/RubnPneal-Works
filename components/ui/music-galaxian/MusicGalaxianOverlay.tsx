@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+const SPRITE_SRC = "/sprites/galaxian_sprites.svg";
 
 interface Props {
   videoIds: string[];
@@ -12,9 +13,11 @@ interface Enemy {
   height: number;
   alive: boolean;
   videoId: string;
+  type: number;
 }
 
 export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
+  const DEBUG = true;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ytRef = useRef<HTMLDivElement>(null);
   const [lives, setLives] = useState(3);
@@ -28,12 +31,63 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   const enemies = useRef<Enemy[]>([]);
   const enemyDir = useRef(1);
   const enemySpeed = useRef(1);
+  const speedFactor = useRef(1);
   const animRef = useRef<number>();
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const [fps, setFps] = useState(0);
+  const lastFrame = useRef(performance.now());
+  const spriteImg = useRef<HTMLImageElement | null>(null);
+  const animFrame = useRef(0);
+  const lastAnim = useRef(0);
+  const explosions = useRef<{ x: number; y: number; start: number }[]>([]);
 
   const rows = 5;
   const cols = 6;
-  const descendAmount = 20;
+  const baseDescend = 20;
+
+  const FRAME_W = 16;
+  const FRAME_H = 16;
+  const enemyInfo = [
+    { sx: 0, frames: 2 },
+    { sx: FRAME_W * 2, frames: 2 },
+    { sx: FRAME_W * 4, frames: 2 },
+  ];
+  const playerInfo = { sx: FRAME_W * 6, frames: 2 };
+  const explosionInfo = { sx: FRAME_W * 8, frames: 6 };
+  const explosionSound =
+    'data:audio/wav;base64,UklGRlIAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
+
+  function calcSpeedFactor() {
+    const canvas = canvasRef.current!;
+    return Math.min(Math.max((canvas.width / 900) * 1.5, 1), 3);
+  }
+
+  function onResize() {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.width = canvas.clientWidth;
+    canvas.height = (canvas.clientWidth * 9) / 16;
+    speedFactor.current = calcSpeedFactor();
+    enemySpeed.current = speedFactor.current;
+    if (animRef.current) cancelAnimationFrame(animRef.current);
+    animRef.current = requestAnimationFrame(gameLoop);
+  }
+
+  function drawSprite(
+    ctx: CanvasRenderingContext2D,
+    img: HTMLImageElement,
+    frame: number,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    sx: number,
+    sy: number,
+    sw: number,
+    sh: number,
+  ) {
+    ctx.drawImage(img, sx + frame * sw, sy, sw, sh, x, y, w, h);
+  }
 
   function initEnemies() {
     enemies.current = [];
@@ -48,17 +102,19 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
           height: 30,
           alive: true,
           videoId: videoIds[idx % videoIds.length],
+          type: r % 3,
         });
       }
     }
   }
 
   function resetGame() {
+    speedFactor.current = calcSpeedFactor();
+    enemySpeed.current = speedFactor.current;
     setLives(3);
     setScore(0);
     setVideosPlayed(0);
     enemyDir.current = 1;
-    enemySpeed.current = 1;
     setShowModal(false);
     setVictory(false);
     initEnemies();
@@ -84,7 +140,7 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   }
 
   function updatePlayer() {
-    const speed = 5;
+    const speed = 5 * speedFactor.current;
     if (keys['ArrowLeft'] || keys['KeyA']) {
       player.current.x = Math.max(0, player.current.x - speed);
     }
@@ -98,7 +154,7 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
 
   function updateBullet() {
     if (!bullet.current.active) return;
-    bullet.current.y -= 6;
+    bullet.current.y -= 6 * speedFactor.current;
     if (bullet.current.y < 0) bullet.current.active = false;
   }
 
@@ -113,7 +169,7 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     if (shift) {
       enemyDir.current *= -1;
       enemies.current.forEach((e) => {
-        e.y += descendAmount;
+        e.y += baseDescend * speedFactor.current;
       });
     }
   }
@@ -144,10 +200,10 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
           bullet.current.active = false;
           setScore((s) => s + 10);
           setVideosPlayed((v) => v + 1);
-          setYtVisible(true);
+          explosions.current.push({ x: e.x, y: e.y, start: performance.now() });
+          new Audio(explosionSound).play();
           if ((window as any).YT && ytPlayerRef.current) {
             ytPlayerRef.current.loadVideoById(e.videoId);
-            ytPlayerRef.current.playVideo();
           }
           break;
         }
@@ -179,12 +235,19 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   function draw() {
     const ctx = ctxRef.current!;
     ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height);
-    ctx.fillStyle = '#0f0';
-    ctx.fillRect(
+    if (!spriteImg.current) return;
+    drawSprite(
+      ctx,
+      spriteImg.current,
+      animFrame.current,
       player.current.x,
       player.current.y,
       player.current.width,
       player.current.height,
+      playerInfo.sx,
+      0,
+      FRAME_W,
+      FRAME_H,
     );
     if (bullet.current.active) {
       ctx.fillStyle = '#ff0';
@@ -195,19 +258,63 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
         bullet.current.height,
       );
     }
-    ctx.fillStyle = '#f00';
     for (const e of enemies.current) {
-      if (e.alive) ctx.fillRect(e.x, e.y, e.width, e.height);
+      if (!e.alive) continue;
+      const info = enemyInfo[e.type];
+      drawSprite(
+        ctx,
+        spriteImg.current,
+        animFrame.current,
+        e.x,
+        e.y,
+        e.width,
+        e.height,
+        info.sx,
+        0,
+        FRAME_W,
+        FRAME_H,
+      );
+    }
+    for (let i = explosions.current.length - 1; i >= 0; i--) {
+      const ex = explosions.current[i];
+      const frame = Math.floor((performance.now() - ex.start) / 300);
+      if (frame >= explosionInfo.frames) {
+        explosions.current.splice(i, 1);
+        continue;
+      }
+      drawSprite(
+        ctx,
+        spriteImg.current,
+        frame,
+        ex.x,
+        ex.y,
+        40,
+        30,
+        explosionInfo.sx,
+        0,
+        FRAME_W,
+        FRAME_H,
+      );
     }
   }
 
   function gameLoop() {
+    enemies.current = enemies.current.filter((e) => e.alive);
+    const now = performance.now();
+    if (now - lastAnim.current > 300) {
+      animFrame.current = (animFrame.current + 1) % 2;
+      lastAnim.current = now;
+    }
     updatePlayer();
     updateBullet();
     updateEnemies();
     checkCollisions();
     draw();
     checkVictory();
+    if (DEBUG) {
+      setFps(Math.round(1000 / (now - lastFrame.current)));
+      lastFrame.current = now;
+    }
     if (!showModal) animRef.current = requestAnimationFrame(gameLoop);
   }
 
@@ -230,6 +337,11 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
       width: '100%',
       playerVars: { rel: 0, modestbranding: 1 },
     });
+    ytPlayerRef.current.addEventListener('onStateChange', (ev: any) => {
+      if (ev.data === (window as any).YT.PlayerState.PLAYING) {
+        setYtVisible(true);
+      }
+    });
   }
 
   useEffect(() => {
@@ -238,11 +350,15 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     ctxRef.current = canvas.getContext('2d');
     canvas.width = canvas.clientWidth;
     canvas.height = (canvas.clientWidth * 9) / 16;
+    spriteImg.current = Object.assign(new Image(), { src: SPRITE_SRC });
+    speedFactor.current = calcSpeedFactor();
+    enemySpeed.current = speedFactor.current;
     player.current.x = canvas.width / 2 - player.current.width / 2;
     player.current.y = canvas.height - player.current.height - 10;
     initEnemies();
     window.addEventListener('keydown', keydown);
     window.addEventListener('keyup', keyup);
+    window.addEventListener('resize', onResize);
     loadYouTubeAPI().then(() => {
       createPlayer();
       animRef.current = requestAnimationFrame(gameLoop);
@@ -251,6 +367,7 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     return () => {
       window.removeEventListener('keydown', keydown);
       window.removeEventListener('keyup', keyup);
+      window.removeEventListener('resize', onResize);
       cancelAnimationFrame(animRef.current!);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -263,6 +380,9 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
         <span>Puntuación: {score}</span>
         <span>Vídeos: {videosPlayed}</span>
       </div>
+      {DEBUG && (
+        <div className="absolute top-2 right-2 text-white">FPS: {fps}</div>
+      )}
       {showModal && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white space-y-4">
           <h2 className="text-2xl font-bold">{victory ? '¡Victoria!' : 'Game Over'}</h2>
