@@ -269,49 +269,46 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
 
   function checkVideoCollisions() {
     if (!bullet.current.active) return;
-
-    /* 1. Caja del disparo en coordenadas de ventana --------------------- */
-    const cRect = canvasRef.current!.getBoundingClientRect();
-    const bLeft = cRect.left + bullet.current.x;
-    const bTop = cRect.top + bullet.current.y;
-    const bRight = bLeft + bullet.current.width;
-    const bBottom = bTop + bullet.current.height;
-
-    /* 2. Recorremos las miniaturas -------------------------------------- */
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
+    const bLeft = bullet.current.x + canvasRect.left;
+    const bTop = bullet.current.y + canvasRect.top;
     for (const iframe of videoIframes.current) {
       if (ytRef.current && ytRef.current.contains(iframe)) continue; // saltar player flotante
 
       const r = iframe.getBoundingClientRect();
       if (
-        r.bottom < 0 ||
-        r.top > window.innerHeight ||
-        r.right < 0 ||
-        r.left > window.innerWidth
-      )
-        continue; // fuera de pantalla
-
-      // Cuadro 16 × 16 céntrico (icono ▶️)
-      const SIZE = 16;
-      const xLeft = r.left + r.width / 2 - SIZE / 2;
-      const xRight = xLeft + SIZE;
-      const yTop = r.top + r.height / 2 - SIZE / 2;
-      const yBot = yTop + SIZE;
-
-      const overlap =
-        bLeft < xRight && bRight > xLeft && bTop < yBot && bBottom > yTop;
-
-      if (overlap) {
-        /* 3. Sacamos el ID del vídeo y lo cargamos en el reproductor flotante */
-        const m = iframe.src.match(/embed\/([^?&]+)/);
-        if (m && ytReady.current && ytPlayerRef.current) {
-          ytPlayerRef.current.loadVideoById(m[1]);
-          setYtVisible(true); // mostrar el reproductor flotante
+        rect.bottom < 0 ||
+        rect.top > window.innerHeight ||
+        rect.right < 0 ||
+        rect.left > window.innerWidth
+      ) {
+        continue;
+      }
+      const size = 16;
+      const x = rect.left + rect.width / 2 - size / 2;
+      const y = rect.top + rect.height / 2 - size / 2;
+      if (
+        bLeft < x + size &&
+        bLeft + bullet.current.width > x &&
+        bTop < y + size &&
+        bTop + bullet.current.height > y
+      ) {
+        const src = iframe.src.split('?')[0];
+        const idMatch = src.match(/\/embed\/([^/?&]+)/);
+        const videoId = idMatch ? idMatch[1] : '';
+        if (
+          ytReady.current &&
+          ytPlayerRef.current &&
+          typeof ytPlayerRef.current.loadVideoById === 'function'
+        ) {
+          ytPlayerRef.current.loadVideoById(videoId);
+          setYtVisible(true);
         }
-
         setVideosPlayed((v) => v + 1);
         playSound(explosionSound);
-        bullet.current.active = false; // la bala desaparece
-        break; // sólo un vídeo por disparo
+        bullet.current.active = false;
+        break;
       }
     }
   }
