@@ -256,6 +256,10 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
 
   function checkVideoCollisions() {
     if (!bullet.current.active) return;
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
+    const bLeft = bullet.current.x + canvasRect.left;
+    const bTop = bullet.current.y + canvasRect.top;
     for (const iframe of videoIframes.current) {
       if (ytRef.current && ytRef.current.contains(iframe)) continue;
       const rect = iframe.getBoundingClientRect();
@@ -271,15 +275,26 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
       const x = rect.left + rect.width / 2 - size / 2;
       const y = rect.top + rect.height / 2 - size / 2;
       if (
-        bullet.current.x < x + size &&
-        bullet.current.x + bullet.current.width > x &&
-        bullet.current.y < y + size &&
-        bullet.current.y + bullet.current.height > y
+        bLeft < x + size &&
+        bLeft + bullet.current.width > x &&
+        bTop < y + size &&
+        bTop + bullet.current.height > y
       ) {
-        iframe.contentWindow?.postMessage(
-          { event: 'command', func: 'playVideo' },
-          '*',
-        );
+        const src = iframe.src;
+        const idMatch = src.match(/\/embed\/([^?&]+)/);
+        const videoId = idMatch ? idMatch[1] : '';
+        if (
+          ytReady.current &&
+          ytPlayerRef.current &&
+          typeof ytPlayerRef.current.loadVideoById === 'function'
+        ) {
+          ytPlayerRef.current.loadVideoById(videoId);
+        } else {
+          iframe.contentWindow?.postMessage(
+            { event: 'command', func: 'playVideo' },
+            '*',
+          );
+        }
         setVideosPlayed((v) => v + 1);
         setYtVisible(true);
         bullet.current.active = false;
