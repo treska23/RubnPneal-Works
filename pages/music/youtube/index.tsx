@@ -89,8 +89,9 @@ export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
                 className="group relative overflow-hidden rounded-lg border-2 border-black transform transition-all duration-300 hover:-rotate-1 hover:scale-105"
               >
                 <iframe
+                  className="yt-thumb"
                   style={{ borderRadius: '12px' }}
-                  src={`https://www.youtube.com/embed/${video.id}`}
+                  src={`https://www.youtube.com/embed/${video.id}?enablejsapi=1&rel=0`}
                   width="100%"
                   height="240"
                   frameBorder="0"
@@ -106,7 +107,10 @@ export default function YouTubePage({ videos }: { videos: YouTubeVideo[] }) {
         </div>
       </SectionLayout>
       {showGame && (
-        <MusicGalaxianOverlay videoIds={ids} onClose={() => setShowGame(false)} />
+        <MusicGalaxianOverlay
+          videoIds={ids}
+          onClose={() => setShowGame(false)}
+        />
       )}
     </>
   );

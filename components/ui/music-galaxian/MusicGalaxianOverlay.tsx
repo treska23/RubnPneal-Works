@@ -212,7 +212,12 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     });
   }
 
+  /** Detecta choques entre la bala y las naves, y entre las naves y el jugador.
+    – Destruir una nave ➜ +10 pts, explosión y sonido.         (NO reproduce vídeo)
+    – Nave golpea al jugador ➜ pierde vida.
+    – Nave llega al borde inferior ➜ game over. */
   function checkCollisions() {
+    /* ── 1) Bala contra naves ─────────────────────────────── */
     if (bullet.current.active) {
       for (const e of enemies.current) {
         if (
@@ -222,69 +227,91 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
           bullet.current.y < e.y + e.height &&
           bullet.current.y + bullet.current.height > e.y
         ) {
+          // Nave destruida
           e.alive = false;
           bullet.current.active = false;
           setScore((s) => s + 10);
-          setVideosPlayed((v) => v + 1);
-          explosions.current.push({ x: e.x, y: e.y, start: performance.now() });
-          new Audio(explosionSound).play();
-          if (
-            (window as any).YT &&
-            ytPlayerRef.current &&
-            typeof ytPlayerRef.current.loadVideoById === 'function'
-          ) {
-            ytPlayerRef.current.loadVideoById(e.videoId);
-          }
-          break;
+
+          explosions.current.push({
+            x: e.x,
+            y: e.y,
+            start: performance.now(),
+          });
+
+          playSound(explosionSound);
+          break; // una bala sólo destruye una nave
         }
       }
     }
+
+    /* ── 2) Naves contra jugador / suelo ──────────────────── */
     for (const e of enemies.current) {
       if (!e.alive) continue;
+
+      // Colisión con el jugador
       if (
         e.y + e.height >= player.current.y &&
         e.x < player.current.x + player.current.width &&
         e.x + e.width > player.current.x
       ) {
         loseLife();
-        e.alive = false;
-      } else if (e.y + e.height >= canvasRef.current!.height) {
+        e.alive = false; // la nave también se destruye
+        continue;
+      }
+
+      // Nave toca el borde inferior ⇒ fin de partida
+      if (e.y + e.height >= canvasRef.current!.height) {
         gameOver();
+        break;
       }
     }
   }
 
   function checkVideoCollisions() {
     if (!bullet.current.active) return;
+
+    /* 1. Caja del disparo en coordenadas de ventana --------------------- */
+    const cRect = canvasRef.current!.getBoundingClientRect();
+    const bLeft = cRect.left + bullet.current.x;
+    const bTop = cRect.top + bullet.current.y;
+    const bRight = bLeft + bullet.current.width;
+    const bBottom = bTop + bullet.current.height;
+
+    /* 2. Recorremos las miniaturas -------------------------------------- */
     for (const iframe of videoIframes.current) {
-      if (ytRef.current && ytRef.current.contains(iframe)) continue;
-      const rect = iframe.getBoundingClientRect();
+      if (ytRef.current && ytRef.current.contains(iframe)) continue; // saltar player flotante
+
+      const r = iframe.getBoundingClientRect();
       if (
-        rect.bottom < 0 ||
-        rect.top > window.innerHeight ||
-        rect.right < 0 ||
-        rect.left > window.innerWidth
-      ) {
-        continue;
-      }
-      const size = 40;
-      const x = rect.left + rect.width / 2 - size / 2;
-      const y = rect.top + rect.height / 2 - size / 2;
-      if (
-        bullet.current.x < x + size &&
-        bullet.current.x + bullet.current.width > x &&
-        bullet.current.y < y + size &&
-        bullet.current.y + bullet.current.height > y
-      ) {
-        iframe.contentWindow?.postMessage(
-          { event: 'command', func: 'playVideo' },
-          '*',
-        );
+        r.bottom < 0 ||
+        r.top > window.innerHeight ||
+        r.right < 0 ||
+        r.left > window.innerWidth
+      )
+        continue; // fuera de pantalla
+
+      // Cuadro 16 × 16 céntrico (icono ▶️)
+      const SIZE = 16;
+      const xLeft = r.left + r.width / 2 - SIZE / 2;
+      const xRight = xLeft + SIZE;
+      const yTop = r.top + r.height / 2 - SIZE / 2;
+      const yBot = yTop + SIZE;
+
+      const overlap =
+        bLeft < xRight && bRight > xLeft && bTop < yBot && bBottom > yTop;
+
+      if (overlap) {
+        /* 3. Sacamos el ID del vídeo y lo cargamos en el reproductor flotante */
+        const m = iframe.src.match(/embed\/([^?&]+)/);
+        if (m && ytReady.current && ytPlayerRef.current) {
+          ytPlayerRef.current.loadVideoById(m[1]);
+          setYtVisible(true); // mostrar el reproductor flotante
+        }
+
         setVideosPlayed((v) => v + 1);
-        setYtVisible(true);
-        bullet.current.active = false;
         playSound(explosionSound);
-        break;
+        bullet.current.active = false; // la bala desaparece
+        break; // sólo un vídeo por disparo
       }
     }
   }
