@@ -110,6 +110,7 @@ const cols = 6;
 const enemySize = { width: 40, height: 30 };
 let enemies = reactive([]);
 let enemyDir = 1;
+let kamikazeTimer = null;
 
 const explosions = reactive([]);
 
@@ -192,9 +193,23 @@ function initEnemies() {
         alive: true,
         type: r % 3,
         videoId: videoIds[idx++],
+        kamikaze: false,
       });
     }
   }
+}
+
+function scheduleKamikaze() {
+  if (kamikazeTimer) clearTimeout(kamikazeTimer);
+  const delay = (Math.random() * 5 + 5) * 1000;
+  kamikazeTimer = setTimeout(() => {
+    const candidates = enemies.filter((e) => e.alive && !e.kamikaze);
+    if (candidates.length > 0) {
+      const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+      chosen.kamikaze = true;
+    }
+    scheduleKamikaze();
+  }, delay);
 }
 
 function resetGame() {
@@ -213,6 +228,7 @@ function resetGame() {
   lastDescend = performance.now();
   lastShot = 0;
   animId = requestAnimationFrame(gameLoop);
+  scheduleKamikaze();
 }
 
 function loadYouTubeAPI() {
@@ -280,8 +296,21 @@ function updateEnemies() {
   let shift = false;
   for (const e of enemies) {
     if (!e.alive) continue;
-    e.x += enemyDir * enemySpeed;
-    if (e.x + e.width >= canvasRef.value.width - 10 || e.x <= 10) shift = true;
+    if (e.kamikaze) {
+      const speed = 4 * speedFactor.value;
+      const targetX = player.x + player.width / 2;
+      const targetY = player.y + player.height / 2;
+      const cx = e.x + e.width / 2;
+      const cy = e.y + e.height / 2;
+      const dx = targetX - cx;
+      const dy = targetY - cy;
+      const dist = Math.hypot(dx, dy) || 1;
+      e.x += (dx / dist) * speed;
+      e.y += (dy / dist) * speed;
+    } else {
+      e.x += enemyDir * enemySpeed;
+      if (e.x + e.width >= canvasRef.value.width - 10 || e.x <= 10) shift = true;
+    }
   }
   if (shift || performance.now() - lastDescend > descendInterval) {
     enemyDir *= -1;
@@ -431,6 +460,7 @@ onMounted(async () => {
   ctx = canvas.getContext('2d');
   updateScale();
   initEnemies();
+  scheduleKamikaze();
   window.addEventListener('keydown', keydown);
   window.addEventListener('keyup', keyup);
   window.addEventListener('resize', updateScale);
@@ -445,6 +475,7 @@ onUnmounted(() => {
   window.removeEventListener('keyup', keyup);
   window.removeEventListener('resize', updateScale);
   cancelAnimationFrame(animId);
+  if (kamikazeTimer) clearTimeout(kamikazeTimer);
   if (ytPlayer && ytPlayer.destroy) ytPlayer.destroy();
 });
 

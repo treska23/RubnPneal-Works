@@ -25,6 +25,7 @@ interface Enemy {
   alive: boolean;
   videoId: string;
   type: number;
+  kamikaze?: boolean;
 }
 
 export default function MusicGalaxianOverlay({
@@ -61,6 +62,8 @@ export default function MusicGalaxianOverlay({
   const basePositions = useRef<InitialPos[]>([]);
   // Offset applied to the whole formation when moving
   const formationOffset = useRef({ x: 0, y: 0 });
+  // Timer for triggering kamikaze enemies
+  const kamikazeTimer = useRef<number | null>(null);
   const rows = 5;
   const cols = 6;
   const baseDescend = 20;
@@ -187,6 +190,20 @@ export default function MusicGalaxianOverlay({
     }
   }
 
+  function scheduleKamikaze() {
+    if (kamikazeTimer.current) clearTimeout(kamikazeTimer.current);
+    const delay = (Math.random() * 5 + 5) * 1000; // 5-10 s
+    kamikazeTimer.current = window.setTimeout(() => {
+      const candidates = enemies.current.filter((e) => e.alive && !e.kamikaze);
+      if (candidates.length > 0) {
+        const chosen =
+          candidates[Math.floor(Math.random() * candidates.length)];
+        chosen.kamikaze = true;
+      }
+      scheduleKamikaze();
+    }, delay);
+  }
+
   function resetGame() {
     speedFactor.current = calcSpeedFactor();
     enemySpeed.current = speedFactor.current;
@@ -201,6 +218,7 @@ export default function MusicGalaxianOverlay({
     player.current.y = canvasRef.current!.height - player.current.height - 10;
     bullet.current.active = false;
     animRef.current = requestAnimationFrame(gameLoop);
+    scheduleKamikaze();
   }
 
   const keys: Record<string, boolean> = {};
@@ -251,10 +269,23 @@ export default function MusicGalaxianOverlay({
     let shift = false;
     enemies.current.forEach((e, idx) => {
       if (!e.alive) return;
-      e.x = basePositions.current[idx].x + formationOffset.current.x;
-      e.y = basePositions.current[idx].y + formationOffset.current.y;
-      if (e.x + e.width >= canvasRef.current!.width - 10 || e.x <= 10)
-        shift = true;
+      if (e.kamikaze) {
+        const speed = 4 * speedFactor.current;
+        const targetX = player.current.x + player.current.width / 2;
+        const targetY = player.current.y + player.current.height / 2;
+        const cx = e.x + e.width / 2;
+        const cy = e.y + e.height / 2;
+        const dx = targetX - cx;
+        const dy = targetY - cy;
+        const dist = Math.hypot(dx, dy) || 1;
+        e.x += (dx / dist) * speed;
+        e.y += (dy / dist) * speed;
+      } else {
+        e.x = basePositions.current[idx].x + formationOffset.current.x;
+        e.y = basePositions.current[idx].y + formationOffset.current.y;
+        if (e.x + e.width >= canvasRef.current!.width - 10 || e.x <= 10)
+          shift = true;
+      }
     });
     if (shift) {
       enemyDir.current *= -1;
@@ -528,6 +559,7 @@ export default function MusicGalaxianOverlay({
     player.current.x = canvas.width / 2 - player.current.width / 2;
     player.current.y = canvas.height - player.current.height - 10;
     initEnemies();
+    scheduleKamikaze();
     window.addEventListener('keydown', keydown);
     window.addEventListener('keyup', keyup);
     window.addEventListener('resize', onResize);
@@ -546,6 +578,7 @@ export default function MusicGalaxianOverlay({
       window.removeEventListener('keyup', keyup);
       window.removeEventListener('resize', onResize);
       cancelAnimationFrame(animRef.current!);
+      if (kamikazeTimer.current) clearTimeout(kamikazeTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
