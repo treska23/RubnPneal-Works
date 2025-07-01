@@ -35,10 +35,15 @@ function checkVideoCollisions(now: number) {
       bullet.y < y + s &&
       bullet.y + bullet.height > y
     ) {
-      iframe.contentWindow?.postMessage(
-        { event: 'command', func: 'playVideo' },
-        '*',
-      );
+      try {
+        iframe.contentWindow?.postMessage(
+          JSON.stringify({ event: 'command', func: 'playVideo', args: [] }),
+          '*',
+        );
+      } catch (err) {
+        console.warn('No se pudo enviar playVideo al iframe:', err);
+      }
+
       setVideosPlayed((v) => v + 1);
       setYtVisible(true);
       bullet.active = false;

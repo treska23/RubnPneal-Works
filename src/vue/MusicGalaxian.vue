@@ -40,7 +40,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue';
-
+const particles = reactive([]);
 const DEBUG = false;
 const fps = ref(0);
 let lastTime = performance.now();
@@ -128,6 +128,32 @@ const soundsEnabled = ref(false);
 function playSound(src) {
   if (!soundsEnabled.value) return;
   new Audio(src).play();
+}
+
+function spawnPixelExplosion(cx, cy, baseColor) {
+  const N = 30; // nº de partículas
+  for (let i = 0; i < N; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 3 + 1; // 1-4 px/frame
+    particles.current.push({
+      x: cx,
+      y: cy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 600, // ms
+      color: baseColor,
+    });
+  }
+}
+
+function updateParticles(dt) {
+  for (let i = particles.current.length - 1; i >= 0; i--) {
+    const p = particles.current[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life -= dt;
+    if (p.life <= 0) particles.current.splice(i, 1);
+  }
 }
 
 function drawSprite(ctx, sheet, frame, x, y, w, h) {
@@ -294,33 +320,35 @@ function checkCollisions() {
         e.alive = false;
         bullet.active = false;
         score.value += 10;
-        explosions.push({ x: e.x, y: e.y, start: performance.now(), frame: 0 });
         new Audio(explosionSound).play();
+
         if (hitPlay) {
           videosPlayed.value++;
           if (ytPlayer && e.videoId) {
+            // reproducir en el reproductor flotante
             ytPlayer.loadVideoById(e.videoId);
             ytVisible.value = true;
+          } else {
+            // buscar el iframe miniatura correspondiente
+            const iframe = document.querySelector(
+              `iframe[src*="${e.videoId}"]`,
+            );
+            if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.postMessage(
+                JSON.stringify({
+                  event: 'command',
+                  func: 'playVideo',
+                  args: [],
+                }),
+                'https://www.youtube.com',
+              );
+            }
           }
         }
         break;
       }
     }
   }
-  for (const e of enemies) {
-    if (!e.alive) continue;
-    if (
-      e.y + e.height >= player.y &&
-      e.x < player.x + player.width &&
-      e.x + e.width > player.x
-    ) {
-      loseLife();
-      e.alive = false;
-    } else if (e.y + e.height >= canvasRef.value.height) {
-      gameOver();
-    }
-  }
-  enemies = enemies.filter((e) => e.alive);
 }
 
 function loseLife() {
@@ -373,13 +401,19 @@ function draw(now) {
       enemySize.height,
     );
   }
+  for (const p of particles.current) {
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, 2, 2); // cuadrado de 2 px
+  }
 }
 
 function gameLoop(now) {
   if (DEBUG) console.time('loop');
+  updateParticles(now - lastTime);
   updatePlayer();
   updateBullet();
   updateEnemies();
+  updateParticles(now - lastFrame.current);
   checkCollisions();
   updateExplosions(now);
   draw(now);
@@ -448,11 +482,3 @@ canvas {
   image-rendering: pixelated;
 }
 </style>
-
-/* ➜ Instrucciones de uso 1. Registra el componente en la ruta "/music" de tu
-router Vue. 2. Edita la lista de IDs de YouTube en el array `videoIds` si deseas
-cambiar los vídeos. 3. Puedes ajustar velocidad y dificultad modificando
-`difficulty` y los valores base al inicio del script. */ /* ➜ Registro de
-cambios v3 - +50 % de velocidad en pantallas grandes - Nuevos sprites arcade (3
-enemigos, jugador, explosión) - Sonido solo al reproducir vídeo (bugfix) -
-Limpieza de arrays y listeners */

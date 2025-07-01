@@ -45,6 +45,16 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   const cols = 6;
   const baseDescend = 20;
 
+  type Particle = {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    life: number; // ms restante
+    color: string;
+  };
+  const particles = useRef<Particle[]>([]);
+
   const FRAME_W = 16;
   const FRAME_H = 16;
   const explosionInfo = { sx: FRAME_W * 8, frames: 6 };
@@ -54,7 +64,21 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   function playSound(src: string) {
     new Audio(src).play();
   }
-
+  function spawnPixelExplosion(cx: number, cy: number, baseColor: string) {
+    const N = 30; // nº de partículas
+    for (let i = 0; i < N; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 3 + 1; // 1-4 px/frame
+      particles.current.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 600, // ms
+        color: baseColor,
+      });
+    }
+  }
   // Visual definitions for player and enemies
   const playerColor = '#00e0ff';
   const enemyColors = ['#ff5555', '#55ff55', '#5599ff'];
@@ -184,6 +208,16 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     if (bullet.current.y < 0) bullet.current.active = false;
   }
 
+  function updateParticles(dt: number) {
+    for (let i = particles.current.length - 1; i >= 0; i--) {
+      const p = particles.current[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= dt;
+      if (p.life <= 0) particles.current.splice(i, 1);
+    }
+  }
+
   function updateEnemies() {
     let shift = false;
     for (const e of enemies.current) {
@@ -231,13 +265,11 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
           e.alive = false;
           bullet.current.active = false;
           setScore((s) => s + 10);
-
-          explosions.current.push({
-            x: e.x,
-            y: e.y,
-            start: performance.now(),
-          });
-
+          spawnPixelExplosion(
+            e.x + e.width / 2,
+            e.y + e.height / 2,
+            enemyColors[e.type % enemyColors.length],
+          );
           playSound(explosionSound);
           break; // una bala sólo destruye una nave
         }
@@ -267,36 +299,46 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     }
   }
 
-  function checkVideoCollisions() {
+  /**
+   * canvas → elemento <canvas> de tu juego.
+   * Pásalo al llamar o declara arriba:
+   *   const canvas = document.querySelector('canvas')!;
+   */
+  function checkVideoCollisions(canvas: HTMLCanvasElement) {
     if (!bullet.current.active) return;
-    const canvasRect = canvasRef.current?.getBoundingClientRect();
-    if (!canvasRect) return;
-    const bLeft = bullet.current.x + canvasRect.left;
-    const bTop = bullet.current.y + canvasRect.top;
-    for (const iframe of videoIframes.current) {
-      if (ytRef.current && ytRef.current.contains(iframe)) continue; // saltar player flotante
 
+    const cRect = canvas.getBoundingClientRect();
+    const bLeft = cRect.left + bullet.current.x;
+    const bTop = cRect.top + bullet.current.y;
+    const bRight = bLeft + bullet.current.width;
+    const bBottom = bTop + bullet.current.height;
+
+    for (const iframe of videoIframes.current) {
       const r = iframe.getBoundingClientRect();
       if (
-        r.bottom < 0 ||
-        r.top > window.innerHeight ||
-        r.right < 0 ||
-        r.left > window.innerWidth
+        r.bottom <= 0 ||
+        r.top >= window.innerHeight ||
+        r.right <= 0 ||
+        r.left >= window.innerWidth
       ) {
         continue;
       }
-      const size = 16;
-      const x = r.left + r.width / 2 - size / 2;
-      const y = r.top + r.height / 2 - size / 2;
-      if (
-        bLeft < x + size &&
-        bLeft + bullet.current.width > x &&
-        bTop < y + size &&
-        bTop + bullet.current.height > y
-      ) {
+
+      const SIZE = 16;
+      const xLeft = r.left + r.width / 2 - SIZE / 2;
+      const xRight = xLeft + SIZE;
+      const yTop = r.top + r.height / 2 - SIZE / 2;
+      const yBot = yTop + SIZE;
+
+      const overlap =
+        bLeft < xRight && bRight > xLeft && bTop < yBot && bBottom > yTop;
+
+      if (overlap) {
+        // Extraer videoId desde src
         const src = iframe.src.split('?')[0];
         const idMatch = src.match(/\/embed\/([^/?&]+)/);
         const videoId = idMatch ? idMatch[1] : '';
+
         if (
           ytReady.current &&
           ytPlayerRef.current &&
@@ -304,7 +346,21 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
         ) {
           ytPlayerRef.current.loadVideoById(videoId);
           setYtVisible(true);
+        } else {
+          try {
+            iframe.contentWindow?.postMessage(
+              JSON.stringify({
+                event: 'command',
+                func: 'playVideo',
+                args: [],
+              }),
+              'https://www.youtube.com',
+            );
+          } catch (err) {
+            console.warn('No se pudo enviar playVideo al iframe:', err);
+          }
         }
+
         setVideosPlayed((v) => v + 1);
         playSound(explosionSound);
         bullet.current.active = false;
@@ -376,6 +432,10 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
         FRAME_H,
       );
     }
+    for (const p of particles.current) {
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, 2, 2); // cuadrado de 2 px
+    }
   }
 
   function gameLoop() {
@@ -385,7 +445,8 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     updateBullet();
     updateEnemies();
     checkCollisions();
-    checkVideoCollisions();
+    checkVideoCollisions(canvasRef.current!);
+    updateParticles(now - lastFrame.current);
     draw();
     checkVictory();
     if (DEBUG) {
