@@ -2,9 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 // Sprite sheet only contains the explosion frames
 const SPRITE_SRC = '/sprites/galaxian_sprites.svg';
 
+interface InitialPos {
+  x: number;
+  y: number;
+}
+
 interface Props {
   videoIds: string[];
   onClose: () => void;
+  /**
+   * Optional list of starting positions for each enemy. Can be a JSON
+   * string or the parsed array itself.
+   */
+  initialPositions?: InitialPos[] | string;
 }
 
 interface Enemy {
@@ -17,7 +27,11 @@ interface Enemy {
   type: number;
 }
 
-export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
+export default function MusicGalaxianOverlay({
+  videoIds,
+  onClose,
+  initialPositions,
+}: Props) {
   const DEBUG = true;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ytRef = useRef<HTMLDivElement>(null);
@@ -41,6 +55,12 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   const explosions = useRef<{ x: number; y: number; start: number }[]>([]);
   const videoIframes = useRef<HTMLIFrameElement[]>([]);
   const ytReady = useRef(false);
+  // Base starting positions provided via props
+  const initialPosRef = useRef<InitialPos[]>([]);
+  // Original formation coordinates for each enemy
+  const basePositions = useRef<InitialPos[]>([]);
+  // Offset applied to the whole formation when moving
+  const formationOffset = useRef({ x: 0, y: 0 });
   const rows = 5;
   const cols = 6;
   const baseDescend = 20;
@@ -118,13 +138,21 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
 
   function initEnemies() {
     enemies.current = [];
+    basePositions.current = [];
+    formationOffset.current = { x: 0, y: 0 };
     const margin = 50;
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const idx = r * cols + c;
+        const pos =
+          initialPosRef.current[idx] ?? {
+            x: margin + c * (40 + 20),
+            y: margin + r * (30 + 20),
+          };
+        basePositions.current.push({ x: pos.x, y: pos.y });
         enemies.current.push({
-          x: margin + c * (40 + 20),
-          y: margin + r * (30 + 20),
+          x: pos.x,
+          y: pos.y,
           width: 40,
           height: 30,
           alive: true,
@@ -185,18 +213,18 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   }
 
   function updateEnemies() {
+    formationOffset.current.x += enemyDir.current * enemySpeed.current;
     let shift = false;
-    for (const e of enemies.current) {
-      if (!e.alive) continue;
-      e.x += enemyDir.current * enemySpeed.current;
+    enemies.current.forEach((e, idx) => {
+      if (!e.alive) return;
+      e.x = basePositions.current[idx].x + formationOffset.current.x;
+      e.y = basePositions.current[idx].y + formationOffset.current.y;
       if (e.x + e.width >= canvasRef.current!.width - 10 || e.x <= 10)
         shift = true;
-    }
+    });
     if (shift) {
       enemyDir.current *= -1;
-      enemies.current.forEach((e) => {
-        e.y += baseDescend * speedFactor.current;
-      });
+      formationOffset.current.y += baseDescend * speedFactor.current;
     }
   }
 
@@ -460,6 +488,20 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Apply initial positions provided via props
+  useEffect(() => {
+    if (!initialPositions) return;
+    try {
+      initialPosRef.current = Array.isArray(initialPositions)
+        ? initialPositions
+        : JSON.parse(initialPositions);
+      initEnemies();
+    } catch (err) {
+      console.error('Invalid initialPositions', err);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPositions]);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90">
