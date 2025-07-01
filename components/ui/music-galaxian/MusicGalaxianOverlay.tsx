@@ -83,12 +83,19 @@ export default function MusicGalaxianOverlay({
   const explosionInfo = { sx: FRAME_W * 8, frames: 6 };
   const explosionSound =
     'data:audio/wav;base64,UklGRlIAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
+  const kamikazeSound =
+    'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
 
   function playSound(src: string) {
     new Audio(src).play();
   }
-  function spawnPixelExplosion(cx: number, cy: number, baseColor: string) {
-    const N = 30; // nº de partículas
+  function spawnPixelExplosion(
+    cx: number,
+    cy: number,
+    baseColor: string,
+    count = 30,
+  ) {
+    const N = count; // nº de partículas
     for (let i = 0; i < N; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = Math.random() * 3 + 1; // 1-4 px/frame
@@ -105,6 +112,7 @@ export default function MusicGalaxianOverlay({
   // Visual definitions for player and enemies
   const playerColor = '#00e0ff';
   const enemyColors = ['#ff5555', '#55ff55', '#5599ff'];
+  const kamikazeColor = '#ff0000';
   const playerPath = new Path2D(
     'M0 -10 L6 -2 L6 2 L8 6 L4 6 L4 8 L-4 8 L-4 6 L-8 6 L-6 2 L-6 -2 Z',
   );
@@ -196,6 +204,7 @@ export default function MusicGalaxianOverlay({
     if (candidates.length === 0) return;
     const idx = Math.floor(Math.random() * candidates.length);
     candidates[idx].kamikaze = true;
+    playSound(kamikazeSound);
   }
 
   function scheduleKamikaze() {
@@ -327,11 +336,11 @@ export default function MusicGalaxianOverlay({
           e.alive = false;
           bullet.current.active = false;
           setScore((s) => s + 10);
-          spawnPixelExplosion(
-            e.x + e.width / 2,
-            e.y + e.height / 2,
-            enemyColors[e.type % enemyColors.length],
-          );
+          const color = e.kamikaze
+            ? kamikazeColor
+            : enemyColors[e.type % enemyColors.length];
+          const count = e.kamikaze ? 60 : 30;
+          spawnPixelExplosion(e.x + e.width / 2, e.y + e.height / 2, color, count);
           playSound(explosionSound);
           break; // una bala sólo destruye una nave
         }
@@ -350,11 +359,21 @@ export default function MusicGalaxianOverlay({
       ) {
         loseLife();
         e.alive = false; // la nave también se destruye
+        const color = e.kamikaze
+          ? kamikazeColor
+          : enemyColors[e.type % enemyColors.length];
+        const count = e.kamikaze ? 60 : 30;
+        spawnPixelExplosion(e.x + e.width / 2, e.y + e.height / 2, color, count);
         continue;
       }
 
       // Nave toca el borde inferior ⇒ fin de partida
       if (e.y + e.height >= canvasRef.current!.height) {
+        const color = e.kamikaze
+          ? kamikazeColor
+          : enemyColors[e.type % enemyColors.length];
+        const count = e.kamikaze ? 60 : 30;
+        spawnPixelExplosion(e.x + e.width / 2, e.y + e.height / 2, color, count);
         gameOver();
         break;
       }
@@ -463,6 +482,9 @@ export default function MusicGalaxianOverlay({
     }
     for (const e of enemies.current) {
       if (!e.alive) continue;
+      const color = e.kamikaze
+        ? kamikazeColor
+        : enemyColors[e.type % enemyColors.length];
       drawPath(
         ctx,
         enemyPaths[e.type % enemyPaths.length],
@@ -470,7 +492,7 @@ export default function MusicGalaxianOverlay({
         e.y,
         e.width,
         e.height,
-        enemyColors[e.type % enemyColors.length],
+        color,
       );
     }
     for (let i = explosions.current.length - 1; i >= 0; i--) {
