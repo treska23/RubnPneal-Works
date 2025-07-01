@@ -271,7 +271,7 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
       ) {
         continue;
       }
-      const size = 40;
+      const size = 16;
       const x = rect.left + rect.width / 2 - size / 2;
       const y = rect.top + rect.height / 2 - size / 2;
       if (
@@ -280,8 +280,8 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
         bTop < y + size &&
         bTop + bullet.current.height > y
       ) {
-        const src = iframe.src;
-        const idMatch = src.match(/\/embed\/([^?&]+)/);
+        const src = iframe.src.split('?')[0];
+        const idMatch = src.match(/\/embed\/([^/?&]+)/);
         const videoId = idMatch ? idMatch[1] : '';
         if (
           ytReady.current &&
@@ -289,16 +289,11 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
           typeof ytPlayerRef.current.loadVideoById === 'function'
         ) {
           ytPlayerRef.current.loadVideoById(videoId);
-        } else {
-          iframe.contentWindow?.postMessage(
-            { event: 'command', func: 'playVideo' },
-            '*',
-          );
+          setYtVisible(true);
         }
         setVideosPlayed((v) => v + 1);
-        setYtVisible(true);
-        bullet.current.active = false;
         playSound(explosionSound);
+        bullet.current.active = false;
         break;
       }
     }
