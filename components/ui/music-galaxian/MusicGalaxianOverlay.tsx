@@ -39,6 +39,7 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   const lastFrame = useRef(performance.now());
   const spriteImg = useRef<HTMLImageElement | null>(null);
   const explosions = useRef<{ x: number; y: number; start: number }[]>([]);
+  const videoIframes = useRef<HTMLIFrameElement[]>([]);
 
   const rows = 5;
   const cols = 6;
@@ -49,6 +50,10 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   const explosionInfo = { sx: FRAME_W * 8, frames: 6 };
   const explosionSound =
     'data:audio/wav;base64,UklGRlIAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
+
+  function playSound(src: string) {
+    new Audio(src).play();
+  }
 
   // Visual definitions for player and enemies
   const playerColor = '#00e0ff';
@@ -245,6 +250,41 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     }
   }
 
+  function checkVideoCollisions() {
+    if (!bullet.current.active) return;
+    for (const iframe of videoIframes.current) {
+      if (ytRef.current && ytRef.current.contains(iframe)) continue;
+      const rect = iframe.getBoundingClientRect();
+      if (
+        rect.bottom < 0 ||
+        rect.top > window.innerHeight ||
+        rect.right < 0 ||
+        rect.left > window.innerWidth
+      ) {
+        continue;
+      }
+      const size = 40;
+      const x = rect.left + rect.width / 2 - size / 2;
+      const y = rect.top + rect.height / 2 - size / 2;
+      if (
+        bullet.current.x < x + size &&
+        bullet.current.x + bullet.current.width > x &&
+        bullet.current.y < y + size &&
+        bullet.current.y + bullet.current.height > y
+      ) {
+        iframe.contentWindow?.postMessage(
+          { event: 'command', func: 'playVideo' },
+          '*',
+        );
+        setVideosPlayed((v) => v + 1);
+        setYtVisible(true);
+        bullet.current.active = false;
+        playSound(explosionSound);
+        break;
+      }
+    }
+  }
+
   function checkVictory() {
     if (enemies.current.every((e) => !e.alive)) {
       setVictory(true);
@@ -317,6 +357,7 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     updateBullet();
     updateEnemies();
     checkCollisions();
+    checkVideoCollisions();
     draw();
     checkVictory();
     if (DEBUG) {
@@ -369,6 +410,11 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     window.addEventListener('resize', onResize);
     loadYouTubeAPI().then(() => {
       createPlayer();
+      videoIframes.current = Array.from(
+        document.querySelectorAll<HTMLIFrameElement>(
+          'iframe[src*="youtube.com/embed"]',
+        ),
+      ).filter((el) => !(ytRef.current?.contains(el)));
       animRef.current = requestAnimationFrame(gameLoop);
     });
 
