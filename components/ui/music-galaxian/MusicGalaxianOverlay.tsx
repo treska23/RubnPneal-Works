@@ -278,16 +278,16 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
 
       const r = iframe.getBoundingClientRect();
       if (
-        rect.bottom < 0 ||
-        rect.top > window.innerHeight ||
-        rect.right < 0 ||
-        rect.left > window.innerWidth
+        r.bottom < 0 ||
+        r.top > window.innerHeight ||
+        r.right < 0 ||
+        r.left > window.innerWidth
       ) {
         continue;
       }
       const size = 16;
-      const x = rect.left + rect.width / 2 - size / 2;
-      const y = rect.top + rect.height / 2 - size / 2;
+      const x = r.left + r.width / 2 - size / 2;
+      const y = r.top + r.height / 2 - size / 2;
       if (
         bLeft < x + size &&
         bLeft + bullet.current.width > x &&
