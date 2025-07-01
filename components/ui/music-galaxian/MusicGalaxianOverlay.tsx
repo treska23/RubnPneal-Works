@@ -40,7 +40,7 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
   const spriteImg = useRef<HTMLImageElement | null>(null);
   const explosions = useRef<{ x: number; y: number; start: number }[]>([]);
   const videoIframes = useRef<HTMLIFrameElement[]>([]);
-
+  const ytReady = useRef(false);
   const rows = 5;
   const cols = 6;
   const baseDescend = 20;
@@ -228,7 +228,11 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
           setVideosPlayed((v) => v + 1);
           explosions.current.push({ x: e.x, y: e.y, start: performance.now() });
           new Audio(explosionSound).play();
-          if ((window as any).YT && ytPlayerRef.current) {
+          if (
+            (window as any).YT &&
+            ytPlayerRef.current &&
+            typeof ytPlayerRef.current.loadVideoById === 'function'
+          ) {
             ytPlayerRef.current.loadVideoById(e.videoId);
           }
           break;
@@ -379,17 +383,23 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
     });
   }
 
-  const ytPlayerRef = useRef<any>(null);
+  const ytPlayerRef = useRef<any>(null); // Holds the YouTube Player instance
+
   function createPlayer() {
     ytPlayerRef.current = new (window as any).YT.Player(ytRef.current, {
       height: '200',
       width: '100%',
       playerVars: { rel: 0, modestbranding: 1 },
-    });
-    ytPlayerRef.current.addEventListener('onStateChange', (ev: any) => {
-      if (ev.data === (window as any).YT.PlayerState.PLAYING) {
-        setYtVisible(true);
-      }
+      events: {
+        onReady: () => {
+          ytReady.current = true;
+        },
+        onStateChange: (ev: any) => {
+          if (ev.data === (window as any).YT.PlayerState.PLAYING) {
+            setYtVisible(true);
+          }
+        },
+      },
     });
   }
 
@@ -414,7 +424,7 @@ export default function MusicGalaxianOverlay({ videoIds, onClose }: Props) {
         document.querySelectorAll<HTMLIFrameElement>(
           'iframe[src*="youtube.com/embed"]',
         ),
-      ).filter((el) => !(ytRef.current?.contains(el)));
+      ).filter((el) => !ytRef.current?.contains(el));
       animRef.current = requestAnimationFrame(gameLoop);
     });
 
