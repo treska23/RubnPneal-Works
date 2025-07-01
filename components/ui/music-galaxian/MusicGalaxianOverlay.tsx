@@ -25,7 +25,7 @@ interface Enemy {
   alive: boolean;
   videoId: string;
   type: number;
-  kamikaze?: boolean;
+  kamikaze: boolean;
 }
 
 export default function MusicGalaxianOverlay({
@@ -185,21 +185,24 @@ export default function MusicGalaxianOverlay({
           alive: true,
           videoId: videoIds[idx % videoIds.length],
           type: r % 3,
+          kamikaze: false,
         });
       }
     }
+  }
+
+  function launchKamikaze() {
+    const candidates = enemies.current.filter((e) => e.alive && !e.kamikaze);
+    if (candidates.length === 0) return;
+    const idx = Math.floor(Math.random() * candidates.length);
+    candidates[idx].kamikaze = true;
   }
 
   function scheduleKamikaze() {
     if (kamikazeTimer.current) clearTimeout(kamikazeTimer.current);
     const delay = (Math.random() * 5 + 5) * 1000; // 5-10 s
     kamikazeTimer.current = window.setTimeout(() => {
-      const candidates = enemies.current.filter((e) => e.alive && !e.kamikaze);
-      if (candidates.length > 0) {
-        const chosen =
-          candidates[Math.floor(Math.random() * candidates.length)];
-        chosen.kamikaze = true;
-      }
+      launchKamikaze();
       scheduleKamikaze();
     }, delay);
   }
