@@ -30,6 +30,7 @@ onMounted(() => {
 });
 
 // Game logic will use these actions
+
 </script>
 
 <style scoped>
