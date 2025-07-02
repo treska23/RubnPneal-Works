@@ -17,8 +17,10 @@ export function useGameLoop(options: UseGameLoopOptions) {
   const FRAME_DURATION = 1000 / FPS;
   let animId = 0;
   let lastTime = 0;
+  let paused = false;
 
   function loop(time: number) {
+    if (paused) return;
     if (time - lastTime >= FRAME_DURATION) {
       lastTime = time;
       const ctx = options.ctx.value;
@@ -33,11 +35,26 @@ export function useGameLoop(options: UseGameLoopOptions) {
       ctx.fillStyle = 'yellow';
       ctx.fillRect(options.player.state.x, options.player.state.y, options.player.state.width, options.player.state.height);
       ctx.fillStyle = 'red';
-      options.ghosts.ghosts.forEach(g => {
+      options.ghosts.ghosts.forEach((g) => {
         ctx.fillRect(g.x, g.y, options.tileSize, options.tileSize);
       });
     }
-    animId = requestAnimationFrame(loop);
+    if (!paused) animId = requestAnimationFrame(loop);
+  }
+
+  function pause() {
+    if (!paused) {
+      paused = true;
+      cancelAnimationFrame(animId);
+    }
+  }
+
+  function resume() {
+    if (paused) {
+      paused = false;
+      lastTime = performance.now();
+      animId = requestAnimationFrame(loop);
+    }
   }
 
   onMounted(() => {
@@ -47,4 +64,6 @@ export function useGameLoop(options: UseGameLoopOptions) {
   onUnmounted(() => {
     cancelAnimationFrame(animId);
   });
+
+  return { pause, resume };
 }

@@ -14,7 +14,8 @@
 
 <script setup lang="ts">
 import { useGameState } from '@/vue/gameState';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, onUnmounted } from 'vue';
+import { onBeforeRouteLeave } from 'vue-router';
 import { levelMaps } from '@/vue/maze';
 import { usePlayer } from '@/vue/usePlayer';
 import { useGhostAI } from '@/vue/useGhostAI';
@@ -70,6 +71,7 @@ onMounted(() => {
   const canvas = canvasRef.value;
   if (!canvas) return;
   ctx.value = canvas.getContext('2d');
+  window.addEventListener('keydown', onKeydown);
 });
 
 const loopOptions = {
@@ -83,7 +85,47 @@ const loopOptions = {
   },
 };
 
-useGameLoop(loopOptions);
+const { pause, resume } = useGameLoop(loopOptions);
+
+const paused = ref(false);
+
+function togglePause() {
+  if (paused.value) {
+    resume();
+    if (token.value) {
+      fetch('https://api.spotify.com/v1/me/player/play', {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token.value}` },
+      }).catch((err) => console.warn('Failed to resume track:', err));
+    }
+  } else {
+    pause();
+    if (token.value) {
+      fetch('https://api.spotify.com/v1/me/player/pause', {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token.value}` },
+      }).catch((err) => console.warn('Failed to pause track:', err));
+    }
+  }
+  paused.value = !paused.value;
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.code === 'Escape') {
+    e.preventDefault();
+    togglePause();
+  }
+}
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown);
+  pause();
+});
+
+onBeforeRouteLeave(() => {
+  window.removeEventListener('keydown', onKeydown);
+  pause();
+});
 
 function checkLevelComplete() {
   if (pelletManager.pelletsLeft.value > 0) return;
