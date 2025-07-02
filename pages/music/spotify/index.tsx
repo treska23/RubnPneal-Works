@@ -1,5 +1,12 @@
 // pages/music/spotify/index.tsx
 import SectionLayout from '@components/SectionLayout';
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const PacmanOverlay = dynamic(
+  () => import('@components/ui/pacman/PacmanOverlay'),
+  { ssr: false },
+);
 
 const trackIds = [
   '5Q3jx7MeOdXMORcYRVrZCr',
@@ -14,6 +21,7 @@ const trackIds = [
 ];
 
 export default function SpotifyPage() {
+  const [showGame, setShowGame] = useState(false);
   return (
     <>
       {/* Declaramos la keyframes dentro de un style jsx global */}+{' '}
@@ -88,6 +96,13 @@ export default function SpotifyPage() {
               />
             ))}
           </div>
+          {/* Botón para iniciar Pac-Man */}
+          <button
+            className="mb-6 px-4 py-2 rounded bg-yellow-600 text-white hover:bg-yellow-700 font-semibold"
+            onClick={() => setShowGame(true)}
+          >
+            🟡 Jugar Pac-Man
+          </button>
           {/* Tu grid de iframes */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
             {trackIds.map((id) => (
@@ -120,7 +135,8 @@ export default function SpotifyPage() {
             ></iframe>{' '}
           </div>{' '}
         </div>
-      </SectionLayout>
-    </>
-  );
-}
+        </SectionLayout>
+        {showGame && <PacmanOverlay onClose={() => setShowGame(false)} />}
+      </>
+    );
+  }
