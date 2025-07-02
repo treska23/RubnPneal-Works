@@ -15,7 +15,11 @@
 <script setup lang="ts">
 import { useGameState } from '@/vue/gameState';
 import { onMounted, ref } from 'vue';
-import { drawMaze, levelMaps } from '@/vue/maze';
+import { levelMaps } from '@/vue/maze';
+import { usePlayer } from '@/vue/usePlayer';
+import { useGhostAI } from '@/vue/useGhostAI';
+import { usePelletManager } from '@/vue/usePelletManager';
+import { useGameLoop } from '@/vue/useGameLoop';
 import { playRandomTrack, useSpotify } from '@/lib/spotify';
 
 const { state, addScore, nextLevel, loseLife, resetGame } = useGameState();
@@ -53,17 +57,32 @@ async function onBigPellet() {
 }
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
+const ctx = ref<CanvasRenderingContext2D | null>(null);
+
+const levelMap = levelMaps[0];
+const TILE_SIZE = 32;
+
+const player = usePlayer(levelMap, TILE_SIZE);
+const ghostAI = useGhostAI(levelMap, TILE_SIZE, player.state);
+const pelletManager = usePelletManager(levelMap, TILE_SIZE);
 
 onMounted(() => {
   const canvas = canvasRef.value;
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    drawMaze(ctx, levelMaps[0]);
-  }
+  ctx.value = canvas.getContext('2d');
 });
 
-// Game logic will use these actions
+useGameLoop({
+  ctx,
+  levelMap,
+  tileSize: TILE_SIZE,
+  player,
+  ghosts: ghostAI,
+  pellets: {
+    handlePelletCollision: (p) => pelletManager.handlePelletCollision(p, onBigPellet),
+  },
+});
+
 
 </script>
 
