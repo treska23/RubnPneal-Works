@@ -43,7 +43,7 @@ export async function playRandomTrack(
   levelSongs: string[],
   token: string,
   levelKey = 'default',
-) {
+): Promise<string | undefined> {
   if (!token || levelSongs.length === 0) return;
 
   const history = historyMap[levelKey] || (historyMap[levelKey] = []);
@@ -64,7 +64,9 @@ export async function playRandomTrack(
       },
       body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
     });
+    return trackId;
   } catch (err) {
     console.warn('Failed to play track:', err);
+    return undefined;
   }
 }
