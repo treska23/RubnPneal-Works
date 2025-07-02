@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import GameOverModal from '../GameOverModal';
 // Sprite sheet only contains the explosion frames
 const SPRITE_SRC = '/sprites/galaxian_sprites.svg';
 
@@ -179,11 +180,10 @@ export default function MusicGalaxianOverlay({
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const idx = r * cols + c;
-        const pos =
-          initialPosRef.current[idx] ?? {
-            x: margin + c * (40 + 20),
-            y: margin + r * (30 + 20),
-          };
+        const pos = initialPosRef.current[idx] ?? {
+          x: margin + c * (40 + 20),
+          y: margin + r * (30 + 20),
+        };
         basePositions.current.push({ x: pos.x, y: pos.y });
         enemies.current.push({
           x: pos.x,
@@ -340,7 +340,12 @@ export default function MusicGalaxianOverlay({
             ? kamikazeColor
             : enemyColors[e.type % enemyColors.length];
           const count = e.kamikaze ? 60 : 30;
-          spawnPixelExplosion(e.x + e.width / 2, e.y + e.height / 2, color, count);
+          spawnPixelExplosion(
+            e.x + e.width / 2,
+            e.y + e.height / 2,
+            color,
+            count,
+          );
           playSound(explosionSound);
           break; // una bala sólo destruye una nave
         }
@@ -363,7 +368,12 @@ export default function MusicGalaxianOverlay({
           ? kamikazeColor
           : enemyColors[e.type % enemyColors.length];
         const count = e.kamikaze ? 60 : 30;
-        spawnPixelExplosion(e.x + e.width / 2, e.y + e.height / 2, color, count);
+        spawnPixelExplosion(
+          e.x + e.width / 2,
+          e.y + e.height / 2,
+          color,
+          count,
+        );
         continue;
       }
 
@@ -373,7 +383,12 @@ export default function MusicGalaxianOverlay({
           ? kamikazeColor
           : enemyColors[e.type % enemyColors.length];
         const count = e.kamikaze ? 60 : 30;
-        spawnPixelExplosion(e.x + e.width / 2, e.y + e.height / 2, color, count);
+        spawnPixelExplosion(
+          e.x + e.width / 2,
+          e.y + e.height / 2,
+          color,
+          count,
+        );
         gameOver();
         break;
       }
@@ -633,23 +648,12 @@ export default function MusicGalaxianOverlay({
         <div className="absolute top-2 right-2 text-white">FPS: {fps}</div>
       )}
       {showModal && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white space-y-4">
-          <h2 className="text-2xl font-bold">
-            {victory ? '¡Victoria!' : 'Game Over'}
-          </h2>
-          <button
-            onClick={resetGame}
-            className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
-          >
-            Reiniciar
-          </button>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-red-600 rounded hover:bg-red-700"
-          >
-            Cerrar
-          </button>
-        </div>
+        <GameOverModal
+          open={showModal}
+          title={victory ? '¡Victoria!' : 'Game Over'}
+          onRetry={resetGame}
+          onExit={onClose}
+        />
       )}
       <canvas ref={canvasRef} className="w-full h-full" />
       <div
