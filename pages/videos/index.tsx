@@ -1,11 +1,11 @@
 // pages/videos/index.tsx
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import Link from 'next/link';
 import type { YouTubePlayer } from 'youtube-player/dist/types';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 
 import SectionLayout from '@components/SectionLayout';
-import ArkanoidOverlay from '@components/ui/game-arkanoid/ArkanoidOverlay';
 
 const YouTube = dynamic(() => import('react-youtube'), { ssr: false });
 const thumbUrl = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
@@ -36,35 +36,16 @@ interface VideosPageProps {
 
 // ─── 2) COMPONENTE PRINCIPAL ─────────────────────────────────────────────
 const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
-  const [showGame, setShowGame] = useState(false);
-
   const videoRectsRef = useRef<DOMRect[]>([]);
   const playersRef = useRef<Record<string, YouTubePlayer | null>>({});
   const currentPlaying = useRef<string | null>(null);
 
   const mobile = useIsMobile();
 
-  const handleVideoHit = useCallback(async (id: string) => {
-    const player = playersRef.current[id];
-    if (!player) return;
-
-    if (currentPlaying.current && currentPlaying.current !== id) {
-      playersRef.current[currentPlaying.current]?.pauseVideo?.();
-    }
-
-    const state = await player.getPlayerState();
-    const playing = state === 1;
-    playing ? player.pauseVideo() : player.playVideo();
-    currentPlaying.current = playing ? null : id;
-  }, []);
 
   return (
     <>
-      <SectionLayout
-        className={`relative bg-gray-900 text-white transition-all
-                    ${showGame ? 'xl:max-w-[75vw] mx-auto' : ''}
-                    ${showGame && mobile ? 'max-w-[90vw] mx-auto' : ''}`}
-      >
+      <SectionLayout className="relative bg-gray-900 text-white transition-all">
         {/* fondo fantasma */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Image
@@ -78,21 +59,19 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
 
         {/* contenido */}
         <div className="relative z-10 px-4">
-          <button
-            className="mb-6 px-4 py-2 rounded bg-pink-600 text-white hover:bg-pink-700 font-semibold transition"
-            onClick={() => setShowGame(true)}
+          <Link
+            href="/videos/arkanoid"
+            className="mb-6 inline-block px-4 py-2 rounded bg-pink-600 text-white hover:bg-pink-700 font-semibold transition"
           >
             🚀 Jugar Arkanoid
-          </button>
+          </Link>
 
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {videos.map((v, i) =>
               v ? (
                 <div
                   key={v}
-                  /* ⬇️ aquí aplicamos la escala al 60 % en móvil + overlay */
-                  className={`relative aspect-video transition-transform
-                              ${showGame && mobile ? 'scale-[0.60] origin-top-left' : ''}`}
+                  className="relative aspect-video transition-transform"
                 >
                   <div
                     data-video-id={v}
@@ -140,13 +119,6 @@ const VideosPage: React.FC<VideosPageProps> = ({ videos }) => {
         </div>
       </SectionLayout>
 
-      {showGame && (
-        <ArkanoidOverlay
-          videoIds={videos}
-          onVideoHit={handleVideoHit}
-          onClose={() => setShowGame(false)}
-        />
-      )}
     </>
   );
 };
