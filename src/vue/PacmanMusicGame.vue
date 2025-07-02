@@ -17,6 +17,7 @@ import { useGameState } from '@/vue/gameState';
 const { state, addScore, nextLevel, loseLife, resetGame } = useGameState();
 
 // Game logic will use these actions
+
 </script>
 
 <style scoped>
