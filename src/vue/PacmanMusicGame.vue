@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { useGameState } from '@/vue/gameState';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { levelMaps } from '@/vue/maze';
 import { usePlayer } from '@/vue/usePlayer';
 import { useGhostAI } from '@/vue/useGhostAI';
@@ -59,7 +59,7 @@ async function onBigPellet() {
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const ctx = ref<CanvasRenderingContext2D | null>(null);
 
-const levelMap = levelMaps[0];
+let levelMap = levelMaps[0].map(row => [...row]);
 const TILE_SIZE = 32;
 
 const player = usePlayer(levelMap, TILE_SIZE);
@@ -72,16 +72,33 @@ onMounted(() => {
   ctx.value = canvas.getContext('2d');
 });
 
-useGameLoop({
+const loopOptions = {
   ctx,
   levelMap,
   tileSize: TILE_SIZE,
   player,
   ghosts: ghostAI,
   pellets: {
-    handlePelletCollision: (p) => pelletManager.handlePelletCollision(p, onBigPellet),
+    handlePelletCollision: (p: any) => pelletManager.handlePelletCollision(p, onBigPellet),
   },
-});
+};
+
+useGameLoop(loopOptions);
+
+function checkLevelComplete() {
+  if (pelletManager.pelletsLeft.value > 0) return;
+  nextLevel();
+  levelMap = levelMaps[(state.level - 1) % levelMaps.length].map(r => [...r]);
+  pelletManager.reset(levelMap);
+  player.setLevelMap(levelMap);
+  player.setPosition(TILE_SIZE, TILE_SIZE);
+  ghostAI.reset(levelMap);
+  loopOptions.levelMap = levelMap;
+  currentTitle.value = '';
+  onBigPellet();
+}
+
+watch(pelletManager.pelletsLeft, checkLevelComplete);
 
 
 </script>

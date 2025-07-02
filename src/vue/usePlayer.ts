@@ -12,6 +12,7 @@ export interface PlayerState {
 }
 
 export function usePlayer(levelMap: LevelMap, tileSize: number) {
+  let map = levelMap;
   const state = reactive<PlayerState>({
     x: tileSize,
     y: tileSize,
@@ -53,7 +54,7 @@ export function usePlayer(levelMap: LevelMap, tileSize: number) {
   const isWall = (x: number, y: number) => {
     const col = Math.floor(x / tileSize);
     const row = Math.floor(y / tileSize);
-    return levelMap[row]?.[col] === 1;
+    return map[row]?.[col] === 1;
   };
 
   const collides = (x: number, y: number) => {
@@ -92,6 +93,10 @@ export function usePlayer(levelMap: LevelMap, tileSize: number) {
     state.y = y;
   };
 
+  const setLevelMap = (newMap: LevelMap) => {
+    map = newMap;
+  };
+
   onMounted(() => {
     window.addEventListener('keydown', keydown);
     window.addEventListener('keyup', keyup);
@@ -102,5 +107,5 @@ export function usePlayer(levelMap: LevelMap, tileSize: number) {
     window.removeEventListener('keyup', keyup);
   });
 
-  return { state, update, setPosition };
+  return { state, update, setPosition, setLevelMap };
 }

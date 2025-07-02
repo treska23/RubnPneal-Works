@@ -16,6 +16,7 @@ const COLORS = ['#ff0000', '#ffb8ff', '#00ffff', '#ffb847'];
 
 export function useGhostAI(levelMap: LevelMap, tileSize: number, player: PlayerState) {
   const { state: game } = useGameState();
+  let map = levelMap;
 
   const baseSpeed = tileSize / 8;
   const ghosts = reactive<GhostState[]>(Array.from({ length: 4 }).map((_, i) => ({
@@ -28,7 +29,7 @@ export function useGhostAI(levelMap: LevelMap, tileSize: number, player: PlayerS
 
   let timer: number | undefined;
 
-  const isWalkable = (r: number, c: number) => levelMap[r]?.[c] !== 1;
+  const isWalkable = (r: number, c: number) => map[r]?.[c] !== 1;
 
   function bfs(start: { r: number; c: number }, target: { r: number; c: number }) {
     const q: Array<[number, number]> = [[start.r, start.c]];
@@ -122,5 +123,15 @@ export function useGhostAI(levelMap: LevelMap, tileSize: number, player: PlayerS
     if (timer) window.clearInterval(timer);
   });
 
-  return { ghosts, moveGhosts, collidesWithPlayer };
+  function reset(newMap: LevelMap) {
+    map = newMap;
+    ghosts.forEach((g, i) => {
+      g.x = tileSize * (7 + (i % 2));
+      g.y = tileSize * (9 + Math.floor(i / 2));
+      g.path = [];
+    });
+    updatePaths();
+  }
+
+  return { ghosts, moveGhosts, collidesWithPlayer, reset };
 }
