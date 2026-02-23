@@ -1,5 +1,6 @@
 'use client';
 import { useEffect } from 'react';
+import PacmanGame from './PacmanGame';
 
 export default function PacmanOverlay({ onClose }: { onClose: () => void }) {
   useEffect(() => {
@@ -11,16 +12,14 @@ export default function PacmanOverlay({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-      <div className="space-y-4 rounded-lg bg-gray-900 p-6 text-center text-white">
-        <p className="text-xl font-semibold">Juego de Pac-Man próximamente…</p>
-        <button
-          className="rounded bg-blue-600 px-4 py-2 hover:bg-blue-700"
-          onClick={onClose}
-        >
-          Cerrar
-        </button>
-      </div>
+    <div className="fixed inset-0 z-50 bg-black/90">
+      <PacmanGame />
+      <button
+        className="absolute top-4 right-4 text-white text-3xl"
+        onClick={onClose}
+      >
+        ✕
+      </button>
     </div>
   );
 }
