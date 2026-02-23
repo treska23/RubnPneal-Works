@@ -22,7 +22,6 @@ const trackIds = [
 
 export default function SpotifyPage() {
   const [showGame, setShowGame] = useState(false);
-  const openGame = () => setShowGame(true);
 
   return (
     <>
@@ -101,9 +100,8 @@ export default function SpotifyPage() {
           {/* Botón para iniciar Pac-Man */}
           <button
             type="button"
-            aria-label="Abrir juego de Pac-Man"
-            className="relative z-10 mb-6 rounded bg-yellow-500 px-4 py-2 font-semibold text-black transition-colors hover:bg-yellow-400"
-            onClick={openGame}
+            className="mb-6 px-4 py-2 rounded bg-yellow-500 text-black hover:bg-yellow-400 font-semibold transition-colors"
+            onClick={() => setShowGame(true)}
           >
             🟡 Jugar Pac-Man
           </button>
@@ -141,16 +139,13 @@ export default function SpotifyPage() {
         </div>
       </SectionLayout>
 
-      {!showGame && (
-        <button
-          type="button"
-          aria-label="Probar Pac-Man"
-          className="fixed bottom-6 right-6 z-40 rounded-full border-2 border-black bg-yellow-400 px-4 py-3 font-bold text-black shadow-lg transition-transform hover:scale-105"
-          onClick={openGame}
-        >
-          👾 Probar Pac-Man
-        </button>
-      )}
+      <button
+        type="button"
+        className="fixed bottom-6 right-6 z-40 rounded-full border-2 border-black bg-yellow-400 px-4 py-3 font-bold text-black shadow-lg transition-transform hover:scale-105"
+        onClick={() => setShowGame(true)}
+      >
+        👾 Probar Pac-Man
+      </button>
 
       {showGame && <PacmanOverlay onClose={() => setShowGame(false)} />}
     </>
