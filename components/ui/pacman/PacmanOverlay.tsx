@@ -16,25 +16,14 @@ export default function PacmanOverlay({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/90 p-4"
-      onClick={onClose}
-      role="presentation"
-    >
-      <div
-        className="relative h-full w-full overflow-hidden rounded-lg border border-yellow-400"
-        onClick={(event) => event.stopPropagation()}
+    <div className="fixed inset-0 z-50 bg-black/90">
+      <PacmanGame />
+      <button
+        className="absolute top-4 right-4 text-white text-3xl"
+        onClick={onClose}
       >
-        <PacmanGame />
-        <button
-          type="button"
-          aria-label="Cerrar Pac-Man"
-          className="absolute right-4 top-4 text-3xl text-white"
-          onClick={onClose}
-        >
-          ✕
-        </button>
-      </div>
+        ✕
+      </button>
     </div>
   );
 }
