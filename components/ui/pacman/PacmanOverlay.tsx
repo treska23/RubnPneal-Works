@@ -1,12 +1,16 @@
 'use client';
+
 import { useEffect } from 'react';
 import PacmanGame from './PacmanGame';
 
 export default function PacmanOverlay({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+      }
     };
+
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [onClose]);

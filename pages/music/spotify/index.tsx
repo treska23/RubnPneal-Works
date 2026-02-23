@@ -22,9 +22,10 @@ const trackIds = [
 
 export default function SpotifyPage() {
   const [showGame, setShowGame] = useState(false);
+
   return (
     <>
-      {/* Declaramos la keyframes dentro de un style jsx global */}+{' '}
+      {/* Declaramos la keyframes dentro de un style jsx global */}
       <style jsx global>{`
         @keyframes pixel-pulse {
           0%,
@@ -98,7 +99,8 @@ export default function SpotifyPage() {
           </div>
           {/* Botón para iniciar Pac-Man */}
           <button
-            className="mb-6 px-4 py-2 rounded bg-yellow-600 text-white hover:bg-yellow-700 font-semibold"
+            type="button"
+            className="mb-6 px-4 py-2 rounded bg-yellow-500 text-black hover:bg-yellow-400 font-semibold transition-colors"
             onClick={() => setShowGame(true)}
           >
             🟡 Jugar Pac-Man
@@ -132,11 +134,20 @@ export default function SpotifyPage() {
               frameBorder="0"
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
               loading="lazy"
-            ></iframe>{' '}
-          </div>{' '}
+            ></iframe>
+          </div>
         </div>
-        </SectionLayout>
-        {showGame && <PacmanOverlay onClose={() => setShowGame(false)} />}
-      </>
-    );
-  }
+      </SectionLayout>
+
+      <button
+        type="button"
+        className="fixed bottom-6 right-6 z-40 rounded-full border-2 border-black bg-yellow-400 px-4 py-3 font-bold text-black shadow-lg transition-transform hover:scale-105"
+        onClick={() => setShowGame(true)}
+      >
+        👾 Probar Pac-Man
+      </button>
+
+      {showGame && <PacmanOverlay onClose={() => setShowGame(false)} />}
+    </>
+  );
+}
