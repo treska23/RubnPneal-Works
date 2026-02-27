@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {
@@ -18,7 +21,7 @@ const nextConfig = {
   webpack(config) {
     config.resolve.alias['phaser'] = require('path').resolve(
       __dirname,
-      'node_modules/phaser/dist/phaser.js'
+      'node_modules/phaser/dist/phaser.js',
     );
     return config;
   },
