@@ -15,8 +15,14 @@ export default function Footer() {
           <a className="footer-link" href="https://github.com/treska23" target="_blank" rel="noreferrer">
             GitHub
           </a>
-          <a className="footer-link" href="https://www.instagram.com/rubnpneal/?hl=es" target="_blank" rel="noreferrer">
-            Instagram
+          <a className="footer-link" href="https://www.instagram.com/kid.d232/" target="_blank" rel="noreferrer">
+            Instagram · @kid.d232
+          </a>
+          <a className="footer-link" href="https://www.tiktok.com/@kiddaccount23" target="_blank" rel="noreferrer">
+            TikTok · @kiddaccount23
+          </a>
+          <a className="footer-link" href="https://www.deviantart.com/treska23" target="_blank" rel="noreferrer">
+            DeviantArt · treska23
           </a>
         </div>
       </div>

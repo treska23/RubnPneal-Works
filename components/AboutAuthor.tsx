@@ -36,8 +36,14 @@ export default function AboutAuthor() {
           <a className="inline-flex items-center gap-2 border-b border-black pb-1" href="https://github.com/treska23" target="_blank" rel="noreferrer">
             GitHub <ArrowUpRight className="h-4 w-4" />
           </a>
-          <a className="inline-flex items-center gap-2 border-b border-black pb-1" href="https://www.instagram.com/rubnpneal/?hl=es" target="_blank" rel="noreferrer">
+          <a className="inline-flex items-center gap-2 border-b border-black pb-1" href="https://www.instagram.com/kid.d232/" target="_blank" rel="noreferrer">
             Instagram <ArrowUpRight className="h-4 w-4" />
+          </a>
+          <a className="inline-flex items-center gap-2 border-b border-black pb-1" href="https://www.tiktok.com/@kiddaccount23" target="_blank" rel="noreferrer">
+            TikTok <ArrowUpRight className="h-4 w-4" />
+          </a>
+          <a className="inline-flex items-center gap-2 border-b border-black pb-1" href="https://www.deviantart.com/treska23" target="_blank" rel="noreferrer">
+            DeviantArt <ArrowUpRight className="h-4 w-4" />
           </a>
         </div>
       </div>

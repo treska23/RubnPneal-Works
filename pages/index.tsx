@@ -35,6 +35,15 @@ const selectedWork = [
     imageClassName:
       'object-cover transition-transform duration-700 group-hover:scale-[1.025]',
   },
+  {
+    number: '04',
+    title: 'Kid D',
+    description: 'Instagram, TikTok y DeviantArt reunidos como escaparate del trabajo visual.',
+    href: '/kid-d',
+    image: '/hero/slide4.jpg',
+    imageClassName:
+      'object-cover transition-transform duration-700 group-hover:scale-[1.025]',
+  },
 ];
 
 export default function Home() {
@@ -77,10 +86,11 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-white/15 pt-5 text-[11px] uppercase tracking-[0.18em] text-white/45 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-white/15 pt-5 text-[11px] uppercase tracking-[0.18em] text-white/45 sm:grid-cols-4">
               <span>Programación</span>
               <span>Música</span>
-              <span>Ilustración</span>
+              <span>Cómic</span>
+              <span>Kid D</span>
             </div>
           </div>
 
@@ -115,7 +125,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid gap-px bg-black/15 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-px bg-black/15 md:grid-cols-2">
             {selectedWork.map((item) => (
               <Link
                 href={item.href}
@@ -134,11 +144,7 @@ export default function Home() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/15" />
                   </>
                 )}
-                <div
-                  className={`relative z-10 flex h-full min-h-[372px] flex-col justify-between ${
-                    item.image ? 'text-white' : ''
-                  }`}
-                >
+                <div className="relative z-10 flex h-full min-h-[372px] flex-col justify-between text-white">
                   <div className="flex items-start justify-between">
                     <span className="text-xs font-semibold tracking-[0.16em] opacity-60">
                       {item.number}
@@ -146,15 +152,6 @@ export default function Home() {
                     <ArrowUpRight className="h-5 w-5 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" />
                   </div>
                   <div>
-                    {!item.image && (
-                      <div className="mb-12 font-mono text-xs uppercase leading-7 tracking-[0.14em] text-white/35">
-                        C# / .NET / WPF
-                        <br />
-                        LOCAL AI / AUDIO
-                        <br />
-                        AUTOMATION / TOOLS
-                      </div>
-                    )}
                     <h3 className="display-title text-5xl sm:text-6xl">{item.title}</h3>
                     <p className="mt-4 max-w-md text-sm leading-6 opacity-70 sm:text-base">
                       {item.description}

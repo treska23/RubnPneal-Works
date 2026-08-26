@@ -9,6 +9,7 @@ const links = [
   { href: '/development', label: 'Programación' },
   { href: '/music', label: 'Música' },
   { href: '/comic', label: 'Cómic' },
+  { href: '/kid-d', label: 'Kid D' },
   { href: '/services', label: 'Servicios' },
 ];
 
