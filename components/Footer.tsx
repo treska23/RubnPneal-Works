@@ -1,7 +1,29 @@
 export default function Footer() {
   return (
-    <footer className="p-4 text-center">
-      <p className="text-sm">© 2025 RubnPneal Works</p>
+    <footer className="border-t border-white/15 bg-[#0b0b0b] text-[#f5f2e8]">
+      <div className="mx-auto grid max-w-[1440px] gap-10 px-5 py-12 sm:px-8 md:grid-cols-2 lg:px-12">
+        <div>
+          <p className="eyebrow text-white/45">RubnPneal Works</p>
+          <p className="mt-4 max-w-xl text-2xl font-medium leading-tight sm:text-3xl">
+            Software, música, imagen y narrativa visual.
+          </p>
+        </div>
+        <div className="flex flex-col items-start gap-3 md:items-end">
+          <a className="footer-link" href="mailto:ruben.pineal.lopez@hotmail.com">
+            Email
+          </a>
+          <a className="footer-link" href="https://github.com/treska23" target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+          <a className="footer-link" href="https://www.instagram.com/rubnpneal/?hl=es" target="_blank" rel="noreferrer">
+            Instagram
+          </a>
+        </div>
+      </div>
+      <div className="mx-auto flex max-w-[1440px] justify-between border-t border-white/10 px-5 py-5 text-[11px] uppercase tracking-[0.16em] text-white/40 sm:px-8 lg:px-12">
+        <span>© {new Date().getFullYear()} RubnPneal</span>
+        <span>Portfolio</span>
+      </div>
     </footer>
   );
 }

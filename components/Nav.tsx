@@ -4,42 +4,42 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
-/**
- * Navbar inspirado en los ejemplos oficiales de Tailwind CSS v4 (UI Blocks → Navigation → Navbars)
- * https://tailwindcss.com/plus/ui-blocks/application-ui/navigation/navbars
- */
+const links = [
+  { href: '/', label: 'Inicio' },
+  { href: '/development', label: 'Programación' },
+  { href: '/music', label: 'Música' },
+  { href: '/videos', label: 'Vídeo' },
+  { href: '/comic', label: 'Cómic' },
+  { href: '/services', label: 'Servicios' },
+];
+
 export default function Nav() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  const links = [
-    { href: '/', label: 'Inicio' },
-    { href: '/comic', label: 'Cómic' },
-    { href: '/music', label: 'Música' },
-    { href: '/videos', label: 'Vídeos' },
-    { href: '/services', label: 'Servicios' },
-  ];
+  const isActive = (href: string) =>
+    href === '/' ? router.pathname === '/' : router.pathname.startsWith(href);
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-white bg-opacity-80 backdrop-blur-md shadow">
-      <nav className="h-16 flex items-center justify-between w-full px-4 sm:px-8 lg:px-16 max-w-4xl mx-auto">
-        {/* --- Logo --- */}
-        <div className="flex items-center space-x-2 flex-shrink-0">
-          <Image src="/logo.svg" alt="Logo" width={40} height={40} priority />
-          <span className="text-xl font-bold">RubnPneal</span>{' '}
-        </div>
+    <header className="fixed inset-x-0 top-0 z-50 h-[72px] border-b border-black/10 bg-[#f5f2e8]/90 backdrop-blur-xl">
+      <nav className="mx-auto flex h-full max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
+        <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
+          <Image src="/logo.svg" alt="RubnPneal" width={38} height={38} priority />
+          <span className="hidden text-sm font-semibold uppercase tracking-[0.18em] sm:block">
+            RubnPneal
+          </span>
+        </Link>
 
-        {/* --- Links desktop --- */}
-        <ul className="hidden lg:flex flex-1 justify-center space-x-6 font-sans uppercase tracking-wide">
+        <ul className="hidden items-center gap-7 lg:flex">
           {links.map(({ href, label }) => (
             <li key={href}>
               <Link
                 href={href}
-                className={
-                  router.pathname === href
-                    ? 'text-gray-900 after:block after:h-0.5 after:w-full after:bg-gray-900'
-                    : 'text-gray-600 hover:text-gray-900 transition-colors'
-                }
+                className={`text-[12px] font-semibold uppercase tracking-[0.16em] transition-colors ${
+                  isActive(href)
+                    ? 'text-black'
+                    : 'text-black/50 hover:text-black'
+                }`}
               >
                 {label}
               </Link>
@@ -47,40 +47,42 @@ export default function Nav() {
           ))}
         </ul>
 
-        {/* --- Botón móvil --- */}
+        <a
+          href="mailto:ruben.pineal.lopez@hotmail.com"
+          className="hidden border-b border-black pb-1 text-[12px] font-semibold uppercase tracking-[0.16em] lg:block"
+        >
+          Contactar
+        </a>
+
         <button
           type="button"
-          onClick={() => setOpen(!open)}
-          className="lg:hidden -m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 hover:bg-gray-100"
-          aria-label="Abrir menú principal"
+          onClick={() => setOpen((value) => !value)}
+          className="inline-flex h-10 w-10 items-center justify-center border border-black/15 lg:hidden"
+          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={open}
         >
-          {open ? (
-            <XMarkIcon className="h-6 w-6" />
-          ) : (
-            <Bars3Icon className="h-6 w-6" />
-          )}
+          {open ? <XMarkIcon className="h-5 w-5" /> : <Bars3Icon className="h-5 w-5" />}
         </button>
       </nav>
 
-      {/* --- Menú móvil --- */}
       {open && (
-        <ul className="lg:hidden space-y-1 border-t border-gray-200 bg-white p-4 text-base font-semibold uppercase tracking-wide">
-          {links.map(({ href, label }) => (
-            <li key={href}>
-              <Link
-                href={href}
-                className={
-                  router.pathname === href
-                    ? 'block rounded-md px-3 py-2 bg-gray-100 text-gray-900'
-                    : 'block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                }
-                onClick={() => setOpen(false)}
-              >
-                {label}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="border-b border-black/10 bg-[#f5f2e8] px-5 py-5 lg:hidden">
+          <ul className="mx-auto max-w-[1440px] space-y-1">
+            {links.map(({ href, label }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  onClick={() => setOpen(false)}
+                  className={`block border-b border-black/10 py-4 text-xl font-medium ${
+                    isActive(href) ? 'text-black' : 'text-black/60'
+                  }`}
+                >
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </header>
   );
