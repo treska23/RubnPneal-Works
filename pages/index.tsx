@@ -12,6 +12,10 @@ const selectedWork = [
       'Aplicaciones .NET, herramientas de escritorio, audio, automatización e IA local.',
     href: '/development',
     tone: 'bg-[#171717] text-white',
+    image:
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Visual_Studio_Icon_2022.svg/960px-Visual_Studio_Icon_2022.svg.png',
+    imageClassName:
+      'object-contain bg-[#17111f] p-14 transition-transform duration-700 group-hover:scale-[1.04] sm:p-20',
   },
   {
     number: '02',
@@ -19,6 +23,8 @@ const selectedWork = [
     description: 'Narrativa gráfica, dibujo e ilustración de autor.',
     href: '/comic',
     image: '/hero/slide2.jpg',
+    imageClassName:
+      'object-cover transition-transform duration-700 group-hover:scale-[1.025]',
   },
   {
     number: '03',
@@ -26,6 +32,8 @@ const selectedWork = [
     description: 'Composición, producción y trabajos publicados en plataformas.',
     href: '/music',
     image: '/hero/slide3.jpg',
+    imageClassName:
+      'object-cover transition-transform duration-700 group-hover:scale-[1.025]',
   },
 ];
 
@@ -121,7 +129,7 @@ export default function Home() {
                       alt=""
                       fill
                       sizes="(max-width: 768px) 100vw, 50vw"
-                      className="object-cover transition-transform duration-700 group-hover:scale-[1.025]"
+                      className={item.imageClassName}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/15" />
                   </>
