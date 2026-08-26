@@ -8,7 +8,6 @@ const links = [
   { href: '/', label: 'Inicio' },
   { href: '/development', label: 'Programación' },
   { href: '/music', label: 'Música' },
-  { href: '/videos', label: 'Vídeo' },
   { href: '/comic', label: 'Cómic' },
   { href: '/services', label: 'Servicios' },
 ];
@@ -23,7 +22,11 @@ export default function Nav() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 h-[72px] border-b border-black/10 bg-[#f5f2e8]/90 backdrop-blur-xl">
       <nav className="mx-auto flex h-full max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
-        <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
+        <Link
+          href="/"
+          className="flex items-center gap-3"
+          onClick={() => setOpen(false)}
+        >
           <Image src="/logo.svg" alt="RubnPneal" width={38} height={38} priority />
           <span className="hidden text-sm font-semibold uppercase tracking-[0.18em] sm:block">
             RubnPneal
@@ -61,7 +64,11 @@ export default function Nav() {
           aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
           aria-expanded={open}
         >
-          {open ? <XMarkIcon className="h-5 w-5" /> : <Bars3Icon className="h-5 w-5" />}
+          {open ? (
+            <XMarkIcon className="h-5 w-5" />
+          ) : (
+            <Bars3Icon className="h-5 w-5" />
+          )}
         </button>
       </nav>
 
