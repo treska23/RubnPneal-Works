@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import Script from 'next/script';
+import { useEffect, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import SectionLayout from '@components/SectionLayout';
 
@@ -36,6 +37,27 @@ function extractTag(block: string, tag: string) {
   return match?.[1] ? decodeXml(match[1]) : '';
 }
 
+function parseDeviantArtWorks(xml: string) {
+  return Array.from(xml.matchAll(/<item(?:\s[^>]*)?>([\s\S]*?)<\/item>/gi))
+    .slice(0, 9)
+    .map((match) => {
+      const block = match[1];
+      const mediaContent = block.match(
+        /<media:content\b[^>]*\burl=(['"])(.*?)\1/i,
+      )?.[2];
+      const mediaThumbnail = block.match(
+        /<media:thumbnail\b[^>]*\burl=(['"])(.*?)\1/i,
+      )?.[2];
+
+      return {
+        title: extractTag(block, 'title') || 'Obra en DeviantArt',
+        link: extractTag(block, 'link') || DEVIANTART_URL,
+        image: decodeXml(mediaContent || mediaThumbnail || ''),
+      };
+    })
+    .filter((work) => Boolean(work.image));
+}
+
 export async function getStaticProps() {
   try {
     const response = await fetch(DEVIANTART_RSS);
@@ -44,35 +66,51 @@ export async function getStaticProps() {
     }
 
     const xml = await response.text();
-    const works: DeviantArtWork[] = Array.from(
-      xml.matchAll(/<item>([\s\S]*?)<\/item>/gi),
-    )
-      .slice(0, 9)
-      .map((match) => {
-        const block = match[1];
-        const mediaContent = block.match(
-          /<media:content\b[^>]*\burl=(['"])(.*?)\1/i,
-        )?.[2];
-        const mediaThumbnail = block.match(
-          /<media:thumbnail\b[^>]*\burl=(['"])(.*?)\1/i,
-        )?.[2];
+    const works = parseDeviantArtWorks(xml);
 
-        return {
-          title: extractTag(block, 'title') || 'Obra en DeviantArt',
-          link: extractTag(block, 'link') || DEVIANTART_URL,
-          image: decodeXml(mediaContent || mediaThumbnail || ''),
-        };
-      })
-      .filter((work) => Boolean(work.image));
-
-    return { props: { works }, revalidate: 3600 };
+    return { props: { works } };
   } catch (error) {
     console.error('Failed to fetch DeviantArt gallery:', error);
-    return { props: { works: [] }, revalidate: 3600 };
+    return { props: { works: [] } };
   }
 }
 
 export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
+  const [deviantArtWorks, setDeviantArtWorks] = useState(works);
+  const [isLoadingDeviantArt, setIsLoadingDeviantArt] = useState(works.length === 0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function refreshDeviantArtWorks() {
+      try {
+        const response = await fetch(DEVIANTART_RSS, {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error(`DeviantArt RSS returned ${response.status}`);
+        }
+
+        const refreshedWorks = parseDeviantArtWorks(await response.text());
+        if (refreshedWorks.length > 0) {
+          setDeviantArtWorks(refreshedWorks);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.warn('Could not refresh the DeviantArt gallery in the browser:', error);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoadingDeviantArt(false);
+        }
+      }
+    }
+
+    void refreshDeviantArtWorks();
+    return () => controller.abort();
+  }, []);
+
   return (
     <>
       <Head>
@@ -173,6 +211,34 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
         </section>
       </div>
 
+      <section className="bg-[#c13584] text-white">
+        <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+          <div className="mb-10 flex flex-wrap items-end justify-between gap-6 border-b border-white/25 pb-6">
+            <div>
+              <p className="eyebrow text-white/65">Instagram</p>
+              <h2 className="display-title mt-4 text-4xl sm:text-6xl">Últimas publicaciones</h2>
+            </div>
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 border-b border-white pb-1 text-sm font-semibold"
+            >
+              Abrir Instagram <ArrowUpRight className="h-4 w-4" />
+            </a>
+          </div>
+
+          <div className="mx-auto max-w-[900px] overflow-hidden border border-white/25 bg-white p-1 shadow-2xl shadow-black/25">
+            <iframe
+              src={`${INSTAGRAM_URL}embed/`}
+              title={`Últimas publicaciones de @${INSTAGRAM_USER} en Instagram`}
+              className="block h-[820px] w-full bg-white"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </section>
+
       <section className="bg-[#f5f2e8] text-black">
         <div className="mx-auto max-w-[1440px] px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
           <div className="mb-10 flex flex-wrap items-end justify-between gap-6 border-b border-black/15 pb-6">
@@ -226,9 +292,9 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
             </a>
           </div>
 
-          {works.length > 0 ? (
+          {deviantArtWorks.length > 0 ? (
             <div className="grid gap-px bg-white/15 sm:grid-cols-2 lg:grid-cols-3">
-              {works.map((work) => (
+              {deviantArtWorks.map((work) => (
                 <a
                   key={`${work.link}-${work.title}`}
                   href={work.link}
@@ -236,9 +302,13 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
                   rel="noreferrer"
                   className="group relative aspect-[4/5] overflow-hidden bg-[#1b1b1b]"
                 >
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.035]"
-                    style={{ backgroundImage: `url(${JSON.stringify(work.image)})` }}
+                  <img
+                    src={work.image}
+                    alt={work.title}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-6 p-6">
@@ -250,7 +320,9 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
             </div>
           ) : (
             <div className="border-y border-white/15 py-14 text-white/55">
-              La galería automática de DeviantArt no ha respondido ahora mismo. El acceso directo al perfil sigue disponible arriba.
+              {isLoadingDeviantArt
+                ? 'Cargando la galería de DeviantArt…'
+                : 'La galería automática de DeviantArt no ha respondido ahora mismo. El acceso directo al perfil sigue disponible arriba.'}
             </div>
           )}
         </div>

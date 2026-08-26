@@ -40,9 +40,9 @@ const selectedWork = [
     title: 'Kid D',
     description: 'Instagram, TikTok y DeviantArt reunidos como escaparate del trabajo visual.',
     href: '/kid-d',
-    image: '/hero/slide4.jpg',
+    image: '/hero/kid-d-cover.jpg',
     imageClassName:
-      'object-cover transition-transform duration-700 group-hover:scale-[1.025]',
+      'object-cover object-[center_31%] transition-transform duration-700 group-hover:scale-[1.025]',
   },
 ];
 

@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "rubnpneal-works",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-08-26",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+    "run_worker_first": false
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "rubnpneal-works"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
