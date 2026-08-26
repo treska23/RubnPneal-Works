@@ -20,7 +20,7 @@ export default function ComicReader() {
         <Viewer
           fileUrl="/comic.pdf"
           plugins={[layoutPlugin]}
-          defaultScale={SpecialZoomLevel.PageFit}
+          defaultScale={SpecialZoomLevel.PageWidth}
           scrollMode={ScrollMode.Page}
         />
       </Worker>
