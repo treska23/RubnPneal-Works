@@ -1,6 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createComicOrder } from '@/lib/server/paypal';
 
+function getOrigin(req: NextApiRequest) {
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const protocol =
+    typeof forwardedProto === 'string' ? forwardedProto.split(',')[0].trim() : 'https';
+  const host = req.headers.host;
+
+  if (!host) throw new Error('Missing request host.');
+  return `${protocol}://${host}`;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -10,10 +20,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const amount = typeof req.body?.amount === 'string' ? req.body.amount : '';
 
   try {
-    const id = await createComicOrder(amount);
-    return res.status(200).json({ id });
+    const origin = getOrigin(req);
+    const order = await createComicOrder(
+      amount,
+      `${origin}/comic?paypal=return`,
+      `${origin}/comic?paypal=cancel`,
+    );
+    return res.status(200).json(order);
   } catch (error) {
     console.error('Could not create PayPal order', error);
-    return res.status(400).json({ error: 'Introduce una cantidad válida para continuar.' });
+    const message = error instanceof Error ? error.message : '';
+
+    if (message.includes('credentials are not configured')) {
+      return res.status(503).json({ error: 'PayPal no está configurado en el servidor.' });
+    }
+
+    if (message.includes('Invalid contribution') || message.includes('out of range')) {
+      return res.status(400).json({ error: 'Introduce una cantidad válida para continuar.' });
+    }
+
+    return res.status(502).json({ error: 'PayPal no ha podido iniciar el pago.' });
   }
 }
