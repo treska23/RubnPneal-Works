@@ -24,5 +24,14 @@ export type ComicRuntimeEnv = {
 
 export function getComicRuntimeEnv(): ComicRuntimeEnv {
   const { env } = getCloudflareContext();
-  return env as unknown as ComicRuntimeEnv;
+  const runtimeEnv = env as unknown as ComicRuntimeEnv;
+
+  return {
+    ...runtimeEnv,
+    PAYPAL_CLIENT_ID: runtimeEnv.PAYPAL_CLIENT_ID || process.env.PAYPAL_CLIENT_ID,
+    PAYPAL_CLIENT_SECRET:
+      runtimeEnv.PAYPAL_CLIENT_SECRET || process.env.PAYPAL_CLIENT_SECRET,
+    COMIC_ACCESS_SIGNING_SECRET:
+      runtimeEnv.COMIC_ACCESS_SIGNING_SECRET || process.env.COMIC_ACCESS_SIGNING_SECRET,
+  };
 }
