@@ -5,6 +5,12 @@
   "compatibility_date": "2026-08-26",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "keep_vars": true,
+  "vars": {
+    "PAYPAL_CLIENT_ID": "BAAErLc0pF58iECj0-n9324fHyO8JD0u-XTkw6yw6gSwCjoFblyUEIOAI2mncaZlx8vir30tT3TgTgR40E"
+  },
+  "secrets": {
+    "required": ["PAYPAL_CLIENT_SECRET", "COMIC_ACCESS_SIGNING_SECRET"]
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
