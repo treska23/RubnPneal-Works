@@ -59,6 +59,7 @@
   z-index: 1;
   width: var(--reader-width);
   max-width: 100%;
+  min-width: 0;
   overflow: hidden;
   border: 1px solid rgb(0 0 0 / 18%);
   border-radius: 0.875rem;
@@ -127,18 +128,25 @@
 .viewer {
   --rpv-core__page-layer-box-shadow: none;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   aspect-ratio: 612.48 / 840.48;
   overflow: hidden;
   background: #f7f5f0;
 }
 
 .viewer :global(.rpv-core__inner-pages) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden !important;
   background: #e9e5dd;
   scrollbar-color: rgb(28 25 22 / 38%) transparent;
   scrollbar-width: thin;
 }
 
 .viewer :global(.rpv-core__inner-page) {
+  max-width: 100%;
   background: #e9e5dd;
 }
 
@@ -197,10 +205,18 @@
 
 @media (max-width: 640px) {
   .stage {
-    --reader-width: min(100%, calc(100vw - 3rem), 390px, calc((100dvh - 9rem) * 0.729));
+    --reader-width: min(100%, 390px);
     width: 100%;
     max-width: 100%;
-    padding: 2rem 0.75rem;
+    margin-inline: auto;
+    padding: 1.5rem 0;
+    place-items: center;
+  }
+
+  .frame {
+    width: var(--reader-width);
+    max-width: 100%;
+    margin-inline: auto;
   }
 
   .stage::before {
