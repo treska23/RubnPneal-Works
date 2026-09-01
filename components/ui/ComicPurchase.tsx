@@ -107,7 +107,10 @@ export default function ComicPurchase() {
   }
 
   return (
-    <section className="flex min-h-[620px] w-full flex-1 items-center justify-center border-y border-black/15 bg-[#ece7dc] px-6 py-10 text-center sm:px-10 lg:min-h-0 lg:px-10 xl:px-14">
+    <section
+      id="comic-purchase"
+      className="flex min-h-[620px] w-full scroll-mt-24 flex-1 items-center justify-center border-y border-black/15 bg-[#ece7dc] px-6 py-10 text-center sm:px-10 lg:min-h-0 lg:px-10 xl:px-14"
+    >
       <div className="mx-auto w-full max-w-2xl">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-black/45">
           Edición en alta definición
