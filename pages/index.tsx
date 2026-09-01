@@ -1,8 +1,48 @@
-import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import AboutAuthor from '@components/AboutAuthor';
+import Seo from '@components/Seo';
+import { absoluteUrl, SITE_ORIGIN, SOCIAL_PROFILES } from '@/lib/seo';
+
+const structuredData = [
+  {
+    '@type': 'WebSite',
+    '@id': `${SITE_ORIGIN}/#website`,
+    url: `${SITE_ORIGIN}/`,
+    name: 'RubnPneal Works',
+    alternateName: ['RubnPneal', 'Rubén Pneal'],
+    inLanguage: 'es',
+    creator: { '@id': `${SITE_ORIGIN}/#person` },
+  },
+  {
+    '@type': 'Person',
+    '@id': `${SITE_ORIGIN}/#person`,
+    name: 'Rubén Pneal',
+    alternateName: ['RubnPneal', 'Kid D'],
+    url: `${SITE_ORIGIN}/`,
+    image: absoluteUrl('/ruben-pneal-autor.webp'),
+    jobTitle: 'Desarrollador de software y artista multidisciplinar',
+    knowsAbout: [
+      'Desarrollo de software .NET',
+      'Inteligencia artificial local',
+      'Composición y producción musical',
+      'Ilustración',
+      'Cómic',
+      'Creación audiovisual',
+    ],
+    sameAs: [...SOCIAL_PROFILES],
+  },
+  {
+    '@type': 'WebPage',
+    '@id': `${SITE_ORIGIN}/#webpage`,
+    url: `${SITE_ORIGIN}/`,
+    name: 'RubnPneal Works | Software, música, ilustración y cómic',
+    isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
+    about: { '@id': `${SITE_ORIGIN}/#person` },
+    inLanguage: 'es',
+  },
+];
 
 const selectedWork = [
   {
@@ -22,25 +62,27 @@ const selectedWork = [
     title: 'Cómic',
     description: 'Narrativa gráfica, dibujo e ilustración de autor.',
     href: '/comic',
-    image: '/hero/slide2.jpg',
+    image: '/hero/comic-cuando-los-arboles-dejaron-de-hablar.webp',
     imageClassName:
       'object-cover transition-transform duration-700 group-hover:scale-[1.025]',
   },
   {
     number: '03',
     title: 'Música',
-    description: 'Composición, producción y trabajos publicados en plataformas.',
+    description:
+      'Composición, producción y trabajos publicados en plataformas.',
     href: '/music',
-    image: '/hero/slide3.jpg',
+    image: '/hero/rubnpneal-musica-produccion.webp',
     imageClassName:
       'object-cover transition-transform duration-700 group-hover:scale-[1.025]',
   },
   {
     number: '04',
     title: 'Kid D',
-    description: 'Instagram, TikTok y DeviantArt reunidos como escaparate del trabajo visual.',
+    description:
+      'Instagram, TikTok y DeviantArt reunidos como escaparate del trabajo visual.',
     href: '/kid-d',
-    image: '/hero/kid-d-cover.jpg',
+    image: '/hero/kid-d-ilustracion.webp',
     imageClassName:
       'object-cover object-[center_31%] transition-transform duration-700 group-hover:scale-[1.025]',
   },
@@ -49,13 +91,12 @@ const selectedWork = [
 export default function Home() {
   return (
     <>
-      <Head>
-        <title>RubnPneal — Software, música e imagen</title>
-        <meta
-          name="description"
-          content="Portfolio de RubnPneal: programación, música, ilustración y cómic."
-        />
-      </Head>
+      <Seo
+        title="RubnPneal Works | Software, música, ilustración y cómic"
+        description="Portfolio de Rubén Pneal: desarrollo de software .NET e IA local, música original, producción, ilustración, vídeo y el cómic Cuando los Árboles Dejaron de Hablar."
+        path="/"
+        structuredData={structuredData}
+      />
 
       <section className="bg-[#0b0b0b] text-[#f5f2e8]">
         <div className="mx-auto grid min-h-[calc(100svh-72px)] max-w-[1440px] lg:grid-cols-[1.15fr_0.85fr]">
@@ -73,8 +114,9 @@ export default function Home() {
                 sonido e imagen.
               </h1>
               <p className="mt-8 max-w-xl text-base leading-7 text-white/60 sm:text-lg">
-                Desarrollo de software y trabajo creativo reunidos en un mismo portfolio:
-                programación, música, ilustración y narrativa gráfica.
+                Desarrollo de software y trabajo creativo reunidos en un mismo
+                portfolio: programación, música, ilustración y narrativa
+                gráfica.
               </p>
               <div className="mt-10 flex flex-wrap gap-3">
                 <Link href="#trabajos" className="button-light">
@@ -96,8 +138,8 @@ export default function Home() {
 
           <div className="relative min-h-[55svh] overflow-hidden border-t border-white/10 lg:min-h-0 lg:border-l lg:border-t-0">
             <Image
-              src="/hero/slide1.jpg"
-              alt="Trabajo visual de RubnPneal"
+              src="/hero/rubnpneal-portfolio-visual.webp"
+              alt="Trabajo visual del portfolio de Rubén Pneal"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 42vw"
@@ -117,11 +159,13 @@ export default function Home() {
           <div className="mb-12 flex items-end justify-between gap-8 border-b border-black/15 pb-6 sm:mb-16">
             <div>
               <p className="eyebrow">Trabajo seleccionado</p>
-              <h2 className="display-title mt-4 text-4xl sm:text-6xl">Lo que hago</h2>
+              <h2 className="display-title mt-4 text-4xl sm:text-6xl">
+                Lo que hago
+              </h2>
             </div>
             <p className="hidden max-w-sm text-sm leading-6 text-black/55 md:block">
-              Menos decoración, más trabajo real. Cada área lleva a una selección
-              específica del portfolio.
+              Menos decoración, más trabajo real. Cada área lleva a una
+              selección específica del portfolio.
             </p>
           </div>
 
@@ -152,7 +196,9 @@ export default function Home() {
                     <ArrowUpRight className="h-5 w-5 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" />
                   </div>
                   <div>
-                    <h3 className="display-title text-5xl sm:text-6xl">{item.title}</h3>
+                    <h3 className="display-title text-5xl sm:text-6xl">
+                      {item.title}
+                    </h3>
                     <p className="mt-4 max-w-md text-sm leading-6 opacity-70 sm:text-base">
                       {item.description}
                     </p>

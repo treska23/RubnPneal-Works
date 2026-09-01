@@ -9,19 +9,42 @@ export default function Footer() {
           </p>
         </div>
         <div className="flex flex-col items-start gap-3 md:items-end">
-          <a className="footer-link" href="mailto:ruben.pineal.lopez@hotmail.com">
+          <a
+            className="footer-link"
+            href="mailto:ruben.pineal.lopez@hotmail.com"
+          >
             Email
           </a>
-          <a className="footer-link" href="https://github.com/treska23" target="_blank" rel="noreferrer">
+          <a
+            className="footer-link"
+            href="https://github.com/treska23"
+            target="_blank"
+            rel="me noreferrer"
+          >
             GitHub
           </a>
-          <a className="footer-link" href="https://www.instagram.com/kid.d232/" target="_blank" rel="noreferrer">
+          <a
+            className="footer-link"
+            href="https://www.instagram.com/kid.d232/"
+            target="_blank"
+            rel="me noreferrer"
+          >
             Instagram · @kid.d232
           </a>
-          <a className="footer-link" href="https://www.tiktok.com/@kiddaccount23" target="_blank" rel="noreferrer">
+          <a
+            className="footer-link"
+            href="https://www.tiktok.com/@kiddaccount23"
+            target="_blank"
+            rel="me noreferrer"
+          >
             TikTok · @kiddaccount23
           </a>
-          <a className="footer-link" href="https://www.deviantart.com/treska23" target="_blank" rel="noreferrer">
+          <a
+            className="footer-link"
+            href="https://www.deviantart.com/treska23"
+            target="_blank"
+            rel="me noreferrer"
+          >
             DeviantArt · treska23
           </a>
         </div>

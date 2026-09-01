@@ -1,11 +1,12 @@
-import Head from 'next/head';
 import Link from 'next/link';
 import Parser from 'rss-parser';
 import { ArrowLeft, ArrowUpRight, Youtube } from 'lucide-react';
 import SectionLayout from '@components/SectionLayout';
+import Seo from '@components/Seo';
+import { absoluteUrl, breadcrumbStructuredData, SITE_ORIGIN } from '@/lib/seo';
 
 const CHANNEL_ID = 'UCAyA9gTo-GPaKNnlulvS8iw';
-type YouTubeVideo = { id: string; title: string };
+type YouTubeVideo = { id: string; title: string; publishedAt: string | null };
 
 export async function getStaticProps() {
   try {
@@ -16,6 +17,7 @@ export async function getStaticProps() {
       .map((item) => ({
         id: item.link?.split('v=')[1]?.split('&')[0] ?? '',
         title: item.title ?? 'Vídeo musical',
+        publishedAt: item.isoDate ?? item.pubDate ?? null,
       }))
       .filter((video) => Boolean(video.id));
 
@@ -26,16 +28,52 @@ export async function getStaticProps() {
   }
 }
 
-export default function YouTubeMusicPage({ videos }: { videos: YouTubeVideo[] }) {
+export default function YouTubeMusicPage({
+  videos,
+}: {
+  videos: YouTubeVideo[];
+}) {
+  const videoStructuredData = videos
+    .filter((video) => Boolean(video.publishedAt))
+    .map((video) => ({
+      '@type': 'VideoObject',
+      name: video.title,
+      description: `${video.title}, vídeo musical publicado por Rubén Pneal en YouTube.`,
+      thumbnailUrl: `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`,
+      uploadDate: video.publishedAt,
+      embedUrl: `https://www.youtube.com/embed/${video.id}`,
+      contentUrl: `https://www.youtube.com/watch?v=${video.id}`,
+      publisher: { '@id': `${SITE_ORIGIN}/#person` },
+    }));
+  const structuredData = [
+    {
+      '@type': 'CollectionPage',
+      '@id': `${absoluteUrl('/music/youtube')}#webpage`,
+      url: absoluteUrl('/music/youtube'),
+      name: 'Vídeos musicales de RubnPneal en YouTube',
+      description:
+        'Vídeos musicales, canciones y piezas audiovisuales de Rubén Pneal.',
+      isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
+      author: { '@id': `${SITE_ORIGIN}/#person` },
+      inLanguage: 'es',
+      mainEntity: videoStructuredData,
+    },
+    ...videoStructuredData,
+    breadcrumbStructuredData([
+      { name: 'Inicio', path: '/' },
+      { name: 'Música', path: '/music' },
+      { name: 'YouTube', path: '/music/youtube' },
+    ]),
+  ];
+
   return (
     <>
-      <Head>
-        <title>YouTube Music — RubnPneal</title>
-        <meta
-          name="description"
-          content="Publicaciones musicales de RubnPneal en YouTube."
-        />
-      </Head>
+      <Seo
+        title="Vídeos musicales de RubnPneal en YouTube"
+        description="Descubre los vídeos musicales, canciones y piezas audiovisuales de Rubén Pneal, con las últimas publicaciones de su canal de YouTube."
+        path="/music/youtube"
+        structuredData={structuredData}
+      />
 
       <div className="min-h-screen bg-[#0b0b0b] text-white">
         <section className="bg-[#ff0000] text-black">
@@ -47,9 +85,12 @@ export default function YouTubeMusicPage({ videos }: { videos: YouTubeVideo[] })
 
             <div className="mt-5 grid gap-8 border-t border-black/20 pt-8 lg:grid-cols-[1fr_auto] lg:items-end">
               <div>
-                <h1 className="display-title text-6xl sm:text-7xl lg:text-8xl">YouTube</h1>
+                <h1 className="display-title text-6xl sm:text-7xl lg:text-8xl">
+                  YouTube
+                </h1>
                 <p className="mt-5 max-w-2xl text-base leading-7 text-black/65 sm:text-lg">
-                  Vídeos musicales, lanzamientos y piezas publicadas en el canal de RubnPneal.
+                  Vídeos musicales, lanzamientos y piezas publicadas en el canal
+                  de RubnPneal.
                 </p>
               </div>
 

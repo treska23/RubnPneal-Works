@@ -1,21 +1,45 @@
-import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import SectionLayout from '@components/SectionLayout';
+import Seo from '@components/Seo';
+import { absoluteUrl, breadcrumbStructuredData, SITE_ORIGIN } from '@/lib/seo';
 
 const ComicReader = dynamic(() => import('@components/ui/ComicReader'), {
   ssr: false,
 });
 
+const structuredData = [
+  {
+    '@type': 'CreativeWork',
+    '@id': `${absoluteUrl('/comic')}#comic`,
+    name: 'Cuando los Árboles Dejaron de Hablar',
+    description:
+      'Cómic online de Rubén Pneal presentado en un lector continuo adaptado a la lectura en pantalla.',
+    url: absoluteUrl('/comic'),
+    inLanguage: 'es',
+    genre: ['Cómic', 'Narrativa gráfica', 'Ilustración'],
+    author: { '@id': `${SITE_ORIGIN}/#person` },
+    encoding: {
+      '@type': 'MediaObject',
+      contentUrl: absoluteUrl('/comic-web.pdf'),
+      encodingFormat: 'application/pdf',
+    },
+  },
+  breadcrumbStructuredData([
+    { name: 'Inicio', path: '/' },
+    { name: 'Cómic', path: '/comic' },
+  ]),
+];
+
 export default function ComicPage() {
   return (
     <>
-      <Head>
-        <title>Cuando los Árboles Dejaron de Hablar — RubnPneal</title>
-        <meta
-          name="description"
-          content="Cómic Cuando los Árboles Dejaron de Hablar, de RubnPneal."
-        />
-      </Head>
+      <Seo
+        title="Cuando los Árboles Dejaron de Hablar | Cómic online"
+        description="Lee online Cuando los Árboles Dejaron de Hablar, el cómic de Rubén Pneal: ilustración y narrativa gráfica en un lector continuo para pantalla."
+        path="/comic"
+        type="article"
+        structuredData={structuredData}
+      />
       <div className="bg-[#f5f2e8]">
         <SectionLayout
           eyebrow="Narrativa gráfica"

@@ -1,0 +1,23 @@
+# RubnPneal Works
+
+Portfolio oficial de Rubén Pneal (RubnPneal), desarrollador de software y artista multidisciplinar. El sitio está escrito en español y reúne proyectos de programación, música, ilustración, vídeo y cómic.
+
+## Secciones principales
+
+- [Inicio](https://rubnpneal-works.rubnpneal-works.workers.dev/): presentación y selección de trabajos.
+- [Programación](https://rubnpneal-works.rubnpneal-works.workers.dev/development): proyectos .NET, WPF, audio, automatización e IA local.
+- [Música](https://rubnpneal-works.rubnpneal-works.workers.dev/music): acceso a canciones y vídeos musicales.
+- [Spotify](https://rubnpneal-works.rubnpneal-works.workers.dev/music/spotify): discografía y perfil de artista.
+- [YouTube](https://rubnpneal-works.rubnpneal-works.workers.dev/music/youtube): vídeos musicales y últimas publicaciones.
+- [Cómic](https://rubnpneal-works.rubnpneal-works.workers.dev/comic): lector online de Cuando los Árboles Dejaron de Hablar.
+- [Kid D](https://rubnpneal-works.rubnpneal-works.workers.dev/kid-d): dibujo, ilustración y publicaciones visuales.
+- [Servicios](https://rubnpneal-works.rubnpneal-works.workers.dev/services): desarrollo, música, mezcla, ilustración, vídeo y colaboración vocal.
+
+## Perfiles oficiales
+
+- GitHub: https://github.com/treska23
+- Instagram: https://www.instagram.com/kid.d232/
+- TikTok: https://www.tiktok.com/@kiddaccount23
+- DeviantArt: https://www.deviantart.com/treska23
+- YouTube: https://www.youtube.com/channel/UCAyA9gTo-GPaKNnlulvS8iw
+- Spotify: https://open.spotify.com/artist/24cB9jl7geMfGyDiW29KlY

@@ -1,7 +1,8 @@
-import Head from 'next/head';
 import Link from 'next/link';
 import { ArrowLeft, ArrowUpRight, Music2 } from 'lucide-react';
 import SectionLayout from '@components/SectionLayout';
+import Seo from '@components/Seo';
+import { absoluteUrl, breadcrumbStructuredData, SITE_ORIGIN } from '@/lib/seo';
 
 const trackIds = [
   '5Q3jx7MeOdXMORcYRVrZCr',
@@ -16,13 +17,75 @@ const trackIds = [
 ];
 const ARTIST_ID = '24cB9jl7geMfGyDiW29KlY';
 
-export default function SpotifyPage() {
+type SpotifyTrack = { id: string; title: string };
+
+export async function getStaticProps() {
+  const tracks = await Promise.all(
+    trackIds.map(async (id, index): Promise<SpotifyTrack> => {
+      try {
+        const url = `https://open.spotify.com/track/${id}`;
+        const response = await fetch(
+          `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`,
+        );
+        if (!response.ok)
+          throw new Error(`Spotify oEmbed returned ${response.status}`);
+        const data = (await response.json()) as { title?: string };
+        return {
+          id,
+          title: data.title?.trim() || `Canción ${index + 1} de RubnPneal`,
+        };
+      } catch {
+        return { id, title: `Canción ${index + 1} de RubnPneal` };
+      }
+    }),
+  );
+
+  return { props: { tracks }, revalidate: 86400 };
+}
+
+export default function SpotifyPage({ tracks }: { tracks: SpotifyTrack[] }) {
+  const structuredData = [
+    {
+      '@type': 'CollectionPage',
+      '@id': `${absoluteUrl('/music/spotify')}#webpage`,
+      url: absoluteUrl('/music/spotify'),
+      name: 'Canciones de RubnPneal en Spotify | Discografía',
+      description:
+        'Discografía y canciones publicadas por Rubén Pneal en Spotify.',
+      isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
+      author: { '@id': `${SITE_ORIGIN}/#person` },
+      inLanguage: 'es',
+      mainEntity: { '@id': `${absoluteUrl('/music/spotify')}#tracks` },
+    },
+    {
+      '@type': 'ItemList',
+      '@id': `${absoluteUrl('/music/spotify')}#tracks`,
+      itemListElement: tracks.map((track, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'MusicRecording',
+          name: track.title,
+          url: `https://open.spotify.com/track/${track.id}`,
+          byArtist: { '@id': `${SITE_ORIGIN}/#person` },
+        },
+      })),
+    },
+    breadcrumbStructuredData([
+      { name: 'Inicio', path: '/' },
+      { name: 'Música', path: '/music' },
+      { name: 'Spotify', path: '/music/spotify' },
+    ]),
+  ];
+
   return (
     <>
-      <Head>
-        <title>Spotify — RubnPneal</title>
-        <meta name="description" content="Canciones de RubnPneal en Spotify." />
-      </Head>
+      <Seo
+        title="Canciones de RubnPneal en Spotify | Discografía"
+        description="Escucha la discografía de Rubén Pneal en Spotify: canciones originales, composición y producción musical reunidas en su perfil de artista."
+        path="/music/spotify"
+        structuredData={structuredData}
+      />
 
       <div className="min-h-screen bg-[#121212] text-white">
         <section className="bg-[#1ed760] text-black">
@@ -34,9 +97,12 @@ export default function SpotifyPage() {
 
             <div className="mt-5 grid gap-8 border-t border-black/20 pt-8 lg:grid-cols-[1fr_auto] lg:items-end">
               <div>
-                <h1 className="display-title text-6xl sm:text-7xl lg:text-8xl">Spotify</h1>
+                <h1 className="display-title text-6xl sm:text-7xl lg:text-8xl">
+                  Spotify
+                </h1>
                 <p className="mt-5 max-w-2xl text-base leading-7 text-black/65 sm:text-lg">
-                  Discografía, canciones publicadas y acceso directo al perfil de artista.
+                  Discografía, canciones publicadas y acceso directo al perfil
+                  de artista.
                 </p>
               </div>
 
@@ -67,20 +133,20 @@ export default function SpotifyPage() {
             </div>
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {trackIds.map((id) => (
+              {tracks.map((track) => (
                 <div
-                  key={id}
+                  key={track.id}
                   className="overflow-hidden border border-white/10 bg-[#181818] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.28)] transition-transform duration-300 hover:-translate-y-1"
                 >
                   <iframe
                     className="block w-full"
                     style={{ borderRadius: '8px' }}
-                    src={`https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0`}
+                    src={`https://open.spotify.com/embed/track/${track.id}?utm_source=generator&theme=0`}
                     height="352"
                     frameBorder="0"
                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                     loading="lazy"
-                    title={`Spotify track ${id}`}
+                    title={`${track.title} en Spotify`}
                   />
                 </div>
               ))}

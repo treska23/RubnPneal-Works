@@ -1,4 +1,3 @@
-import Head from 'next/head';
 import {
   ArrowUpRight,
   Clapperboard,
@@ -11,6 +10,8 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import SectionLayout from '@components/SectionLayout';
+import Seo from '@components/Seo';
+import { absoluteUrl, breadcrumbStructuredData, SITE_ORIGIN } from '@/lib/seo';
 
 const EMAIL = 'ruben.pineal.lopez@hotmail.com';
 
@@ -71,30 +72,66 @@ const services: {
   },
 ];
 
+const structuredData = [
+  {
+    '@type': 'CollectionPage',
+    '@id': `${absoluteUrl('/services')}#webpage`,
+    url: absoluteUrl('/services'),
+    name: 'Servicios creativos y desarrollo de software | RubnPneal',
+    description:
+      'Servicios de desarrollo de software, música, mezcla, ilustración, vídeo y colaboración creativa de Rubén Pneal.',
+    isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
+    author: { '@id': `${SITE_ORIGIN}/#person` },
+    inLanguage: 'es',
+    mainEntity: { '@id': `${absoluteUrl('/services')}#services` },
+  },
+  {
+    '@type': 'ItemList',
+    '@id': `${absoluteUrl('/services')}#services`,
+    itemListElement: services.map((service, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'Service',
+        name: service.title,
+        description: service.description,
+        provider: { '@id': `${SITE_ORIGIN}/#person` },
+        url: absoluteUrl('/services'),
+      },
+    })),
+  },
+  breadcrumbStructuredData([
+    { name: 'Inicio', path: '/' },
+    { name: 'Servicios', path: '/services' },
+  ]),
+];
+
 export default function ServicesPage() {
   const mailto = `mailto:${EMAIL}?subject=Proyecto%20desde%20RubnPneal%20Works`;
 
   return (
     <>
-      <Head>
-        <title>Servicios — RubnPneal</title>
-        <meta
-          name="description"
-          content="Servicios de programación, música, diseño, ilustración y audiovisual de RubnPneal."
-        />
-      </Head>
+      <Seo
+        title="Servicios creativos y desarrollo de software | RubnPneal"
+        description="Servicios de Rubén Pneal: desarrollo de software .NET, composición y producción musical, mezcla, ilustración, vídeo, lyric videos y colaboración vocal."
+        path="/services"
+        structuredData={structuredData}
+      />
 
       <div className="bg-[#f5f2e8]">
         <SectionLayout eyebrow="Contratación" title="Servicios">
           <div className="grid overflow-hidden border border-black/15 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="p-7 sm:p-10 lg:p-12">
               <p className="max-w-4xl text-3xl font-medium leading-tight tracking-[-0.03em] sm:text-4xl lg:text-5xl">
-                Puedo entrar en un proyecto desde la parte técnica, musical o visual, o combinar varias cuando el trabajo lo pide.
+                Puedo entrar en un proyecto desde la parte técnica, musical o
+                visual, o combinar varias cuando el trabajo lo pide.
               </p>
             </div>
             <div className="flex flex-col justify-between bg-[#ff4d00] p-7 sm:p-10 lg:p-12">
               <p className="max-w-xl text-base leading-7 text-black/70">
-                Cada encargo se define según alcance, tiempos y entregables. La prioridad es dejar claro desde el principio qué se va a hacer y qué resultado necesitas.
+                Cada encargo se define según alcance, tiempos y entregables. La
+                prioridad es dejar claro desde el principio qué se va a hacer y
+                qué resultado necesitas.
               </p>
               <div className="mt-12 border-t border-black/25 pt-5 font-mono text-[11px] uppercase tracking-[0.16em] text-black/55">
                 Software · Audio · Imagen
@@ -105,18 +142,27 @@ export default function ServicesPage() {
 
         <section className="mx-auto max-w-[1440px] px-5 pb-20 sm:px-8 sm:pb-28 lg:px-12">
           <div className="grid gap-px bg-black/15 md:grid-cols-2 xl:grid-cols-3">
-            {services.map(({ title, description, icon: Icon, tone, muted }, index) => (
-              <article key={title} className={`min-h-[320px] p-7 sm:p-9 ${tone}`}>
-                <div className="flex items-start justify-between">
-                  <Icon className="h-6 w-6" strokeWidth={1.5} />
-                  <span className="font-mono text-[11px] opacity-40">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                </div>
-                <h2 className="display-title mt-16 text-3xl sm:text-4xl">{title}</h2>
-                <p className={`mt-4 text-sm leading-6 sm:text-base ${muted}`}>{description}</p>
-              </article>
-            ))}
+            {services.map(
+              ({ title, description, icon: Icon, tone, muted }, index) => (
+                <article
+                  key={title}
+                  className={`min-h-[320px] p-7 sm:p-9 ${tone}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <Icon className="h-6 w-6" strokeWidth={1.5} />
+                    <span className="font-mono text-[11px] opacity-40">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                  </div>
+                  <h2 className="display-title mt-16 text-3xl sm:text-4xl">
+                    {title}
+                  </h2>
+                  <p className={`mt-4 text-sm leading-6 sm:text-base ${muted}`}>
+                    {description}
+                  </p>
+                </article>
+              ),
+            )}
           </div>
         </section>
 

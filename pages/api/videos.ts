@@ -11,6 +11,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Video[]>,
 ) {
+  res.setHeader('X-Robots-Tag', 'noindex');
   const key = process.env.YOUTUBE_API_KEY;
   const channelId = process.env.YOUTUBE_CHANNEL_ID;
   const max = 12; // cuantos vídeos sacar

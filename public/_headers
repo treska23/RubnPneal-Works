@@ -1,2 +1,17 @@
 /_next/static/*
   Cache-Control: public,max-age=31536000,immutable
+
+/hero/*
+  Cache-Control: public,max-age=2592000
+
+/*.webp
+  Cache-Control: public,max-age=2592000
+
+/*.jpg
+  Cache-Control: public,max-age=2592000
+
+/comic-web.pdf
+  Cache-Control: public,max-age=604800
+
+/api/*
+  X-Robots-Tag: noindex

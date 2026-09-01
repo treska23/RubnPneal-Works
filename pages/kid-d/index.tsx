@@ -1,9 +1,10 @@
-import Head from 'next/head';
 import Image from 'next/image';
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import SectionLayout from '@components/SectionLayout';
+import Seo from '@components/Seo';
+import { absoluteUrl, breadcrumbStructuredData, SITE_ORIGIN } from '@/lib/seo';
 
 const INSTAGRAM_USER = 'kid.d232';
 const TIKTOK_USER = 'kiddaccount23';
@@ -33,7 +34,9 @@ function decodeXml(value: string) {
 }
 
 function extractTag(block: string, tag: string) {
-  const match = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+  const match = block.match(
+    new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'),
+  );
   return match?.[1] ? decodeXml(match[1]) : '';
 }
 
@@ -68,16 +71,51 @@ export async function getStaticProps() {
     const xml = await response.text();
     const works = parseDeviantArtWorks(xml);
 
-    return { props: { works } };
+    return { props: { works }, revalidate: 3600 };
   } catch (error) {
     console.error('Failed to fetch DeviantArt gallery:', error);
-    return { props: { works: [] } };
+    return { props: { works: [] }, revalidate: 3600 };
   }
 }
 
 export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
   const [deviantArtWorks, setDeviantArtWorks] = useState(works);
-  const [isLoadingDeviantArt, setIsLoadingDeviantArt] = useState(works.length === 0);
+  const [isLoadingDeviantArt, setIsLoadingDeviantArt] = useState(
+    works.length === 0,
+  );
+  const structuredData = [
+    {
+      '@type': 'CollectionPage',
+      '@id': `${absoluteUrl('/kid-d')}#webpage`,
+      url: absoluteUrl('/kid-d'),
+      name: 'Kid D | Ilustración, dibujo y arte en redes',
+      description:
+        'Portfolio visual de Kid D con dibujo, ilustración, procesos y publicaciones de Instagram, TikTok y DeviantArt.',
+      isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
+      author: { '@id': `${SITE_ORIGIN}/#person` },
+      inLanguage: 'es',
+      mainEntity: { '@id': `${absoluteUrl('/kid-d')}#gallery` },
+    },
+    {
+      '@type': 'ItemList',
+      '@id': `${absoluteUrl('/kid-d')}#gallery`,
+      itemListElement: works.map((work, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'ImageObject',
+          name: work.title,
+          contentUrl: work.image,
+          url: work.link,
+          creator: { '@id': `${SITE_ORIGIN}/#person` },
+        },
+      })),
+    },
+    breadcrumbStructuredData([
+      { name: 'Inicio', path: '/' },
+      { name: 'Kid D', path: '/kid-d' },
+    ]),
+  ];
 
   useEffect(() => {
     const controller = new AbortController();
@@ -98,7 +136,10 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
         }
       } catch (error) {
         if (!controller.signal.aborted) {
-          console.warn('Could not refresh the DeviantArt gallery in the browser:', error);
+          console.warn(
+            'Could not refresh the DeviantArt gallery in the browser:',
+            error,
+          );
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -113,22 +154,25 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
 
   return (
     <>
-      <Head>
-        <title>Kid D — RubnPneal</title>
-        <meta
-          name="description"
-          content="Kid D: dibujo y publicaciones visuales en Instagram, TikTok y DeviantArt."
-        />
-      </Head>
+      <Seo
+        title="Kid D | Ilustración, dibujo y arte en redes"
+        description="Descubre el portfolio visual de Kid D: dibujos, ilustración, procesos y últimas obras publicadas por Rubén Pneal en Instagram, TikTok y DeviantArt."
+        path="/kid-d"
+        structuredData={structuredData}
+      />
 
       <div className="bg-[#0b0b0b] text-white">
         <SectionLayout eyebrow="Dibujo · Redes · Proceso" title="Kid D">
           <div className="grid gap-10 border-t border-white/15 pt-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
             <p className="max-w-4xl text-3xl font-medium leading-tight tracking-[-0.04em] sm:text-4xl lg:text-6xl">
-              El lado más inmediato del trabajo visual: dibujos, procesos y piezas que viven en redes.
+              El lado más inmediato del trabajo visual: dibujos, procesos y
+              piezas que viven en redes.
             </p>
             <p className="max-w-xl text-base leading-7 text-white/55">
-              Esta sección reúne Instagram, TikTok y DeviantArt en un mismo sitio. No es una lista de enlaces: el contenido visual forma parte del portfolio y las plataformas quedan como puerta de entrada al material completo.
+              Esta sección reúne Instagram, TikTok y DeviantArt en un mismo
+              sitio. No es una lista de enlaces: el contenido visual forma parte
+              del portfolio y las plataformas quedan como puerta de entrada al
+              material completo.
             </p>
           </div>
         </SectionLayout>
@@ -142,9 +186,19 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
               className="group relative min-h-[300px] overflow-hidden bg-[#dc2f77] p-7 sm:p-9"
             >
               <div className="absolute inset-0 grid grid-cols-3 opacity-55 transition-transform duration-700 group-hover:scale-[1.03]">
-                {['/hero/slide1.jpg', '/hero/slide2.jpg', '/hero/slide3.jpg'].map((src) => (
+                {[
+                  '/hero/rubnpneal-portfolio-visual.webp',
+                  '/hero/comic-cuando-los-arboles-dejaron-de-hablar.webp',
+                  '/hero/rubnpneal-musica-produccion.webp',
+                ].map((src) => (
                   <div key={src} className="relative overflow-hidden">
-                    <Image src={src} alt="" fill sizes="20vw" className="object-cover" />
+                    <Image
+                      src={src}
+                      alt=""
+                      fill
+                      sizes="20vw"
+                      className="object-cover"
+                    />
                   </div>
                 ))}
               </div>
@@ -155,7 +209,9 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
                   <ArrowUpRight className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="display-title text-4xl sm:text-5xl">@{INSTAGRAM_USER}</p>
+                  <p className="display-title text-4xl sm:text-5xl">
+                    @{INSTAGRAM_USER}
+                  </p>
                   <p className="mt-3 max-w-sm text-sm leading-6 text-white/65">
                     Dibujos, piezas terminadas y publicaciones visuales.
                   </p>
@@ -177,7 +233,9 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
                   <ArrowUpRight className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="display-title text-4xl sm:text-5xl">@{TIKTOK_USER}</p>
+                  <p className="display-title text-4xl sm:text-5xl">
+                    @{TIKTOK_USER}
+                  </p>
                   <p className="mt-3 max-w-sm text-sm leading-6 text-white/60">
                     Vídeo corto, animación y proceso de dibujo.
                   </p>
@@ -200,7 +258,9 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
                   <ArrowUpRight className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="display-title text-4xl sm:text-5xl">{DEVIANTART_USER}</p>
+                  <p className="display-title text-4xl sm:text-5xl">
+                    {DEVIANTART_USER}
+                  </p>
                   <p className="mt-3 max-w-sm text-sm leading-6 text-black/65">
                     Galería completa y archivo de trabajos visuales.
                   </p>
@@ -216,7 +276,9 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
           <div className="mb-10 flex flex-wrap items-end justify-between gap-6 border-b border-white/25 pb-6">
             <div>
               <p className="eyebrow text-white/65">Instagram</p>
-              <h2 className="display-title mt-4 text-4xl sm:text-6xl">Últimas publicaciones</h2>
+              <h2 className="display-title mt-4 text-4xl sm:text-6xl">
+                Últimas publicaciones
+              </h2>
             </div>
             <a
               href={INSTAGRAM_URL}
@@ -244,7 +306,9 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
           <div className="mb-10 flex flex-wrap items-end justify-between gap-6 border-b border-black/15 pb-6">
             <div>
               <p className="eyebrow">TikTok</p>
-              <h2 className="display-title mt-4 text-4xl sm:text-6xl">Últimos vídeos</h2>
+              <h2 className="display-title mt-4 text-4xl sm:text-6xl">
+                Últimos vídeos
+              </h2>
             </div>
             <a
               href={TIKTOK_URL}
@@ -265,12 +329,19 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
               style={{ maxWidth: '720px', minWidth: '288px' }}
             >
               <section>
-                <a target="_blank" rel="noreferrer" href={`${TIKTOK_URL}?refer=creator_embed`}>
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`${TIKTOK_URL}?refer=creator_embed`}
+                >
                   @{TIKTOK_USER}
                 </a>
               </section>
             </blockquote>
-            <Script src="https://www.tiktok.com/embed.js" strategy="afterInteractive" />
+            <Script
+              src="https://www.tiktok.com/embed.js"
+              strategy="afterInteractive"
+            />
           </div>
         </div>
       </section>
@@ -280,7 +351,9 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
           <div className="mb-10 flex flex-wrap items-end justify-between gap-6 border-b border-white/15 pb-6">
             <div>
               <p className="eyebrow text-white/45">DeviantArt · RSS</p>
-              <h2 className="display-title mt-4 text-4xl sm:text-6xl">Últimas obras</h2>
+              <h2 className="display-title mt-4 text-4xl sm:text-6xl">
+                Últimas obras
+              </h2>
             </div>
             <a
               href={DEVIANTART_URL}
@@ -312,7 +385,9 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-6 p-6">
-                    <h3 className="max-w-[85%] text-lg font-semibold leading-snug">{work.title}</h3>
+                    <h3 className="max-w-[85%] text-lg font-semibold leading-snug">
+                      {work.title}
+                    </h3>
                     <ArrowUpRight className="h-5 w-5 shrink-0" />
                   </div>
                 </a>
