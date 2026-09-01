@@ -19,7 +19,7 @@ export type ComicRuntimeEnv = {
   COMIC_HD_BUCKET: R2BucketLike;
   PAYPAL_CLIENT_ID?: string;
   PAYPAL_CLIENT_SECRET?: string;
-  COMIC_ACCESS_SECRET?: string;
+  COMIC_ACCESS_SIGNING_SECRET?: string;
 };
 
 export function getComicRuntimeEnv(): ComicRuntimeEnv {
