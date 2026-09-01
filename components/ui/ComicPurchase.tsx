@@ -156,73 +156,77 @@ export default function ComicPurchase() {
   }, [accessToken, payableAmount, ready]);
 
   return (
-    <section className="w-full max-w-[340px] text-center">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/45">
-        Edición digital HD
-      </p>
-      <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">
-        Consigue el cómic completo
-      </h2>
-      <p className="mx-auto mt-2 max-w-[290px] text-sm leading-6 text-black/55">
-        Tú eliges cuánto aportar. El pago desbloquea el PDF en alta calidad.
-      </p>
+    <section className="flex h-full w-full flex-col justify-center text-center lg:px-6 xl:px-10">
+      <div className="mx-auto w-full max-w-xl">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">
+          Edición en alta definición
+        </p>
+        <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+          Accede al cómic en alta definición
+        </h2>
+        <p className="mx-auto mt-4 max-w-lg text-base leading-7 text-black/55">
+          El cómic que estás leyendo es la versión optimizada para web. Aporta la
+          cantidad que quieras y accede al PDF en alta definición.
+        </p>
 
-      <div className="mt-5 border border-black/15 bg-white/55 p-4">
-        {accessToken ? (
-          <div>
-            <p className="mb-3 text-sm leading-6 text-black/60">
-              Pago confirmado. El PDF HD está desbloqueado en este navegador.
-            </p>
-            <a
-              href={getAccessUrl(accessToken)}
-              target="_blank"
-              rel="noreferrer"
-              className="flex min-h-11 w-full items-center justify-center bg-black px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80"
-            >
-              Abrir PDF HD
-            </a>
-          </div>
-        ) : (
-          <>
-            <label
-              htmlFor="comic-contribution"
-              className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-black/50"
-            >
-              Tú decides el precio
-            </label>
-            <div className="mx-auto mt-2 flex h-11 max-w-[180px] items-center border border-black/20 bg-white px-3">
-              <input
-                id="comic-contribution"
-                type="text"
-                inputMode="decimal"
-                autoComplete="off"
-                value={amount}
-                onChange={(event) => {
-                  setAmount(event.target.value.replace(/[^0-9.,]/g, ''));
-                  setError('');
-                }}
-                placeholder="0,00"
-                aria-label="Cantidad en euros"
-                className="min-w-0 flex-1 bg-transparent text-right text-lg font-semibold outline-none"
-              />
-              <span className="ml-1.5 text-base font-semibold text-black/55">€</span>
+        <div className="mt-7 w-full border border-black/15 bg-white/55 p-5 sm:p-6">
+          {accessToken ? (
+            <div>
+              <p className="mb-4 text-sm leading-6 text-black/60">
+                Pago confirmado. El PDF en alta definición está desbloqueado en este
+                navegador.
+              </p>
+              <a
+                href={getAccessUrl(accessToken)}
+                target="_blank"
+                rel="noreferrer"
+                className="flex min-h-12 w-full items-center justify-center bg-black px-5 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80"
+              >
+                Abrir PDF en alta definición
+              </a>
             </div>
+          ) : (
+            <>
+              <label
+                htmlFor="comic-contribution"
+                className="block text-xs font-semibold uppercase tracking-[0.12em] text-black/50"
+              >
+                Aporta lo que quieras
+              </label>
+              <div className="mx-auto mt-3 flex h-12 max-w-[220px] items-center border border-black/20 bg-white px-4">
+                <input
+                  id="comic-contribution"
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={amount}
+                  onChange={(event) => {
+                    setAmount(event.target.value.replace(/[^0-9.,]/g, ''));
+                    setError('');
+                  }}
+                  placeholder="0,00"
+                  aria-label="Cantidad en euros"
+                  className="min-w-0 flex-1 bg-transparent text-right text-xl font-semibold outline-none"
+                />
+                <span className="ml-2 text-lg font-semibold text-black/55">€</span>
+              </div>
 
-            <div className="mt-4">
-              <div ref={paypalContainer} className="min-h-10" />
-              {!ready && !error && (
-                <p className="text-xs text-black/45">Cargando PayPal…</p>
-              )}
-              {ready && !payableAmount && !error && (
-                <p className="text-xs leading-5 text-black/45">
-                  Introduce una cantidad para continuar.
-                </p>
-              )}
-            </div>
-          </>
-        )}
+              <div className="mx-auto mt-5 max-w-md">
+                <div ref={paypalContainer} className="min-h-10" />
+                {!ready && !error && (
+                  <p className="text-sm text-black/45">Cargando PayPal…</p>
+                )}
+                {ready && !payableAmount && !error && (
+                  <p className="text-sm leading-5 text-black/45">
+                    Introduce una cantidad para continuar.
+                  </p>
+                )}
+              </div>
+            </>
+          )}
 
-        {error && <p className="mt-2 text-xs font-medium text-red-700">{error}</p>}
+          {error && <p className="mt-3 text-sm font-medium text-red-700">{error}</p>}
+        </div>
       </div>
     </section>
   );
