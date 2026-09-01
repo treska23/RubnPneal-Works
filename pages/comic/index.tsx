@@ -69,11 +69,11 @@ export default function ComicPage() {
             </div>
           </div>
 
-          <div className="grid items-stretch gap-8 lg:grid-cols-2 lg:gap-10">
-            <div className="flex min-w-0 items-center justify-center">
+          <div className="grid items-stretch gap-6 lg:grid-cols-2 lg:gap-8">
+            <div className="flex min-w-0 items-stretch justify-center">
               <ComicReader />
             </div>
-            <div className="flex min-w-0 items-center justify-center border-t border-black/15 pt-8 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+            <div className="flex min-w-0 items-stretch">
               <ComicPurchase />
             </div>
           </div>
