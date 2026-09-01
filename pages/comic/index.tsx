@@ -1,6 +1,7 @@
 import dynamic from 'next/dynamic';
 import SectionLayout from '@components/SectionLayout';
 import Seo from '@components/Seo';
+import ComicPurchase from '@components/ui/ComicPurchase';
 import { absoluteUrl, breadcrumbStructuredData, SITE_ORIGIN } from '@/lib/seo';
 
 const ComicReader = dynamic(() => import('@components/ui/ComicReader'), {
@@ -67,7 +68,10 @@ export default function ComicPage() {
               </div>
             </div>
           </div>
-          <div className="flex justify-center">
+
+          <ComicPurchase />
+
+          <div className="mt-12 flex justify-center">
             <ComicReader />
           </div>
         </SectionLayout>
