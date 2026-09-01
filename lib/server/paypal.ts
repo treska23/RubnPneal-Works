@@ -43,8 +43,11 @@ async function readPayPalError(response: Response) {
 async function getPayPalAccessToken() {
   const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = getComicRuntimeEnv();
 
-  if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
-    throw new Error('PAYPAL_CONFIG_MISSING');
+  if (!PAYPAL_CLIENT_ID) {
+    throw new Error('PAYPAL_CLIENT_ID_MISSING');
+  }
+  if (!PAYPAL_CLIENT_SECRET) {
+    throw new Error('PAYPAL_CLIENT_SECRET_MISSING');
   }
 
   const auth = btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`);
