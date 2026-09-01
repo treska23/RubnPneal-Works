@@ -23,14 +23,14 @@ function decodeBase64Url(value: string) {
 }
 
 async function getSigningKey() {
-  const { COMIC_ACCESS_SECRET } = getComicRuntimeEnv();
-  if (!COMIC_ACCESS_SECRET) {
-    throw new Error('COMIC_ACCESS_SECRET is not configured.');
+  const { COMIC_ACCESS_SIGNING_SECRET } = getComicRuntimeEnv();
+  if (!COMIC_ACCESS_SIGNING_SECRET) {
+    throw new Error('COMIC_ACCESS_SIGNING_SECRET is not configured.');
   }
 
   return crypto.subtle.importKey(
     'raw',
-    new TextEncoder().encode(COMIC_ACCESS_SECRET),
+    new TextEncoder().encode(COMIC_ACCESS_SIGNING_SECRET),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign', 'verify'],
