@@ -31,9 +31,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Could not create PayPal order', error);
     const message = error instanceof Error ? error.message : '';
 
-    if (message.includes('PAYPAL_CONFIG_MISSING')) {
+    if (message.includes('PAYPAL_CLIENT_ID_MISSING')) {
       return res.status(503).json({
-        error: 'Falta la configuración de PayPal en Cloudflare.',
+        error: 'El Worker no está recibiendo el Client ID de PayPal.',
+      });
+    }
+
+    if (message.includes('PAYPAL_CLIENT_SECRET_MISSING')) {
+      return res.status(503).json({
+        error: 'El Worker no está recibiendo PAYPAL_CLIENT_SECRET de Cloudflare.',
       });
     }
 
