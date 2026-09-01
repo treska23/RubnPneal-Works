@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 declare global {
   interface Window {
@@ -7,6 +7,12 @@ declare global {
         createOrder: () => Promise<string>;
         onApprove: (data: { orderID: string }) => Promise<void>;
         onError?: (error: unknown) => void;
+        style?: {
+          layout?: 'vertical' | 'horizontal';
+          height?: number;
+          shape?: 'rect' | 'pill';
+          label?: 'paypal' | 'checkout' | 'buynow' | 'pay';
+        };
       }) => {
         render: (container: HTMLElement) => Promise<void>;
         close?: () => Promise<void>;
@@ -21,11 +27,23 @@ function getAccessUrl(token: string) {
   return `/api/comic/download?token=${encodeURIComponent(token)}`;
 }
 
+function normalizeAmount(value: string) {
+  const normalized = value.trim().replace(',', '.');
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return '';
+
+  const amount = Number(normalized);
+  if (!Number.isFinite(amount) || amount < 0.01 || amount > 9999.99) return '';
+
+  return amount.toFixed(2);
+}
+
 export default function ComicPurchase() {
   const paypalContainer = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
   const [accessToken, setAccessToken] = useState('');
+  const [amount, setAmount] = useState('');
+  const payableAmount = useMemo(() => normalizeAmount(amount), [amount]);
 
   useEffect(() => {
     const storedToken = window.localStorage.getItem(STORAGE_KEY);
@@ -78,13 +96,25 @@ export default function ComicPurchase() {
   }, []);
 
   useEffect(() => {
-    if (!ready || !paypalContainer.current || !window.paypal) return;
-
+    if (!paypalContainer.current) return;
     paypalContainer.current.innerHTML = '';
+
+    if (!ready || !window.paypal || !payableAmount || accessToken) return;
+
     const buttons = window.paypal.Buttons({
+      style: {
+        layout: 'vertical',
+        height: 35,
+        shape: 'rect',
+        label: 'paypal',
+      },
       createOrder: async () => {
         setError('');
-        const response = await fetch('/api/comic/create-order', { method: 'POST' });
+        const response = await fetch('/api/comic/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: payableAmount }),
+        });
         const data = (await response.json()) as { id?: string; error?: string };
         if (!response.ok || !data.id) {
           throw new Error(data.error || 'No se pudo crear el pedido.');
@@ -119,52 +149,76 @@ export default function ComicPurchase() {
     return () => {
       buttons.close?.().catch(() => undefined);
     };
-  }, [ready]);
+  }, [accessToken, payableAmount, ready]);
 
   return (
-    <section className="mt-10 flex justify-end border-t border-black/15 pt-7 sm:mt-12 sm:pt-8">
-      <div className="w-full max-w-md text-center">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-black/45">
-          Edición digital HD
-        </p>
-        <h2 className="mt-2 text-xl font-semibold tracking-[-0.025em] sm:text-2xl">
-          Consigue el cómic completo
-        </h2>
-        <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-black/55">
-          PDF de alta calidad. Pago único de 4 € con PayPal.
-        </p>
+    <section className="w-full max-w-[260px] text-center">
+      <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/45">
+        Edición digital HD
+      </p>
+      <h2 className="mt-1.5 text-lg font-semibold tracking-[-0.025em]">
+        Consigue el cómic completo
+      </h2>
+      <p className="mx-auto mt-1.5 text-xs leading-5 text-black/55">
+        Aporta lo que quieras y accede al PDF en alta calidad.
+      </p>
 
-        <div className="mx-auto mt-5 max-w-sm border border-black/15 bg-white/55 p-4">
-          <div className="mb-4 flex items-end justify-between gap-4 border-b border-black/10 pb-3 text-left">
-            <span className="text-xs font-medium text-black/55">PDF HD</span>
-            <span className="text-2xl font-semibold tracking-[-0.04em]">4 €</span>
+      <div className="mt-4 border border-black/15 bg-white/55 p-3.5">
+        {accessToken ? (
+          <div>
+            <p className="mb-3 text-xs leading-5 text-black/60">
+              Pago confirmado. El PDF HD está desbloqueado en este navegador.
+            </p>
+            <a
+              href={getAccessUrl(accessToken)}
+              target="_blank"
+              rel="noreferrer"
+              className="flex min-h-10 w-full items-center justify-center bg-black px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80"
+            >
+              Abrir PDF HD
+            </a>
           </div>
-
-          {accessToken ? (
-            <div>
-              <p className="mb-3 text-sm leading-6 text-black/60">
-                Pago confirmado. Tu acceso HD está desbloqueado en este navegador.
-              </p>
-              <a
-                href={getAccessUrl(accessToken)}
-                target="_blank"
-                rel="noreferrer"
-                className="flex min-h-11 w-full items-center justify-center bg-black px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80"
-              >
-                Abrir PDF HD
-              </a>
+        ) : (
+          <>
+            <label
+              htmlFor="comic-contribution"
+              className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-black/50"
+            >
+              Tú decides el precio
+            </label>
+            <div className="mx-auto mt-2 flex h-10 max-w-[150px] items-center border border-black/20 bg-white px-3">
+              <input
+                id="comic-contribution"
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                value={amount}
+                onChange={(event) => {
+                  setAmount(event.target.value.replace(/[^0-9.,]/g, ''));
+                  setError('');
+                }}
+                placeholder="0,00"
+                aria-label="Cantidad en euros"
+                className="min-w-0 flex-1 bg-transparent text-right text-base font-semibold outline-none"
+              />
+              <span className="ml-1.5 text-sm font-semibold text-black/55">€</span>
             </div>
-          ) : (
-            <>
-              <div ref={paypalContainer} className="min-h-11" />
-              {!ready && !error && (
-                <p className="text-xs text-black/50">Cargando PayPal…</p>
-              )}
-            </>
-          )}
 
-          {error && <p className="mt-3 text-xs font-medium text-red-700">{error}</p>}
-        </div>
+            <div className="mt-3">
+              <div ref={paypalContainer} className="min-h-9" />
+              {!ready && !error && (
+                <p className="text-[11px] text-black/45">Cargando PayPal…</p>
+              )}
+              {ready && !payableAmount && !error && (
+                <p className="text-[11px] leading-4 text-black/45">
+                  Introduce una cantidad para continuar.
+                </p>
+              )}
+            </div>
+          </>
+        )}
+
+        {error && <p className="mt-2 text-[11px] font-medium text-red-700">{error}</p>}
       </div>
     </section>
   );
