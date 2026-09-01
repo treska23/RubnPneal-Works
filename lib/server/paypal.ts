@@ -23,11 +23,28 @@ function normalizeContribution(rawAmount: string) {
   return amount.toFixed(2);
 }
 
+type PayPalErrorResponse = {
+  name?: string;
+  error?: string;
+  error_description?: string;
+  message?: string;
+  debug_id?: string;
+  details?: Array<{ issue?: string; description?: string; field?: string }>;
+};
+
+async function readPayPalError(response: Response) {
+  try {
+    return (await response.json()) as PayPalErrorResponse;
+  } catch {
+    return {} as PayPalErrorResponse;
+  }
+}
+
 async function getPayPalAccessToken() {
   const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = getComicRuntimeEnv();
 
   if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
-    throw new Error('PayPal credentials are not configured.');
+    throw new Error('PAYPAL_CONFIG_MISSING');
   }
 
   const auth = btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`);
@@ -36,17 +53,25 @@ async function getPayPalAccessToken() {
     headers: {
       Authorization: `Basic ${auth}`,
       'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
     },
     body: 'grant_type=client_credentials',
   });
 
   if (!response.ok) {
-    throw new Error(`PayPal authentication failed (${response.status}).`);
+    const error = await readPayPalError(response);
+    console.error('PayPal OAuth failed', {
+      status: response.status,
+      name: error.name || error.error,
+      message: error.message || error.error_description,
+      debugId: error.debug_id,
+    });
+    throw new Error(`PAYPAL_AUTH_FAILED:${response.status}`);
   }
 
   const data = (await response.json()) as { access_token?: string };
   if (!data.access_token) {
-    throw new Error('PayPal did not return an access token.');
+    throw new Error('PAYPAL_AUTH_NO_TOKEN');
   }
 
   return data.access_token;
@@ -70,21 +95,12 @@ export async function createComicOrder(
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Prefer: 'return=representation',
       'PayPal-Request-Id': crypto.randomUUID(),
     },
     body: JSON.stringify({
       intent: 'CAPTURE',
-      payment_source: {
-        paypal: {
-          experience_context: {
-            payment_method_preference: 'IMMEDIATE_PAYMENT_REQUIRED',
-            shipping_preference: 'NO_SHIPPING',
-            user_action: 'PAY_NOW',
-            return_url: returnUrl,
-            cancel_url: cancelUrl,
-          },
-        },
-      },
       purchase_units: [
         {
           description: 'Cuando los Árboles Dejaron de Hablar — PDF HD',
@@ -95,12 +111,34 @@ export async function createComicOrder(
           },
         },
       ],
+      payment_source: {
+        paypal: {
+          experience_context: {
+            shipping_preference: 'NO_SHIPPING',
+            user_action: 'PAY_NOW',
+            return_url: returnUrl,
+            cancel_url: cancelUrl,
+          },
+        },
+      },
     }),
   });
 
+  if (!response.ok) {
+    const error = await readPayPalError(response);
+    console.error('PayPal create order failed', {
+      status: response.status,
+      name: error.name,
+      message: error.message,
+      debugId: error.debug_id,
+      details: error.details,
+    });
+    throw new Error(`PAYPAL_ORDER_FAILED:${response.status}:${error.name || 'UNKNOWN'}`);
+  }
+
   const data = (await response.json()) as CreateOrderResponse;
-  if (!response.ok || !data.id) {
-    throw new Error(data.message || `Could not create PayPal order (${response.status}).`);
+  if (!data.id) {
+    throw new Error('PAYPAL_ORDER_NO_ID');
   }
 
   const approveUrl = data.links?.find(
@@ -108,7 +146,7 @@ export async function createComicOrder(
   )?.href;
 
   if (!approveUrl) {
-    throw new Error('PayPal did not return an approval URL.');
+    throw new Error('PAYPAL_ORDER_NO_APPROVAL_URL');
   }
 
   return { id: data.id, approveUrl };
@@ -138,17 +176,27 @@ export async function captureComicOrder(orderId: string) {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Prefer: 'return=representation',
         'PayPal-Request-Id': crypto.randomUUID(),
       },
       body: '{}',
     },
   );
 
-  const data = (await response.json()) as CaptureResponse & { message?: string };
   if (!response.ok) {
-    throw new Error(data.message || `Could not capture PayPal order (${response.status}).`);
+    const error = await readPayPalError(response);
+    console.error('PayPal capture failed', {
+      status: response.status,
+      name: error.name,
+      message: error.message,
+      debugId: error.debug_id,
+      details: error.details,
+    });
+    throw new Error(`PAYPAL_CAPTURE_FAILED:${response.status}:${error.name || 'UNKNOWN'}`);
   }
 
+  const data = (await response.json()) as CaptureResponse;
   const purchaseUnit = data.purchase_units?.[0];
   const capture = purchaseUnit?.payments?.captures?.[0];
   const capturedAmount = Number(capture?.amount?.value);
@@ -162,7 +210,7 @@ export async function captureComicOrder(orderId: string) {
     capturedAmount <= MAX_CONTRIBUTION;
 
   if (!validPayment) {
-    throw new Error('PayPal payment was not completed correctly.');
+    throw new Error('PAYPAL_CAPTURE_INVALID');
   }
 
   return {
