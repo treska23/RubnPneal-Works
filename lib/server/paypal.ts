@@ -1,8 +1,27 @@
 import { getComicRuntimeEnv } from './cloudflare';
 
 const PAYPAL_API_BASE = 'https://api-m.paypal.com';
-const COMIC_PRICE = '4.00';
 const COMIC_CURRENCY = 'EUR';
+const MIN_CONTRIBUTION = 0.01;
+const MAX_CONTRIBUTION = 9999.99;
+
+function normalizeContribution(rawAmount: string) {
+  const normalized = rawAmount.trim().replace(',', '.');
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
+    throw new Error('Invalid contribution amount.');
+  }
+
+  const amount = Number(normalized);
+  if (
+    !Number.isFinite(amount) ||
+    amount < MIN_CONTRIBUTION ||
+    amount > MAX_CONTRIBUTION
+  ) {
+    throw new Error('Contribution amount is out of range.');
+  }
+
+  return amount.toFixed(2);
+}
 
 async function getPayPalAccessToken() {
   const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = getComicRuntimeEnv();
@@ -33,7 +52,8 @@ async function getPayPalAccessToken() {
   return data.access_token;
 }
 
-export async function createComicOrder() {
+export async function createComicOrder(rawAmount: string) {
+  const amount = normalizeContribution(rawAmount);
   const accessToken = await getPayPalAccessToken();
   const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
     method: 'POST',
@@ -50,7 +70,7 @@ export async function createComicOrder() {
           custom_id: 'comic-hd',
           amount: {
             currency_code: COMIC_CURRENCY,
-            value: COMIC_PRICE,
+            value: amount,
           },
         },
       ],
@@ -69,6 +89,7 @@ type CaptureResponse = {
   id?: string;
   status?: string;
   purchase_units?: Array<{
+    custom_id?: string;
     payments?: {
       captures?: Array<{
         id?: string;
@@ -99,15 +120,20 @@ export async function captureComicOrder(orderId: string) {
     throw new Error(data.message || `Could not capture PayPal order (${response.status}).`);
   }
 
-  const capture = data.purchase_units?.[0]?.payments?.captures?.[0];
+  const purchaseUnit = data.purchase_units?.[0];
+  const capture = purchaseUnit?.payments?.captures?.[0];
+  const capturedAmount = Number(capture?.amount?.value);
   const validPayment =
     data.status === 'COMPLETED' &&
+    purchaseUnit?.custom_id === 'comic-hd' &&
     capture?.status === 'COMPLETED' &&
     capture.amount?.currency_code === COMIC_CURRENCY &&
-    capture.amount?.value === COMIC_PRICE;
+    Number.isFinite(capturedAmount) &&
+    capturedAmount >= MIN_CONTRIBUTION &&
+    capturedAmount <= MAX_CONTRIBUTION;
 
   if (!validPayment) {
-    throw new Error('PayPal payment was not completed for the expected amount.');
+    throw new Error('PayPal payment was not completed correctly.');
   }
 
   return {
