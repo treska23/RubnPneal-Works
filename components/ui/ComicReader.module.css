@@ -1,9 +1,10 @@
 .stage {
-  --reader-width: min(92vw, 420px, calc((100dvh - 9rem) * 0.729));
+  --reader-width: min(100%, 390px, calc((100dvh - 9rem) * 0.729));
   position: relative;
   isolation: isolate;
   display: grid;
-  width: min(100%, 68rem);
+  width: 100%;
+  max-width: 42rem;
   margin-inline: auto;
   overflow: hidden;
   border-block: 1px solid rgb(18 17 15 / 15%);
@@ -18,7 +19,7 @@
     ),
     linear-gradient(135deg, rgb(255 255 255 / 45%), transparent 44%),
     #e8e3d8;
-  padding: clamp(2.5rem, 7vw, 6rem) clamp(1rem, 8vw, 7rem);
+  padding: clamp(2rem, 5vw, 4rem) clamp(0.75rem, 5vw, 3rem);
   place-items: center;
 }
 
@@ -57,6 +58,7 @@
   position: relative;
   z-index: 1;
   width: var(--reader-width);
+  max-width: 100%;
   overflow: hidden;
   border: 1px solid rgb(0 0 0 / 18%);
   border-radius: 0.875rem;
@@ -195,7 +197,9 @@
 
 @media (max-width: 640px) {
   .stage {
+    --reader-width: min(100%, calc(100vw - 3rem), 390px, calc((100dvh - 9rem) * 0.729));
     width: 100%;
+    max-width: 100%;
     padding: 2rem 0.75rem;
   }
 
