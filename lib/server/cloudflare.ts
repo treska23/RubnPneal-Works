@@ -1,5 +1,8 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
+const PAYPAL_LIVE_CLIENT_ID =
+  'BAAErLc0pF58iECj0-n9324fHyO8JD0u-XTkw6yw6gSwCjoFblyUEIOAI2mncaZlx8vir30tT3TgTgR40E';
+
 type R2ObjectLike = {
   body: ReadableStream<Uint8Array>;
   size: number;
@@ -28,7 +31,8 @@ export function getComicRuntimeEnv(): ComicRuntimeEnv {
 
   return {
     ...runtimeEnv,
-    PAYPAL_CLIENT_ID: runtimeEnv.PAYPAL_CLIENT_ID || process.env.PAYPAL_CLIENT_ID,
+    PAYPAL_CLIENT_ID:
+      runtimeEnv.PAYPAL_CLIENT_ID || process.env.PAYPAL_CLIENT_ID || PAYPAL_LIVE_CLIENT_ID,
     PAYPAL_CLIENT_SECRET:
       runtimeEnv.PAYPAL_CLIENT_SECRET || process.env.PAYPAL_CLIENT_SECRET,
     COMIC_ACCESS_SIGNING_SECRET:
