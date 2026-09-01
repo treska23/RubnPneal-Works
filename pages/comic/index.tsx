@@ -69,11 +69,11 @@ export default function ComicPage() {
             </div>
           </div>
 
-          <ComicPurchase />
-
-          <div className="mt-12 flex justify-center">
+          <div className="flex justify-center">
             <ComicReader />
           </div>
+
+          <ComicPurchase />
         </SectionLayout>
       </div>
     </>
