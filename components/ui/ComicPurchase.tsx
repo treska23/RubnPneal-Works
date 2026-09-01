@@ -61,7 +61,9 @@ export default function ComicPurchase() {
         if (!cancelled) setAccessToken(data.token);
       } catch (err) {
         console.error('PayPal capture error', err);
-        if (!cancelled) setError('El pago no pudo confirmarse. Inténtalo de nuevo.');
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'El pago no pudo confirmarse.');
+        }
       } finally {
         if (!cancelled) setProcessing(false);
         window.history.replaceState({}, '', '/comic');
@@ -99,7 +101,7 @@ export default function ComicPurchase() {
       window.location.assign(data.approveUrl);
     } catch (err) {
       console.error('PayPal checkout error', err);
-      setError('No se pudo iniciar el pago con PayPal.');
+      setError(err instanceof Error ? err.message : 'No se pudo iniciar el pago con PayPal.');
       setProcessing(false);
     }
   }
