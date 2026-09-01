@@ -65,6 +65,10 @@ export default function ComicPurchase() {
               'script[data-comic-paypal="true"]',
             );
             if (existing) {
+              if (window.paypal) {
+                resolve();
+                return;
+              }
               existing.addEventListener('load', () => resolve(), { once: true });
               existing.addEventListener('error', () => reject(new Error('PayPal SDK error')), {
                 once: true,
@@ -104,7 +108,7 @@ export default function ComicPurchase() {
     const buttons = window.paypal.Buttons({
       style: {
         layout: 'vertical',
-        height: 35,
+        height: 38,
         shape: 'rect',
         label: 'paypal',
       },
@@ -152,28 +156,28 @@ export default function ComicPurchase() {
   }, [accessToken, payableAmount, ready]);
 
   return (
-    <section className="w-full max-w-[260px] text-center">
-      <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-black/45">
+    <section className="w-full max-w-[340px] text-center">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/45">
         Edición digital HD
       </p>
-      <h2 className="mt-1.5 text-lg font-semibold tracking-[-0.025em]">
+      <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">
         Consigue el cómic completo
       </h2>
-      <p className="mx-auto mt-1.5 text-xs leading-5 text-black/55">
-        Aporta lo que quieras y accede al PDF en alta calidad.
+      <p className="mx-auto mt-2 max-w-[290px] text-sm leading-6 text-black/55">
+        Tú eliges cuánto aportar. El pago desbloquea el PDF en alta calidad.
       </p>
 
-      <div className="mt-4 border border-black/15 bg-white/55 p-3.5">
+      <div className="mt-5 border border-black/15 bg-white/55 p-4">
         {accessToken ? (
           <div>
-            <p className="mb-3 text-xs leading-5 text-black/60">
+            <p className="mb-3 text-sm leading-6 text-black/60">
               Pago confirmado. El PDF HD está desbloqueado en este navegador.
             </p>
             <a
               href={getAccessUrl(accessToken)}
               target="_blank"
               rel="noreferrer"
-              className="flex min-h-10 w-full items-center justify-center bg-black px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80"
+              className="flex min-h-11 w-full items-center justify-center bg-black px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-80"
             >
               Abrir PDF HD
             </a>
@@ -186,7 +190,7 @@ export default function ComicPurchase() {
             >
               Tú decides el precio
             </label>
-            <div className="mx-auto mt-2 flex h-10 max-w-[150px] items-center border border-black/20 bg-white px-3">
+            <div className="mx-auto mt-2 flex h-11 max-w-[180px] items-center border border-black/20 bg-white px-3">
               <input
                 id="comic-contribution"
                 type="text"
@@ -199,18 +203,18 @@ export default function ComicPurchase() {
                 }}
                 placeholder="0,00"
                 aria-label="Cantidad en euros"
-                className="min-w-0 flex-1 bg-transparent text-right text-base font-semibold outline-none"
+                className="min-w-0 flex-1 bg-transparent text-right text-lg font-semibold outline-none"
               />
-              <span className="ml-1.5 text-sm font-semibold text-black/55">€</span>
+              <span className="ml-1.5 text-base font-semibold text-black/55">€</span>
             </div>
 
-            <div className="mt-3">
-              <div ref={paypalContainer} className="min-h-9" />
+            <div className="mt-4">
+              <div ref={paypalContainer} className="min-h-10" />
               {!ready && !error && (
-                <p className="text-[11px] text-black/45">Cargando PayPal…</p>
+                <p className="text-xs text-black/45">Cargando PayPal…</p>
               )}
               {ready && !payableAmount && !error && (
-                <p className="text-[11px] leading-4 text-black/45">
+                <p className="text-xs leading-5 text-black/45">
                   Introduce una cantidad para continuar.
                 </p>
               )}
@@ -218,7 +222,7 @@ export default function ComicPurchase() {
           </>
         )}
 
-        {error && <p className="mt-2 text-[11px] font-medium text-red-700">{error}</p>}
+        {error && <p className="mt-2 text-xs font-medium text-red-700">{error}</p>}
       </div>
     </section>
   );
