@@ -31,8 +31,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Could not create PayPal order', error);
     const message = error instanceof Error ? error.message : '';
 
-    if (message.includes('credentials are not configured')) {
-      return res.status(503).json({ error: 'PayPal no está configurado en el servidor.' });
+    if (message.includes('PAYPAL_CONFIG_MISSING')) {
+      return res.status(503).json({
+        error: 'Falta la configuración de PayPal en Cloudflare.',
+      });
+    }
+
+    if (message.includes('PAYPAL_AUTH_FAILED') || message.includes('PAYPAL_AUTH_NO_TOKEN')) {
+      return res.status(502).json({
+        error: 'PayPal ha rechazado las credenciales Live. Revisa Client ID y Secret.',
+      });
+    }
+
+    if (message.includes('PAYPAL_ORDER_FAILED:400')) {
+      return res.status(502).json({
+        error: 'PayPal ha rechazado los datos del pedido.',
+      });
+    }
+
+    if (message.includes('PAYPAL_ORDER_FAILED:403')) {
+      return res.status(502).json({
+        error: 'La cuenta de PayPal no tiene permiso para crear pagos Live.',
+      });
+    }
+
+    if (message.includes('PAYPAL_ORDER_FAILED:422')) {
+      return res.status(502).json({
+        error: 'PayPal no permite este pago con la configuración actual de la cuenta.',
+      });
     }
 
     if (message.includes('Invalid contribution') || message.includes('out of range')) {
