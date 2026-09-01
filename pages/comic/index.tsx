@@ -69,11 +69,18 @@ export default function ComicPage() {
             </div>
           </div>
 
-          <div className="grid items-stretch gap-6 lg:grid-cols-2 lg:gap-8">
-            <div className="flex min-w-0 items-stretch justify-center">
+          <a
+            href="#comic-purchase"
+            className="mx-auto mb-6 block w-fit text-center text-sm font-semibold underline decoration-1 underline-offset-4 lg:hidden"
+          >
+            Para comprar el cómic, ve abajo.
+          </a>
+
+          <div className="grid items-stretch justify-items-center gap-6 lg:grid-cols-2 lg:justify-items-stretch lg:gap-8">
+            <div className="flex w-full min-w-0 items-stretch justify-center">
               <ComicReader />
             </div>
-            <div className="flex min-w-0 items-stretch">
+            <div className="flex w-full min-w-0 items-stretch">
               <ComicPurchase />
             </div>
           </div>
