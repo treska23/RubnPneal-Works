@@ -52,7 +52,17 @@ async function getPayPalAccessToken() {
   return data.access_token;
 }
 
-export async function createComicOrder(rawAmount: string) {
+type CreateOrderResponse = {
+  id?: string;
+  message?: string;
+  links?: Array<{ href?: string; rel?: string }>;
+};
+
+export async function createComicOrder(
+  rawAmount: string,
+  returnUrl: string,
+  cancelUrl: string,
+) {
   const amount = normalizeContribution(rawAmount);
   const accessToken = await getPayPalAccessToken();
   const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
@@ -64,6 +74,17 @@ export async function createComicOrder(rawAmount: string) {
     },
     body: JSON.stringify({
       intent: 'CAPTURE',
+      payment_source: {
+        paypal: {
+          experience_context: {
+            payment_method_preference: 'IMMEDIATE_PAYMENT_REQUIRED',
+            shipping_preference: 'NO_SHIPPING',
+            user_action: 'PAY_NOW',
+            return_url: returnUrl,
+            cancel_url: cancelUrl,
+          },
+        },
+      },
       purchase_units: [
         {
           description: 'Cuando los Árboles Dejaron de Hablar — PDF HD',
@@ -77,12 +98,20 @@ export async function createComicOrder(rawAmount: string) {
     }),
   });
 
-  const data = (await response.json()) as { id?: string; message?: string };
+  const data = (await response.json()) as CreateOrderResponse;
   if (!response.ok || !data.id) {
     throw new Error(data.message || `Could not create PayPal order (${response.status}).`);
   }
 
-  return data.id;
+  const approveUrl = data.links?.find(
+    (link) => link.rel === 'payer-action' || link.rel === 'approve',
+  )?.href;
+
+  if (!approveUrl) {
+    throw new Error('PayPal did not return an approval URL.');
+  }
+
+  return { id: data.id, approveUrl };
 }
 
 type CaptureResponse = {
