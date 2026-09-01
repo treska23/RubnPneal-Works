@@ -17,7 +17,10 @@ function getReferrerHost() {
   }
 }
 
-function trackPageView(path: string) {
+function trackPageView(url: string) {
+  const path = cleanPath(url);
+  if (path === '/analytics' || path.startsWith('/analytics/')) return;
+
   let newSession = false;
 
   try {
@@ -28,7 +31,7 @@ function trackPageView(path: string) {
   }
 
   const payload = JSON.stringify({
-    path: cleanPath(path),
+    path,
     newSession,
     referrerHost: getReferrerHost(),
     device: window.matchMedia('(max-width: 767px)').matches ? 'mobile' : 'desktop',
