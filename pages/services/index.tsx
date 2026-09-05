@@ -79,7 +79,7 @@ const structuredData = [
     url: absoluteUrl('/services'),
     name: 'Servicios creativos y desarrollo de software | RubnPneal',
     description:
-      'Servicios de desarrollo de software, música, mezcla, ilustración, vídeo y colaboración creativa de Rubén Pneal.',
+      'Servicios de desarrollo de software, música, mezcla, ilustración, vídeo y colaboración creativa de Rubn Pneal.',
     isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
     author: { '@id': `${SITE_ORIGIN}/#person` },
     inLanguage: 'es',
@@ -113,7 +113,7 @@ export default function ServicesPage() {
     <>
       <Seo
         title="Servicios creativos y desarrollo de software | RubnPneal"
-        description="Servicios de Rubén Pneal: desarrollo de software .NET, composición y producción musical, mezcla, ilustración, vídeo, lyric videos y colaboración vocal."
+        description="Servicios de Rubn Pneal: desarrollo de software .NET, composición y producción musical, mezcla, ilustración, vídeo, lyric videos y colaboración vocal."
         path="/services"
         structuredData={structuredData}
       />

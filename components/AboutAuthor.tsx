@@ -7,7 +7,7 @@ export default function AboutAuthor() {
       <div className="relative aspect-[4/5] overflow-hidden bg-black/5">
         <Image
           src="/ruben-pneal-autor.webp"
-          alt="Retrato de Rubén Pneal, desarrollador de software y artista"
+          alt="Retrato de Rubn Pneal, desarrollador de software y artista"
           fill
           sizes="(max-width: 1024px) 100vw, 40vw"
           className="object-cover grayscale"
@@ -22,10 +22,10 @@ export default function AboutAuthor() {
         </h2>
         <div className="mt-8 max-w-2xl space-y-5 text-base leading-7 text-black/65 sm:text-lg">
           <p>
-            Soy desarrollador de software y también trabajo como compositor,
-            productor musical, ilustrador, diseñador y creador audiovisual. Este
-            portfolio reúne esas disciplinas sin convertirlas en compartimentos
-            separados.
+            Soy Rubn Pneal, desarrollador de software, y también trabajo como
+            compositor, productor musical, ilustrador, diseñador y creador
+            audiovisual. Este portfolio reúne esas disciplinas sin convertirlas
+            en compartimentos separados.
           </p>
           <p>
             Me interesan especialmente las herramientas de escritorio, la

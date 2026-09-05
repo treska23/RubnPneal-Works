@@ -10,7 +10,7 @@ const structuredData = [
     url: absoluteUrl('/music'),
     name: 'Música original, composición y producción | RubnPneal',
     description:
-      'Canciones, composición y producción musical de Rubén Pneal publicadas en Spotify y YouTube.',
+      'Canciones, composición y producción musical de Rubn Pneal publicadas en Spotify y YouTube.',
     isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
     author: { '@id': `${SITE_ORIGIN}/#person` },
     inLanguage: 'es',
@@ -26,7 +26,7 @@ export default function MusicIndex() {
     <>
       <Seo
         title="Música original, composición y producción | RubnPneal"
-        description="Escucha la música original de Rubén Pneal: canciones, composición y producción publicadas en Spotify, además de vídeos musicales en YouTube."
+        description="Escucha la música original de Rubn Pneal: canciones, composición y producción publicadas en Spotify, además de vídeos musicales en YouTube."
         path="/music"
         structuredData={structuredData}
       />

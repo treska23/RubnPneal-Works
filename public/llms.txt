@@ -1,6 +1,6 @@
-# RubnPneal Works
+# Rubn Pneal
 
-Portfolio oficial de Rubén Pneal (RubnPneal), desarrollador de software y artista multidisciplinar. El sitio está escrito en español y reúne proyectos de programación, música, ilustración, vídeo y cómic.
+Portfolio oficial de Rubn Pneal (RubnPneal), desarrollador de software y artista multidisciplinar. El sitio está escrito en español y reúne proyectos de programación, música, ilustración, vídeo y cómic.
 
 ## Secciones principales
 

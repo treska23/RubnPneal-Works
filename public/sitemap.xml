@@ -12,7 +12,7 @@
     </image:image>
     <image:image>
       <image:loc>https://rubnpneal-works.treska23.workers.dev/ruben-pneal-autor.webp</image:loc>
-      <image:title>Rubén Pneal, desarrollador de software y artista</image:title>
+      <image:title>Rubn Pneal, desarrollador de software y artista</image:title>
     </image:image>
   </url>
   <url>
@@ -23,23 +23,23 @@
   </url>
   <url>
     <loc>https://rubnpneal-works.treska23.workers.dev/music</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <image:image>
       <image:loc>https://rubnpneal-works.treska23.workers.dev/hero/rubnpneal-musica-produccion.webp</image:loc>
-      <image:title>Música y producción de Rubén Pneal</image:title>
+      <image:title>Música y producción de Rubn Pneal</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://rubnpneal-works.treska23.workers.dev/music/spotify</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://rubnpneal-works.treska23.workers.dev/music/youtube</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -55,7 +55,7 @@
   </url>
   <url>
     <loc>https://rubnpneal-works.treska23.workers.dev/kid-d</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
@@ -65,7 +65,7 @@
   </url>
   <url>
     <loc>https://rubnpneal-works.treska23.workers.dev/services</loc>
-    <lastmod>2026-09-01</lastmod>
+    <lastmod>2026-09-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

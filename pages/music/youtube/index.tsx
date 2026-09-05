@@ -38,7 +38,7 @@ export default function YouTubeMusicPage({
     .map((video) => ({
       '@type': 'VideoObject',
       name: video.title,
-      description: `${video.title}, vídeo musical publicado por Rubén Pneal en YouTube.`,
+      description: `${video.title}, vídeo musical publicado por Rubn Pneal en YouTube.`,
       thumbnailUrl: `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`,
       uploadDate: video.publishedAt,
       embedUrl: `https://www.youtube.com/embed/${video.id}`,
@@ -52,7 +52,7 @@ export default function YouTubeMusicPage({
       url: absoluteUrl('/music/youtube'),
       name: 'Vídeos musicales de RubnPneal en YouTube',
       description:
-        'Vídeos musicales, canciones y piezas audiovisuales de Rubén Pneal.',
+        'Vídeos musicales, canciones y piezas audiovisuales de Rubn Pneal.',
       isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
       author: { '@id': `${SITE_ORIGIN}/#person` },
       inLanguage: 'es',
@@ -70,7 +70,7 @@ export default function YouTubeMusicPage({
     <>
       <Seo
         title="Vídeos musicales de RubnPneal en YouTube"
-        description="Descubre los vídeos musicales, canciones y piezas audiovisuales de Rubén Pneal, con las últimas publicaciones de su canal de YouTube."
+        description="Descubre los vídeos musicales, canciones y piezas audiovisuales de Rubn Pneal, con las últimas publicaciones de su canal de YouTube."
         path="/music/youtube"
         structuredData={structuredData}
       />

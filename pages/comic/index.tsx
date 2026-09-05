@@ -37,7 +37,7 @@ export default function ComicPage() {
     <>
       <Seo
         title="Cuando los Árboles Dejaron de Hablar: cómic gratis online"
-        description="Lee completo el cómic de Rubén Pneal, Cuando los Árboles Dejaron de Hablar. Consigue el PDF en HD aportando la cantidad que quieras mediante PayPal."
+        description="Lee completo el cómic de Rubn Pneal, Cuando los Árboles Dejaron de Hablar. Consigue el PDF en HD aportando la cantidad que quieras mediante PayPal."
         path="/comic"
         type="article"
         structuredData={structuredData}
@@ -55,7 +55,7 @@ export default function ComicPage() {
                 brutal contra los llamados «vampiros emocionales».
               </p>
               <p className="mt-5 text-base leading-7 text-black/60">
-                Un cómic de Rubén Pneal. 105 páginas para leer completas en el
+                Un cómic de Rubn Pneal. 105 páginas para leer completas en el
                 navegador.
               </p>
             </div>

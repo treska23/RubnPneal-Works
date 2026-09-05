@@ -156,7 +156,7 @@ export default function KidDPage({ works }: { works: DeviantArtWork[] }) {
     <>
       <Seo
         title="Kid D | Ilustración, dibujo y arte en redes"
-        description="Descubre el portfolio visual de Kid D: dibujos, ilustración, procesos y últimas obras publicadas por Rubén Pneal en Instagram, TikTok y DeviantArt."
+        description="Descubre el portfolio visual de Kid D: dibujos, ilustración, procesos y últimas obras publicadas por Rubn Pneal en Instagram, TikTok y DeviantArt."
         path="/kid-d"
         structuredData={structuredData}
       />

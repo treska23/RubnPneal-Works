@@ -19,7 +19,7 @@ const structuredData = [
     url: absoluteUrl('/development'),
     name: 'Desarrollo de software .NET e IA local | RubnPneal',
     description:
-      'Proyectos de software para Windows, audio, automatización e inteligencia artificial local desarrollados por Rubén Pneal.',
+      'Proyectos de software para Windows, audio, automatización e inteligencia artificial local desarrollados por Rubn Pneal.',
     isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
     author: { '@id': `${SITE_ORIGIN}/#person` },
     inLanguage: 'es',
@@ -52,7 +52,7 @@ export default function DevelopmentPage() {
     <>
       <Seo
         title="Desarrollo de software .NET e IA local | RubnPneal"
-        description="Proyectos de Rubén Pneal en C#, .NET, WPF, audio, automatización e IA local: Tinta ES, Drum Practice Studio y ControlPCIA."
+        description="Proyectos de Rubn Pneal en C#, .NET, WPF, audio, automatización e IA local: Tinta ES, Drum Practice Studio y ControlPCIA."
         path="/development"
         structuredData={structuredData}
       />

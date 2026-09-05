@@ -51,7 +51,7 @@ export default function ProjectPage({ slug }: { slug: string }) {
             Ver código e instrucciones
           </a>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
-            Proyecto de Rubén Pneal. Las instrucciones de instalación y el
+            Proyecto de Rubn Pneal. Las instrucciones de instalación y el
             estado actual se mantienen en su repositorio.
           </p>
           <div className="mt-14 grid gap-8 border-t border-white/15 pt-10 lg:grid-cols-3">

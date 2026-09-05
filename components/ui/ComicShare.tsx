@@ -14,7 +14,7 @@ export default function ComicShare() {
       if (navigator.share) {
         await navigator.share({
           title: 'Cuando los Árboles Dejaron de Hablar',
-          text: 'Lee el cómic completo de Rubén Pneal en el navegador. La edición HD está disponible mediante una aportación voluntaria.',
+          text: 'Lee el cómic completo de Rubn Pneal en el navegador. La edición HD está disponible mediante una aportación voluntaria.',
           url: shareUrl,
         });
         return;

@@ -51,7 +51,7 @@ export default function SpotifyPage({ tracks }: { tracks: SpotifyTrack[] }) {
       url: absoluteUrl('/music/spotify'),
       name: 'Canciones de RubnPneal en Spotify | Discografía',
       description:
-        'Discografía y canciones publicadas por Rubén Pneal en Spotify.',
+        'Discografía y canciones publicadas por Rubn Pneal en Spotify.',
       isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
       author: { '@id': `${SITE_ORIGIN}/#person` },
       inLanguage: 'es',
@@ -82,7 +82,7 @@ export default function SpotifyPage({ tracks }: { tracks: SpotifyTrack[] }) {
     <>
       <Seo
         title="Canciones de RubnPneal en Spotify | Discografía"
-        description="Escucha la discografía de Rubén Pneal en Spotify: canciones originales, composición y producción musical reunidas en su perfil de artista."
+        description="Escucha la discografía de Rubn Pneal en Spotify: canciones originales, composición y producción musical reunidas en su perfil de artista."
         path="/music/spotify"
         structuredData={structuredData}
       />

@@ -3,22 +3,22 @@ import Link from 'next/link';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import AboutAuthor from '@components/AboutAuthor';
 import Seo from '@components/Seo';
-import { absoluteUrl, SITE_ORIGIN, SOCIAL_PROFILES } from '@/lib/seo';
+import { absoluteUrl, SITE_NAME, SITE_ORIGIN, SOCIAL_PROFILES } from '@/lib/seo';
 
 const structuredData = [
   {
     '@type': 'WebSite',
     '@id': `${SITE_ORIGIN}/#website`,
     url: `${SITE_ORIGIN}/`,
-    name: 'Rubén Pneal',
-    alternateName: ['RubnPneal Works', 'RubnPneal'],
+    name: SITE_NAME,
+    alternateName: ['RubnPneal', 'RubnPneal Works'],
     inLanguage: 'es',
     creator: { '@id': `${SITE_ORIGIN}/#person` },
   },
   {
     '@type': 'Person',
     '@id': `${SITE_ORIGIN}/#person`,
-    name: 'Rubén Pneal',
+    name: SITE_NAME,
     alternateName: ['RubnPneal', 'Kid D'],
     url: `${SITE_ORIGIN}/`,
     image: absoluteUrl('/ruben-pneal-autor.webp'),
@@ -37,7 +37,7 @@ const structuredData = [
     '@type': 'WebPage',
     '@id': `${SITE_ORIGIN}/#webpage`,
     url: `${SITE_ORIGIN}/`,
-    name: 'Rubén Pneal | Programador .NET, músico e ilustrador',
+    name: 'Rubn Pneal | Programador .NET, músico e ilustrador',
     isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
     about: { '@id': `${SITE_ORIGIN}/#person` },
     inLanguage: 'es',
@@ -93,8 +93,8 @@ export default function Home() {
   return (
     <>
       <Seo
-        title="Rubén Pneal | Programador .NET, músico e ilustrador"
-        description="Portfolio de Rubén Pneal: desarrollo de software .NET e IA local, música original, producción, ilustración, vídeo y el cómic Cuando los Árboles Dejaron de Hablar."
+        title="Rubn Pneal | Programador .NET, músico e ilustrador"
+        description="Portfolio de Rubn Pneal: desarrollo de software .NET e IA local, música original, producción, ilustración, vídeo y el cómic Cuando los Árboles Dejaron de Hablar."
         path="/"
         structuredData={structuredData}
       />
@@ -108,12 +108,12 @@ export default function Home() {
             </div>
 
             <div className="py-16 lg:py-20">
-              <p className="eyebrow text-white/45">Rubén Pneal</p>
-              <h1 className="mt-5 max-w-5xl text-[clamp(4rem,9vw,9rem)] font-semibold leading-[0.82] tracking-[-0.065em]">
+              <h1 className="eyebrow text-white/45">{SITE_NAME}</h1>
+              <p className="mt-5 max-w-5xl text-[clamp(4rem,9vw,9rem)] font-semibold leading-[0.82] tracking-[-0.065em]">
                 Software,
                 <br />
                 sonido e imagen.
-              </h1>
+              </p>
               <p className="mt-8 max-w-xl text-base leading-7 text-white/60 sm:text-lg">
                 Desarrollo de software y trabajo creativo reunidos en un mismo
                 portfolio: programación, música, ilustración y narrativa
@@ -143,7 +143,7 @@ export default function Home() {
           <div className="relative min-h-[55svh] overflow-hidden border-t border-white/10 lg:min-h-0 lg:border-l lg:border-t-0">
             <Image
               src="/hero/rubnpneal-portfolio-visual.webp"
-              alt="Trabajo visual del portfolio de Rubén Pneal"
+              alt="Trabajo visual del portfolio de Rubn Pneal"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 42vw"
