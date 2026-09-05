@@ -6,6 +6,11 @@
   "outputDirectory": "public",
   "redirects": [
     {
+      "source": "/",
+      "destination": "https://rubnpneal-works.treska23.workers.dev/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "destination": "https://rubnpneal-works.treska23.workers.dev/:path*",
       "permanent": true
