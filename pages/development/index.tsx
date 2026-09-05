@@ -1,34 +1,9 @@
 import { ArrowUpRight, Github } from 'lucide-react';
+import Link from 'next/link';
 import SectionLayout from '@components/SectionLayout';
 import Seo from '@components/Seo';
 import { absoluteUrl, breadcrumbStructuredData, SITE_ORIGIN } from '@/lib/seo';
-
-const projects = [
-  {
-    name: 'Tinta ES',
-    status: 'Aplicación local',
-    description:
-      'Aplicación WPF para traducir y rotular cómics en local: detección de texto, OCR, reconstrucción del dibujo, traducción contextual y composición dentro de la forma real de cada bocadillo.',
-    tags: ['C#', '.NET 10', 'WPF', 'Ollama', 'OCR', 'LaMa'],
-    href: 'https://github.com/treska23/TintaES',
-  },
-  {
-    name: 'Drum Practice Studio',
-    status: 'Audio desktop',
-    description:
-      'Entorno de práctica musical para Windows con MIDI, librerías, VST3, ASIO, playlists, mezcla, grabación, análisis de tempo y separación local de stems mediante Demucs.',
-    tags: ['.NET 10', 'NAudio', 'VST3', 'MIDI', 'ASIO', 'Demucs'],
-    href: 'https://github.com/treska23/Drumless',
-  },
-  {
-    name: 'ControlPCIA',
-    status: 'Windows + Android',
-    description:
-      'Sistema para controlar funciones concretas de un PC Windows desde el móvil: Wake-on-LAN, aplicaciones, ventanas, pantallas, multimedia, ratón y teclado remoto, con traducción local de órdenes mediante Ollama.',
-    tags: ['.NET 10', 'Win32', 'Android', 'PowerShell', 'Ollama', 'LAN'],
-    href: 'https://github.com/treska23/ControlPCIA',
-  },
-];
+import { projects } from '@/lib/projects';
 
 const capabilities = [
   ['Aplicaciones desktop', 'C# / .NET / WPF / MVVM'],
@@ -59,9 +34,8 @@ const structuredData = [
       item: {
         '@type': 'SoftwareApplication',
         name: project.name,
+        url: absoluteUrl(`/development/${project.slug}`),
         description: project.description,
-        applicationCategory: 'DeveloperApplication',
-        operatingSystem: 'Windows',
         codeRepository: project.href,
         author: { '@id': `${SITE_ORIGIN}/#person` },
       },
@@ -111,7 +85,12 @@ export default function DevelopmentPage() {
                 <div>
                   <p className="eyebrow text-white/45">{project.status}</p>
                   <h2 className="display-title mt-3 text-4xl text-white sm:text-5xl">
-                    {project.name}
+                    <Link
+                      href={`/development/${project.slug}`}
+                      className="hover:underline"
+                    >
+                      {project.name}
+                    </Link>
                   </h2>
                 </div>
                 <div>
@@ -129,14 +108,12 @@ export default function DevelopmentPage() {
                     ))}
                   </div>
                 </div>
-                <a
-                  href={project.href}
-                  target="_blank"
-                  rel="noreferrer"
+                <Link
+                  href={`/development/${project.slug}`}
                   className="inline-flex items-center gap-2 text-sm font-semibold text-white underline decoration-white/40 underline-offset-4 transition-colors hover:text-white/65"
                 >
-                  Código <ArrowUpRight className="h-4 w-4" />
-                </a>
+                  Ver proyecto <ArrowUpRight className="h-4 w-4" />
+                </Link>
               </article>
             ))}
           </div>

@@ -7,7 +7,8 @@
     "build": "next build",
     "build:cloudflare": "opennextjs-cloudflare build",
     "preview:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare deploy && npm run indexnow:submit",
+    "indexnow:submit": "node scripts/submit-indexnow.mjs",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "start": "next start",
     "lint": "next lint",
@@ -78,6 +79,6 @@
     "vitest": "^3.2.4",
     "vue": "^3.5.17",
     "webpack": "^5.99.9",
-    "wrangler": "^4.126.0"
+    "wrangler": "^4.127.1"
   }
 }

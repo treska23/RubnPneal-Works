@@ -1,0 +1,8 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "rubnpneal-works",
+  "account_id": "f6f9dc33309dead57d6f7946f3a2df94",
+  "main": "scripts/legacy-redirect.mjs",
+  "compatibility_date": "2026-08-26",
+  "keep_vars": true
+}

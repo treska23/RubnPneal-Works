@@ -51,7 +51,10 @@ export default function ComicPurchase() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderId }),
         });
-        const data = (await response.json()) as { token?: string; error?: string };
+        const data = (await response.json()) as {
+          token?: string;
+          error?: string;
+        };
 
         if (!response.ok || !data.token) {
           throw new Error(data.error || 'No se pudo confirmar el pago.');
@@ -62,7 +65,9 @@ export default function ComicPurchase() {
       } catch (err) {
         console.error('PayPal capture error', err);
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'El pago no pudo confirmarse.');
+          setError(
+            err instanceof Error ? err.message : 'El pago no pudo confirmarse.',
+          );
         }
       } finally {
         if (!cancelled) setProcessing(false);
@@ -92,7 +97,10 @@ export default function ComicPurchase() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: payableAmount }),
       });
-      const data = (await response.json()) as { approveUrl?: string; error?: string };
+      const data = (await response.json()) as {
+        approveUrl?: string;
+        error?: string;
+      };
 
       if (!response.ok || !data.approveUrl) {
         throw new Error(data.error || 'No se pudo iniciar el pago.');
@@ -101,7 +109,11 @@ export default function ComicPurchase() {
       window.location.assign(data.approveUrl);
     } catch (err) {
       console.error('PayPal checkout error', err);
-      setError(err instanceof Error ? err.message : 'No se pudo iniciar el pago con PayPal.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'No se pudo iniciar el pago con PayPal.',
+      );
       setProcessing(false);
     }
   }
@@ -119,15 +131,17 @@ export default function ComicPurchase() {
           Descarga el cómic en alta definición
         </h2>
         <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-black/60 sm:text-lg sm:leading-8">
-          El cómic completo ya está disponible para leer aquí. Si quieres el PDF con
-          mayor definición, aporta la cantidad que quieras y desbloquea la edición HD.
+          El cómic completo ya está disponible para leer aquí. Si quieres el PDF
+          con mayor definición, aporta la cantidad que quieras y desbloquea la
+          edición HD.
         </p>
 
         <div className="mt-9 w-full border border-black/15 bg-white/65 p-6 sm:p-8">
           {accessToken ? (
             <div>
               <p className="mb-5 text-base leading-7 text-black/60">
-                Pago confirmado. La edición HD está desbloqueada en este navegador.
+                Pago confirmado. La edición HD está desbloqueada en este
+                navegador.
               </p>
               <a
                 href={getAccessUrl(accessToken)}
@@ -161,7 +175,9 @@ export default function ComicPurchase() {
                   aria-label="Cantidad en euros"
                   className="min-w-0 flex-1 bg-transparent text-right text-2xl font-semibold outline-none"
                 />
-                <span className="ml-2 text-xl font-semibold text-black/55">€</span>
+                <span className="ml-2 text-xl font-semibold text-black/55">
+                  €
+                </span>
               </div>
 
               <button
@@ -175,13 +191,15 @@ export default function ComicPurchase() {
 
               {!payableAmount && !error && !processing && (
                 <p className="mt-3 text-sm text-black/45">
-                  Introduce una cantidad para continuar.
+                  Elige tu aportación en euros, desde 0,01 €.
                 </p>
               )}
             </>
           )}
 
-          {error && <p className="mt-4 text-sm font-medium text-red-700">{error}</p>}
+          {error && (
+            <p className="mt-4 text-sm font-medium text-red-700">{error}</p>
+          )}
         </div>
       </div>
     </section>

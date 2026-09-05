@@ -7,7 +7,7 @@
   "redirects": [
     {
       "source": "/:path*",
-      "destination": "https://rubnpneal-works.rubnpneal-works.workers.dev/:path*",
+      "destination": "https://rubnpneal-works.treska23.workers.dev/:path*",
       "permanent": true
     }
   ]

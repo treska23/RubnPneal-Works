@@ -4,14 +4,14 @@ Portfolio oficial de Rubén Pneal (RubnPneal), desarrollador de software y artis
 
 ## Secciones principales
 
-- [Inicio](https://rubnpneal-works.rubnpneal-works.workers.dev/): presentación y selección de trabajos.
-- [Programación](https://rubnpneal-works.rubnpneal-works.workers.dev/development): proyectos .NET, WPF, audio, automatización e IA local.
-- [Música](https://rubnpneal-works.rubnpneal-works.workers.dev/music): acceso a canciones y vídeos musicales.
-- [Spotify](https://rubnpneal-works.rubnpneal-works.workers.dev/music/spotify): discografía y perfil de artista.
-- [YouTube](https://rubnpneal-works.rubnpneal-works.workers.dev/music/youtube): vídeos musicales y últimas publicaciones.
-- [Cómic](https://rubnpneal-works.rubnpneal-works.workers.dev/comic): lector online de Cuando los Árboles Dejaron de Hablar.
-- [Kid D](https://rubnpneal-works.rubnpneal-works.workers.dev/kid-d): dibujo, ilustración y publicaciones visuales.
-- [Servicios](https://rubnpneal-works.rubnpneal-works.workers.dev/services): desarrollo, música, mezcla, ilustración, vídeo y colaboración vocal.
+- [Inicio](https://rubnpneal-works.treska23.workers.dev/): presentación y selección de trabajos.
+- [Programación](https://rubnpneal-works.treska23.workers.dev/development): proyectos .NET, WPF, audio, automatización e IA local.
+- [Música](https://rubnpneal-works.treska23.workers.dev/music): acceso a canciones y vídeos musicales.
+- [Spotify](https://rubnpneal-works.treska23.workers.dev/music/spotify): discografía y perfil de artista.
+- [YouTube](https://rubnpneal-works.treska23.workers.dev/music/youtube): vídeos musicales y últimas publicaciones.
+- [Cómic](https://rubnpneal-works.treska23.workers.dev/comic): lector online de Cuando los Árboles Dejaron de Hablar.
+- [Kid D](https://rubnpneal-works.treska23.workers.dev/kid-d): dibujo, ilustración y publicaciones visuales.
+- [Servicios](https://rubnpneal-works.treska23.workers.dev/services): desarrollo, música, mezcla, ilustración, vídeo y colaboración vocal.
 
 ## Perfiles oficiales
 

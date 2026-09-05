@@ -60,7 +60,8 @@ const selectedWork = [
   {
     number: '02',
     title: 'Cómic',
-    description: 'Narrativa gráfica, dibujo e ilustración de autor.',
+    description:
+      'Lee completo Cuando los Árboles Dejaron de Hablar gratis. PDF en HD con una aportación voluntaria por PayPal.',
     href: '/comic',
     image: '/hero/comic-cuando-los-arboles-dejaron-de-hablar.webp',
     imageClassName:
@@ -119,7 +120,10 @@ export default function Home() {
                 gráfica.
               </p>
               <div className="mt-10 flex flex-wrap gap-3">
-                <Link href="#trabajos" className="button-light">
+                <Link href="/comic" className="button-light">
+                  Leer mi cómic gratis <ArrowUpRight className="h-4 w-4" />
+                </Link>
+                <Link href="#trabajos" className="button-ghost-light">
                   Ver trabajos <ArrowDownRight className="h-4 w-4" />
                 </Link>
                 <Link href="/services" className="button-ghost-light">

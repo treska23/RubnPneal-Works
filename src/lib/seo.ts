@@ -1,5 +1,5 @@
 export const SITE_ORIGIN =
-  'https://rubnpneal-works.rubnpneal-works.workers.dev';
+  'https://rubnpneal-works.treska23.workers.dev';
 export const SITE_NAME = 'RubnPneal Works';
 export const DEFAULT_SOCIAL_IMAGE = '/og-rubnpneal-works.jpg';
 
