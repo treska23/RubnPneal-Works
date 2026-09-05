@@ -3,7 +3,12 @@ import Link from 'next/link';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import AboutAuthor from '@components/AboutAuthor';
 import Seo from '@components/Seo';
-import { absoluteUrl, SITE_NAME, SITE_ORIGIN, SOCIAL_PROFILES } from '@/lib/seo';
+import {
+  absoluteUrl,
+  SITE_NAME,
+  SITE_ORIGIN,
+  SOCIAL_PROFILES,
+} from '@/lib/seo';
 
 const structuredData = [
   {
@@ -28,7 +33,7 @@ const structuredData = [
       'Inteligencia artificial local',
       'Composición y producción musical',
       'Ilustración',
-      'Cómic',
+      'Novela gráfica',
       'Creación audiovisual',
     ],
     sameAs: [...SOCIAL_PROFILES],
@@ -59,9 +64,9 @@ const selectedWork = [
   },
   {
     number: '02',
-    title: 'Cómic',
+    title: 'Novela gráfica',
     description:
-      'Lee completo Cuando los Árboles Dejaron de Hablar gratis. PDF en HD con una aportación voluntaria por PayPal.',
+      'Lee completa Cuando los Árboles Dejaron de Hablar gratis. PDF en HD con una aportación voluntaria por PayPal.',
     href: '/comic',
     image: '/hero/comic-cuando-los-arboles-dejaron-de-hablar.webp',
     imageClassName:
@@ -94,7 +99,7 @@ export default function Home() {
     <>
       <Seo
         title="Rubn Pneal | Programador .NET, músico e ilustrador"
-        description="Portfolio de Rubn Pneal: desarrollo de software .NET e IA local, música original, producción, ilustración, vídeo y el cómic Cuando los Árboles Dejaron de Hablar."
+        description="Portfolio de Rubn Pneal: desarrollo de software .NET e IA local, música original, producción, ilustración, vídeo y la novela gráfica Cuando los Árboles Dejaron de Hablar."
         path="/"
         structuredData={structuredData}
       />
@@ -121,7 +126,8 @@ export default function Home() {
               </p>
               <div className="mt-10 flex flex-wrap gap-3">
                 <Link href="/comic" className="button-light">
-                  Leer mi cómic gratis <ArrowUpRight className="h-4 w-4" />
+                  Leer mi novela gráfica gratis{' '}
+                  <ArrowUpRight className="h-4 w-4" />
                 </Link>
                 <Link href="#trabajos" className="button-ghost-light">
                   Ver trabajos <ArrowDownRight className="h-4 w-4" />
@@ -135,7 +141,7 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-white/15 pt-5 text-[11px] uppercase tracking-[0.18em] text-white/45 sm:grid-cols-4">
               <span>Programación</span>
               <span>Música</span>
-              <span>Cómic</span>
+              <span>Novela gráfica</span>
               <span>Kid D</span>
             </div>
           </div>

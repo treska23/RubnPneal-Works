@@ -128,12 +128,12 @@ export default function ComicPurchase() {
           Edición en alta definición
         </p>
         <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
-          Descarga el cómic en alta definición
+          Descarga la novela gráfica en alta definición
         </h2>
         <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-black/60 sm:text-lg sm:leading-8">
-          El cómic completo ya está disponible para leer aquí. Si quieres el PDF
-          con mayor definición, aporta la cantidad que quieras y desbloquea la
-          edición HD.
+          La novela gráfica completa ya está disponible para leer aquí. Si
+          quieres el PDF con mayor definición, aporta la cantidad que quieras y
+          desbloquea la edición HD.
         </p>
 
         <div className="mt-9 w-full border border-black/15 bg-white/65 p-6 sm:p-8">

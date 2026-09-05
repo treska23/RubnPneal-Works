@@ -7,7 +7,7 @@ export default function NotFoundPage() {
     <>
       <Seo
         title="Página no encontrada | RubnPneal Works"
-        description="La página solicitada no existe. Vuelve al portfolio de Rubn Pneal para explorar software, música, ilustración y cómic."
+        description="La página solicitada no existe. Vuelve al portfolio de Rubn Pneal para explorar software, música, ilustración y novela gráfica."
         path="/404"
         noindex
       />

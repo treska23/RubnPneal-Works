@@ -19,7 +19,7 @@ export default function Seo({
   description,
   path,
   image = DEFAULT_SOCIAL_IMAGE,
-  imageAlt = 'RubnPneal Works: software, música, imagen y cómic',
+  imageAlt = 'RubnPneal Works: software, música, imagen y novela gráfica',
   type = 'website',
   noindex = false,
   structuredData,

@@ -8,7 +8,7 @@ const links = [
   { href: '/', label: 'Inicio' },
   { href: '/development', label: 'Programación' },
   { href: '/music', label: 'Música' },
-  { href: '/comic', label: 'Cómic' },
+  { href: '/comic', label: 'Novela gráfica' },
   { href: '/kid-d', label: 'Kid D' },
   { href: '/services', label: 'Servicios' },
 ];
@@ -28,7 +28,13 @@ export default function Nav() {
           className="flex items-center gap-3"
           onClick={() => setOpen(false)}
         >
-          <Image src="/logo.svg" alt="Rubn Pneal" width={38} height={38} priority />
+          <Image
+            src="/logo.svg"
+            alt="Rubn Pneal"
+            width={38}
+            height={38}
+            priority
+          />
           <span className="hidden text-sm font-semibold uppercase tracking-[0.18em] sm:block">
             Rubn Pneal
           </span>

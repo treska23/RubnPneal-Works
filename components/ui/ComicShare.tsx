@@ -14,7 +14,7 @@ export default function ComicShare() {
       if (navigator.share) {
         await navigator.share({
           title: 'Cuando los Árboles Dejaron de Hablar',
-          text: 'Lee el cómic completo de Rubn Pneal en el navegador. La edición HD está disponible mediante una aportación voluntaria.',
+          text: 'Lee la novela gráfica completa de Rubn Pneal en el navegador. La edición HD está disponible mediante una aportación voluntaria.',
           url: shareUrl,
         });
         return;
@@ -39,7 +39,7 @@ export default function ComicShare() {
         onClick={() => void shareComic()}
         className="button-dark mt-5"
       >
-        Compartir el cómic
+        Compartir la novela gráfica
       </button>
       <p className="mt-3 min-h-6 text-sm text-black/60" role="status">
         {message}

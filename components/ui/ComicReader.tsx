@@ -52,7 +52,10 @@ export default function ComicReader() {
 
   return (
     <div ref={readerRef} className={styles.stage}>
-      <section className={styles.frame} aria-label="Lector del cómic">
+      <section
+        className={styles.frame}
+        aria-label="Lector de la novela gráfica"
+      >
         <header className={styles.toolbar}>
           <div className={styles.status}>
             <span className={styles.label}>Lectura</span>
@@ -68,7 +71,7 @@ export default function ComicReader() {
             aria-label={
               isFullscreen
                 ? 'Salir de pantalla completa'
-                : 'Ver el cómic a pantalla completa'
+                : 'Ver la novela gráfica a pantalla completa'
             }
             title={
               isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'
@@ -95,7 +98,7 @@ export default function ComicReader() {
               onPageChange={handlePageChange}
               renderLoader={(percentage) => (
                 <div className={styles.loading} role="status">
-                  <span>Cargando cómic</span>
+                  <span>Cargando novela gráfica</span>
                   <div aria-hidden="true">
                     <span style={{ width: `${Math.round(percentage)}%` }} />
                   </div>
@@ -104,7 +107,7 @@ export default function ComicReader() {
               )}
               renderError={() => (
                 <p className={styles.error} role="alert">
-                  No se ha podido cargar el cómic.
+                  No se ha podido cargar la novela gráfica.
                 </p>
               )}
             />

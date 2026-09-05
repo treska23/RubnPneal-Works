@@ -18,7 +18,7 @@ const structuredData = [
       'En Verlandina, una pequeña nación rodeada de bosque, la promesa de proteger la felicidad individual convive con una justicia brutal contra los llamados vampiros emocionales.',
     url: absoluteUrl('/comic'),
     inLanguage: 'es',
-    genre: ['Cómic', 'Narrativa gráfica', 'Ilustración'],
+    genre: ['Novela gráfica', 'Narrativa gráfica', 'Ilustración'],
     author: { '@id': `${SITE_ORIGIN}/#person` },
     encoding: {
       '@type': 'MediaObject',
@@ -28,7 +28,7 @@ const structuredData = [
   },
   breadcrumbStructuredData([
     { name: 'Inicio', path: '/' },
-    { name: 'Cómic', path: '/comic' },
+    { name: 'Novela gráfica', path: '/comic' },
   ]),
 ];
 
@@ -36,15 +36,15 @@ export default function ComicPage() {
   return (
     <>
       <Seo
-        title="Cuando los Árboles Dejaron de Hablar: cómic gratis online"
-        description="Lee completo el cómic de Rubn Pneal, Cuando los Árboles Dejaron de Hablar. Consigue el PDF en HD aportando la cantidad que quieras mediante PayPal."
+        title="Cuando los Árboles Dejaron de Hablar: novela gráfica gratis online"
+        description="Lee completa la novela gráfica de Rubn Pneal, Cuando los Árboles Dejaron de Hablar. Consigue el PDF en HD aportando la cantidad que quieras mediante PayPal."
         path="/comic"
         type="article"
         structuredData={structuredData}
       />
       <div className="bg-[#f5f2e8]">
         <SectionLayout
-          eyebrow="Narrativa gráfica"
+          eyebrow="Novela gráfica"
           title="Cuando los Árboles Dejaron de Hablar"
         >
           <div className="mb-12 grid gap-8 border-t border-black/15 pt-7 lg:grid-cols-[1.2fr_0.8fr] lg:gap-20">
@@ -55,15 +55,15 @@ export default function ComicPage() {
                 brutal contra los llamados «vampiros emocionales».
               </p>
               <p className="mt-5 text-base leading-7 text-black/60">
-                Un cómic de Rubn Pneal. 105 páginas para leer completas en el
-                navegador.
+                Una novela gráfica de Rubn Pneal. 105 páginas para leer
+                completas en el navegador.
               </p>
             </div>
             <div className="text-base leading-7 text-black/60">
               <p>
-                Lee el cómic completo gratis. Si quieres conservarlo con mayor
-                definición y apoyar mi trabajo, elige tu aportación por PayPal y
-                accede al PDF en HD.
+                Lee la novela gráfica completa gratis. Si quieres conservarla
+                con mayor definición y apoyar mi trabajo, elige tu aportación
+                por PayPal y accede al PDF en HD.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 {['Lectura gratuita', 'PDF en HD', 'Aportación voluntaria'].map(
@@ -108,11 +108,11 @@ export default function ComicPage() {
             <div className="mt-7 grid gap-8 md:grid-cols-3">
               <div>
                 <h3 className="text-xl font-semibold">
-                  ¿Puedo leerlo entero sin pagar?
+                  ¿Puedo leerla entera sin pagar?
                 </h3>
                 <p className="mt-3 text-base leading-7 text-black/65">
-                  Sí. El lector de esta página contiene el cómic completo y no
-                  requiere registro ni pago.
+                  Sí. El lector de esta página contiene la novela gráfica
+                  completa y no requiere registro ni pago.
                 </p>
               </div>
               <div>

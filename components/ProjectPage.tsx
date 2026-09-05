@@ -51,8 +51,8 @@ export default function ProjectPage({ slug }: { slug: string }) {
             Ver código e instrucciones
           </a>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
-            Proyecto de Rubn Pneal. Las instrucciones de instalación y el
-            estado actual se mantienen en su repositorio.
+            Proyecto de Rubn Pneal. Las instrucciones de instalación y el estado
+            actual se mantienen en su repositorio.
           </p>
           <div className="mt-14 grid gap-8 border-t border-white/15 pt-10 lg:grid-cols-3">
             {project.uses.map(([title, text]) => (
@@ -108,7 +108,8 @@ export default function ProjectPage({ slug }: { slug: string }) {
                 href="/comic"
                 className="text-white underline underline-offset-4"
               >
-                leer completo mi cómic Cuando los Árboles Dejaron de Hablar
+                leer completa mi novela gráfica Cuando los Árboles Dejaron de
+                Hablar
               </Link>
               .
             </p>
