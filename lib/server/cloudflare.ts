@@ -11,11 +11,38 @@ type R2ObjectLike = {
   writeHttpMetadata(headers: Headers): void;
 };
 
+type R2ListedObjectLike = {
+  key: string;
+  size: number;
+  uploaded?: Date;
+  customMetadata?: Record<string, string>;
+};
+
+type R2ObjectsLike = {
+  objects: R2ListedObjectLike[];
+  truncated: boolean;
+  cursor?: string;
+};
+
 type R2BucketLike = {
   get(
     key: string,
     options?: { range?: Headers },
   ): Promise<R2ObjectLike | null>;
+  put(
+    key: string,
+    value: string | ArrayBuffer | ArrayBufferView | ReadableStream,
+    options?: {
+      httpMetadata?: { contentType?: string };
+      customMetadata?: Record<string, string>;
+    },
+  ): Promise<unknown>;
+  list(options?: {
+    prefix?: string;
+    cursor?: string;
+    limit?: number;
+    include?: string[];
+  }): Promise<R2ObjectsLike>;
 };
 
 export type ComicRuntimeEnv = {
