@@ -10,8 +10,8 @@ const structuredData = [
     '@type': 'WebSite',
     '@id': `${SITE_ORIGIN}/#website`,
     url: `${SITE_ORIGIN}/`,
-    name: 'RubnPneal Works',
-    alternateName: ['RubnPneal', 'Rubén Pneal'],
+    name: 'Rubén Pneal',
+    alternateName: ['RubnPneal Works', 'RubnPneal'],
     inLanguage: 'es',
     creator: { '@id': `${SITE_ORIGIN}/#person` },
   },
@@ -37,7 +37,7 @@ const structuredData = [
     '@type': 'WebPage',
     '@id': `${SITE_ORIGIN}/#webpage`,
     url: `${SITE_ORIGIN}/`,
-    name: 'RubnPneal Works | Software, música, ilustración y cómic',
+    name: 'Rubén Pneal | Programador .NET, músico e ilustrador',
     isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
     about: { '@id': `${SITE_ORIGIN}/#person` },
     inLanguage: 'es',
@@ -93,7 +93,7 @@ export default function Home() {
   return (
     <>
       <Seo
-        title="RubnPneal Works | Software, música, ilustración y cómic"
+        title="Rubén Pneal | Programador .NET, músico e ilustrador"
         description="Portfolio de Rubén Pneal: desarrollo de software .NET e IA local, música original, producción, ilustración, vídeo y el cómic Cuando los Árboles Dejaron de Hablar."
         path="/"
         structuredData={structuredData}
