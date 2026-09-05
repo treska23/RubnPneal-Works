@@ -1,29 +1,12 @@
-import type {
-  GetStaticPaths,
-  GetStaticProps,
-  InferGetStaticPropsType,
-} from 'next';
 import Link from 'next/link';
 import SectionLayout from '@components/SectionLayout';
 import Seo from '@components/Seo';
 import { projects } from '@/lib/projects';
 import { absoluteUrl, breadcrumbStructuredData, SITE_ORIGIN } from '@/lib/seo';
 
-export const getStaticPaths: GetStaticPaths = async () => ({
-  paths: projects.map(({ slug }) => ({ params: { slug } })),
-  fallback: false,
-});
-
-export const getStaticProps: GetStaticProps<{
-  project: (typeof projects)[number];
-}> = async ({ params }) => {
-  const project = projects.find((item) => item.slug === params?.slug);
-  return project ? { props: { project } } : { notFound: true };
-};
-
-export default function ProjectPage({
-  project,
-}: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function ProjectPage({ slug }: { slug: string }) {
+  const project = projects.find((item) => item.slug === slug);
+  if (!project) throw new Error(`Unknown project: ${slug}`);
   const path = `/development/${project.slug}`;
   return (
     <>
