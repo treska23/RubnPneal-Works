@@ -133,7 +133,8 @@ void PaintLabels(HDC dc){
     auto m=skin::Measure(client.right,client.bottom,currentPage);
     paintText(L"AULA",{90,27,m.side-8,57},fontBrand,RGB(16,66,116),DT_LEFT);
     paintText(L"MANAGER",{90,52,m.side-8,82},fontBrand,RGB(16,66,116),DT_LEFT);
-    paintText(L"PORTABLE  ·  v0.3",{90,82,m.side-8,119},fontMeta,RGB(61,121,176),DT_LEFT);
+    paintText(L"PORTABLE",{90,81,m.side-8,110},fontMeta,RGB(61,121,176),DT_LEFT);
+    paintText(L"v0.3",{90,107,m.side-8,135},fontMeta,RGB(61,121,176),DT_LEFT);
     paintText(L"● EQUIPO LISTO",{24,m.h-120,m.side-16,m.h-91},fontMeta,RGB(24,137,121),DT_LEFT);
     paintText(L"Pendrive · Sin instalación",{24,m.h-88,m.side-16,m.h-49},fontMeta,RGB(90,132,156),DT_LEFT);
     for(const auto& entry:labels){
