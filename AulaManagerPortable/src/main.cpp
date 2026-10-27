@@ -28,6 +28,8 @@ HWND checkTemp=nullptr,checkSysTemp=nullptr,checkCeip=nullptr,checkDiag=nullptr,
 HFONT fontNormal=nullptr,fontTitle=nullptr,fontSmall=nullptr,fontMeta=nullptr,fontBrand=nullptr;
 HWND navButtons[6]={},brandTitle=nullptr,brandSubtitle=nullptr,sideStatus=nullptr;
 std::map<std::wstring,HWND> ui;
+struct UiLabel { std::wstring text; RECT rect={}; HFONT font=nullptr; COLORREF color=RGB(29,69,113); bool visible=true; };
+std::map<std::wstring,UiLabel> labels;
 bool layoutReady=false;
 HBRUSH background=nullptr;
 HBRUSH whiteEdit=nullptr;
@@ -70,6 +72,7 @@ void Clear(){
     for(HWND h:children)if(h&&IsWindow(h))DestroyWindow(h);
     children.clear();
     ui.clear();
+    labels.clear();
     centerEdit=stationEdit=logEdit=programList=msiLabel=folderLabel=scanLabel=nullptr;
     checkTemp=checkSysTemp=checkCeip=checkDiag=checkServices=checkTablet=checkRemote=checkBackup=checkLicense=nullptr;
 }
@@ -100,14 +103,43 @@ HWND Find(const wchar_t* key){auto it=ui.find(key);return it==ui.end()?nullptr:i
 void At(const wchar_t* key,int x,int y,int w,int h){
     HWND control=Find(key);
     if(control)MoveWindow(control,x,y,(std::max)(0,w),(std::max)(0,h),TRUE);
+    auto found=labels.find(key);
+    if(found!=labels.end()){
+        found->second.rect={x,y,x+(std::max)(0,w),y+(std::max)(0,h)};
+        found->second.visible=true;
+    }
 }
-void Text(const wchar_t* key,const std::wstring& text,bool isTitle=false,bool muted=false){
-    HWND c=Element(L"STATIC",text,SS_LEFT|SS_NOPREFIX,0,0,100,30,0,
-                   isTitle?fontTitle:(muted?fontMeta:fontNormal));
-    Put(key,c);
+void Text(const wchar_t* key,const std::wstring& value,bool isTitle=false,bool muted=false){
+    UiLabel l;l.text=value;l.font=isTitle?fontTitle:(muted?fontMeta:fontNormal);
+    l.color=isTitle?RGB(20,64,112):(muted?RGB(91,124,153):RGB(29,69,113));
+    labels[key]=l;
 }
-void Strong(const wchar_t* key,const std::wstring& text){
-    Put(key,Element(L"STATIC",text,SS_LEFT|SS_NOPREFIX,0,0,100,36,0,fontBrand));
+void Strong(const wchar_t* key,const std::wstring& value){
+    UiLabel l;l.text=value;l.font=fontBrand;l.color=RGB(20,80,135);labels[key]=l;
+}
+void SetLabel(const wchar_t* key,const std::wstring& value){
+    auto it=labels.find(key);
+    if(it!=labels.end()){it->second.text=value;InvalidateRect(mainWindow,nullptr,FALSE);}
+}
+void PaintLabels(HDC dc){
+    SetBkMode(dc,TRANSPARENT);
+    auto paintText=[&](const std::wstring& value,RECT bounds,HFONT font,COLORREF color,UINT flags){
+        HGDIOBJ old=SelectObject(dc,font);
+        SetTextColor(dc,color);
+        DrawTextW(dc,value.c_str(),-1,&bounds,flags|DT_NOPREFIX|DT_WORDBREAK);
+        SelectObject(dc,old);
+    };
+    RECT client={};GetClientRect(mainWindow,&client);
+    auto m=skin::Measure(client.right,client.bottom,currentPage);
+    paintText(L"AULA MANAGER",{83,30,m.side-7,62},fontBrand,RGB(16,66,116),DT_LEFT);
+    paintText(L"PORTABLE  ·  v0.3",{83,64,m.side-7,103},fontMeta,RGB(61,121,176),DT_LEFT);
+    paintText(L"● LISTO PARA TRABAJAR",{24,m.h-120,m.side-16,m.h-91},fontMeta,RGB(24,137,121),DT_LEFT);
+    paintText(L"Pendrive · Sin instalación",{24,m.h-88,m.side-16,m.h-49},fontMeta,RGB(90,132,156),DT_LEFT);
+    for(const auto& entry:labels){
+        const UiLabel& l=entry.second;
+        if(!l.visible || l.rect.right<=l.rect.left || l.rect.bottom<=l.rect.top)continue;
+        paintText(l.text,l.rect,l.font,l.color,DT_LEFT);
+    }
 }
 void Edit(const wchar_t* key,const std::wstring& value,HWND& output,DWORD style=ES_AUTOHSCROLL){
     output=Element(L"EDIT",value,WS_BORDER|WS_TABSTOP|style,0,0,200,36);
@@ -168,22 +200,23 @@ void AlignPage(){
             At(name.c_str(),right.x+24,btnTop+i*space,right.w-48,btnH);
         }
         // El estado y la ubicación de los registros ya figuran en la barra inferior.
-        if(HWND hint=Find(L"hint"))ShowWindow(hint,SW_HIDE);
+        labels[L"hint"].visible=false;
         for(int i=0;i<3;++i){
             std::wstring title=L"lowTitle"+std::to_wstring(i);
             std::wstring row1=L"lowLine"+std::to_wstring(i)+L"a";
             std::wstring row2=L"lowLine"+std::to_wstring(i)+L"b";
             std::wstring row3=L"lowLine"+std::to_wstring(i)+L"c";
-            HWND items[]={Find(title.c_str()),Find(row1.c_str()),Find(row2.c_str()),Find(row3.c_str())};
             if(m.showBottom){
                 const skin::Rect& r=(i==0?m.low1:(i==1?m.low2:m.low3));
                 At(title.c_str(),r.x+20,r.y+14,r.w-40,32);
                 At(row1.c_str(),r.x+20,r.y+55,r.w-40,31);
                 At(row2.c_str(),r.x+20,r.y+86,r.w-40,31);
                 At(row3.c_str(),r.x+20,r.y+115,r.w-40,28);
-                for(HWND h:items)if(h)ShowWindow(h,SW_SHOW);
             }else{
-                for(HWND h:items)if(h)ShowWindow(h,SW_HIDE);
+                labels[title].visible=false;
+                labels[row1].visible=false;
+                labels[row2].visible=false;
+                labels[row3].visible=false;
             }
         }
         return;
@@ -360,8 +393,7 @@ void Navigate(int page){
              L"Windows 7 SP1: utiliza una versión compatible de LibreOffice 7.4.x. Las versiones actuales no son compatibles.":
              L"Revisa firma digital, versión e idioma del instalador antes de ejecutarlo.");
         Btn(L"pick",L"Seleccionar archivo MSI",MSI_PICK);
-        msiLabel=Element(L"STATIC",selectedMsi.empty()?L"No se ha elegido ningún instalador.":selectedMsi,SS_LEFT,
-                         0,0,200,50,0,fontMeta);Put(L"filename",msiLabel);
+        Text(L"filename",selectedMsi.empty()?L"No se ha elegido ningún instalador.":selectedMsi,false,true);
         Btn(L"update",L"Iniciar actualización",MSI_INSTALL);
         Btn(L"official",L"Web oficial de LibreOffice",OPEN_LO);
         Text(L"note",L"Se abrirá el instalador visible. Después comprueba que la versión nueva figura instalada.",false,true);
@@ -372,11 +404,9 @@ void Navigate(int page){
              L"   ·   RAM: "+std::to_wstring(i.ramMb)+L" MB   ·   Libre: "+std::to_wstring(i.freeGb)+L" GB");
         Text(L"compat",L"La actualización que conserve programas debe iniciarse desde Windows, con arquitectura, idioma y edición compatibles. Windows 10 ya está fuera de soporte general.");
         Btn(L"pick",L"Seleccionar carpeta ISO / USB",FOLDER_PICK);
-        folderLabel=Element(L"STATIC",selectedFolder.empty()?L"No se ha seleccionado ningún medio.":selectedFolder,
-                            SS_LEFT,0,0,200,40,0,fontMeta);Put(L"folder",folderLabel);
+        Text(L"folder",selectedFolder.empty()?L"No se ha seleccionado ningún medio.":selectedFolder,false,true);
         Btn(L"scan",L"Comprobar requisitos",SCAN);
-        scanLabel=Element(L"STATIC",L"Esperando selección del instalador.",SS_LEFT,
-                          0,0,200,50,0,fontNormal);Put(L"scanText",scanLabel);
+        Text(L"scanText",L"Esperando selección del instalador.");
         Box(L"backup",L"He realizado y verificado una copia de seguridad externa.",checkBackup);
         Box(L"license",L"Dispongo de medio oficial, licencia válida y arquitectura/idioma adecuados.",checkLicense);
         Btn(L"migrate",L"Abrir instalador Windows",MIGRATE);
@@ -497,7 +527,7 @@ void Action(int id){
         ShellExecuteW(mainWindow,L"open",L"control.exe",L"appwiz.cpl",nullptr,SW_SHOWNORMAL);break;
     case MSI_PICK:
         selectedMsi=aula::ChooseMsi(mainWindow);
-        if(msiLabel)SetWindowTextW(msiLabel,selectedMsi.empty()?L"Ningún MSI seleccionado.":selectedMsi.c_str());
+        SetLabel(L"filename",selectedMsi.empty()?L"Ningún MSI seleccionado.":selectedMsi);
         break;
     case MSI_INSTALL:{
         std::wstring message;
@@ -510,11 +540,11 @@ void Action(int id){
     case OPEN_LO:aula::LaunchUrl(L"https://es.libreoffice.org/descarga/libreoffice/");break;
     case FOLDER_PICK:
         selectedFolder=aula::ChooseFolder(mainWindow);
-        if(folderLabel)SetWindowTextW(folderLabel,selectedFolder.empty()?L"No seleccionada.":selectedFolder.c_str());
+        SetLabel(L"folder",selectedFolder.empty()?L"No seleccionada.":selectedFolder);
         break;
     case SCAN:{
         std::wstring msg;bool valid=aula::ValidInstallerFolder(selectedFolder,aula::Inspect(),msg);
-        if(scanLabel)SetWindowTextW(scanLabel,msg.c_str());
+        SetLabel(L"scanText",msg);
         AppendLog(std::wstring(valid?L"Medio de instalación: ":L"Medio rechazado: ")+msg);
         Notice(msg,valid?MB_ICONINFORMATION:MB_ICONWARNING);break;
     }
@@ -557,15 +587,6 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
         fontSmall=makeFont(16,FW_NORMAL,L"Consolas");
         fontMeta=makeFont(17,FW_NORMAL,L"Segoe UI");
         fontBrand=makeFont(19,FW_BOLD,L"Segoe UI");
-        brandTitle=CreateWindowExW(WS_EX_TRANSPARENT,L"STATIC",L"AULA MANAGER",WS_CHILD|WS_VISIBLE|SS_LEFT,
-                        84,27,180,31,hwnd,nullptr,GetModuleHandleW(nullptr),nullptr);
-        brandSubtitle=CreateWindowExW(WS_EX_TRANSPARENT,L"STATIC",L"PORTABLE · v0.3",WS_CHILD|WS_VISIBLE|SS_LEFT,
-                        84,58,180,38,hwnd,nullptr,GetModuleHandleW(nullptr),nullptr);
-        sideStatus=CreateWindowExW(WS_EX_TRANSPARENT,L"STATIC",L"●  LISTO PARA TRABAJAR\r\nPendrive · Sin instalación",
-                        WS_CHILD|WS_VISIBLE|SS_LEFT,25,660,190,64,hwnd,nullptr,GetModuleHandleW(nullptr),nullptr);
-        Font(brandTitle,fontBrand);
-        Font(brandSubtitle,fontMeta);
-        Font(sideStatus,fontMeta);
         const wchar_t* nav[]={L"Resumen",L"Mantenimiento",L"Programas / antivirus",
                               L"LibreOffice",L"Migración Windows",L"Informes"};
         for(int i=0;i<6;++i){
@@ -622,6 +643,7 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
     case WM_PRINTCLIENT:{
         RECT area={};GetClientRect(hwnd,&area);
         skin::Dashboard((HDC)wParam,area,currentPage);
+        PaintLabels((HDC)wParam);
         return 0;
     }
     case WM_PAINT:{
@@ -629,6 +651,7 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
         HDC dc=BeginPaint(hwnd,&ps);
         RECT r={};GetClientRect(hwnd,&r);
         skin::Dashboard(dc,r,currentPage);
+        PaintLabels(dc);
         EndPaint(hwnd,&ps);
         return 0;
     }
