@@ -51,7 +51,8 @@ inline Rect Inset(Rect r,int l,int t,int right,int bottom){
 inline int Clamp(int v,int lo,int hi){return (std::max)(lo,(std::min)(hi,v));}
 struct Metrics{
     int w=1280,h=850,side=235,margin=22,gap=16,footer=48;
-    Rect hero,id,body,left,right,footerR;
+    Rect hero,id,body,left,right,footerR,low1,low2,low3;
+    bool showBottom=false;
     bool narrow=false;
 };
 inline Metrics Measure(int w,int h,int page){
@@ -73,6 +74,16 @@ inline Metrics Measure(int w,int h,int page){
     int leftWidth=(int)(cw*0.625f);
     m.left={x,iy,leftWidth-m.gap/2,m.body.h};
     m.right={m.left.x+m.left.w+m.gap,iy,cw-m.left.w-m.gap,m.body.h};
+    if(page==0 && w>=1170 && h>=835 && m.body.h>=455){
+        m.showBottom=true;
+        int lowH=Clamp((int)(m.body.h*.31),145,195);
+        m.left.h=m.right.h=m.body.h-lowH-m.gap;
+        int lowY=m.body.y+m.left.h+m.gap;
+        int lowW=(cw-2*m.gap)/3;
+        m.low1={x,lowY,lowW,lowH};
+        m.low2={x+lowW+m.gap,lowY,lowW,lowH};
+        m.low3={x+2*(lowW+m.gap),lowY,cw-2*(lowW+m.gap),lowH};
+    }
     m.narrow=m.w<1120;
     return m;
 }
@@ -99,6 +110,11 @@ inline void Dashboard(HDC dc,RECT client,int page){
         Panel(g,(FLOAT)id.x,(FLOAT)id.y,(FLOAT)id.w,(FLOAT)id.h,16.f);
         Panel(g,(FLOAT)m.left.x,(FLOAT)m.left.y,(FLOAT)m.left.w,(FLOAT)m.left.h,18.f);
         Panel(g,(FLOAT)m.right.x,(FLOAT)m.right.y,(FLOAT)m.right.w,(FLOAT)m.right.h,18.f);
+        if(m.showBottom){
+            Panel(g,(FLOAT)m.low1.x,(FLOAT)m.low1.y,(FLOAT)m.low1.w,(FLOAT)m.low1.h,17.f);
+            Panel(g,(FLOAT)m.low2.x,(FLOAT)m.low2.y,(FLOAT)m.low2.w,(FLOAT)m.low2.h,17.f);
+            Panel(g,(FLOAT)m.low3.x,(FLOAT)m.low3.y,(FLOAT)m.low3.w,(FLOAT)m.low3.h,17.f);
+        }
         // Monitor ilustrado pequeño, sin textos ni dependencias externas.
         FLOAT mx=(FLOAT)(header.x+header.w-110),my=(FLOAT)(header.y+22);
         Pen monitor(Color(255,54,143,210),4.f);
