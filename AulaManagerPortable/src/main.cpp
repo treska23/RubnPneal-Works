@@ -493,20 +493,41 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
         mainWindow=hwnd;
         background=CreateSolidBrush(RGB(244,249,253));
         whiteEdit=CreateSolidBrush(RGB(255,255,255));
-        fontNormal=CreateFontW(-17,0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,0,0,CLEARTYPE_QUALITY,
-                              DEFAULT_PITCH,L"Segoe UI");
-        fontSmall=CreateFontW(-15,0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,0,0,CLEARTYPE_QUALITY,
-                              DEFAULT_PITCH,L"Consolas");
-        fontTitle=CreateFontW(-29,0,0,0,FW_SEMIBOLD,0,0,0,DEFAULT_CHARSET,0,0,CLEARTYPE_QUALITY,
-                              DEFAULT_PITCH,L"Segoe UI");
-        const wchar_t* nav[]={L"Resumen",L"Mantenimiento",L"Programas / antivirus",L"LibreOffice",L"Migración Windows",L"Informes"};
+        HDC dc=GetDC(hwnd);
+        int dpi=dc?GetDeviceCaps(dc,LOGPIXELSY):96;
+        if(dc)ReleaseDC(hwnd,dc);
+        // Respect user's Windows text scaling, while keeping the layout fluid.
+        dpi=skin::Clamp(dpi,96,192);
+        auto makeFont=[&](int pt,int weight,const wchar_t* face)->HFONT{
+            int px=MulDiv(pt,dpi,96);
+            return CreateFontW(-px,0,0,0,weight,FALSE,FALSE,FALSE,DEFAULT_CHARSET,
+                               OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,
+                               DEFAULT_PITCH|FF_SWISS,face);
+        };
+        fontNormal=makeFont(18,FW_NORMAL,L"Segoe UI");
+        fontTitle=makeFont(29,FW_SEMIBOLD,L"Segoe UI");
+        fontSmall=makeFont(16,FW_NORMAL,L"Consolas");
+        fontMeta=makeFont(17,FW_NORMAL,L"Segoe UI");
+        fontBrand=makeFont(19,FW_BOLD,L"Segoe UI");
+        brandTitle=CreateWindowExW(WS_EX_TRANSPARENT,L"STATIC",L"AULA MANAGER",WS_CHILD|WS_VISIBLE|SS_LEFT,
+                        84,27,180,31,hwnd,nullptr,GetModuleHandleW(nullptr),nullptr);
+        brandSubtitle=CreateWindowExW(WS_EX_TRANSPARENT,L"STATIC",L"PORTABLE · v0.3",WS_CHILD|WS_VISIBLE|SS_LEFT,
+                        84,58,180,38,hwnd,nullptr,GetModuleHandleW(nullptr),nullptr);
+        sideStatus=CreateWindowExW(WS_EX_TRANSPARENT,L"STATIC",L"●  LISTO PARA TRABAJAR\r\nPendrive · Sin instalación",
+                        WS_CHILD|WS_VISIBLE|SS_LEFT,25,660,190,64,hwnd,nullptr,GetModuleHandleW(nullptr),nullptr);
+        Font(brandTitle,fontBrand);
+        Font(brandSubtitle,fontMeta);
+        Font(sideStatus,fontMeta);
+        const wchar_t* nav[]={L"Resumen",L"Mantenimiento",L"Programas / antivirus",
+                              L"LibreOffice",L"Migración Windows",L"Informes"};
         for(int i=0;i<6;++i){
-            HWND b=CreateWindowW(L"BUTTON",nav[i],WS_CHILD|WS_VISIBLE|BS_OWNERDRAW|WS_TABSTOP,
-                                 16,170+i*65,210,50,hwnd,(HMENU)(INT_PTR)(NAV_BASE+i),GetModuleHandleW(nullptr),nullptr);
-            Font(b,fontNormal);
+            navButtons[i]=CreateWindowW(L"BUTTON",nav[i],WS_CHILD|WS_VISIBLE|BS_OWNERDRAW|WS_TABSTOP,
+                  16,170+i*62,190,52,hwnd,(HMENU)(INT_PTR)(NAV_BASE+i),GetModuleHandleW(nullptr),nullptr);
+            Font(navButtons[i],fontNormal);
         }
+        layoutReady=true;
         Navigate(0);
-        aula::Log(L"Aplicación portable iniciada (auditoría; ningún cambio automático).");
+        aula::Log(L"Aula Manager v0.3: interfaz adaptable iniciada. Sin operaciones automáticas.");
         return 0;
     }
     case WM_COMMAND:{
@@ -522,6 +543,12 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
         if(id>=PREVIEW && id<=QUICK_REPORT && notification==BN_CLICKED){Action(id);return 0;}
         return 0;
     }
+    case WM_SIZE:
+        if(layoutReady && wParam!=SIZE_MINIMIZED){
+            AlignPage();
+            InvalidateRect(hwnd,nullptr,FALSE);
+        }
+        return 0;
     case WM_DRAWITEM:{
         DRAWITEMSTRUCT* d=(DRAWITEMSTRUCT*)lParam;
         if(d && d->CtlType==ODT_BUTTON){
@@ -542,19 +569,26 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
     case WM_CTLCOLORBTN:
         SetBkMode((HDC)wParam,TRANSPARENT);
         return (LRESULT)GetStockObject(HOLLOW_BRUSH);
-    case WM_ERASEBKGND:{
-        RECT r;GetClientRect(hwnd,&r);
-        skin::Dashboard((HDC)wParam,r,currentPage);
+    case WM_ERASEBKGND:
         return 1;
+    case WM_PAINT:{
+        PAINTSTRUCT ps={};
+        HDC dc=BeginPaint(hwnd,&ps);
+        RECT r={};GetClientRect(hwnd,&r);
+        skin::Dashboard(dc,r,currentPage);
+        EndPaint(hwnd,&ps);
+        return 0;
     }
     case WM_GETMINMAXINFO:{
         MINMAXINFO* p=(MINMAXINFO*)lParam;
-        p->ptMinTrackSize.x=1220;p->ptMinTrackSize.y=820;return 0;
+        p->ptMinTrackSize.x=980;p->ptMinTrackSize.y=710;return 0;
     }
     case WM_DESTROY:
         if(fontNormal)DeleteObject(fontNormal);
         if(fontSmall)DeleteObject(fontSmall);
         if(fontTitle)DeleteObject(fontTitle);
+        if(fontMeta)DeleteObject(fontMeta);
+        if(fontBrand)DeleteObject(fontBrand);
         if(background)DeleteObject(background);
         if(whiteEdit)DeleteObject(whiteEdit);
         PostQuitMessage(0);return 0;
@@ -563,7 +597,11 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
 }
 }
 int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int show){
-    SetProcessDPIAware();
+    // On Win10 use DPI-awareness v2 when available; on Windows 7 use legacy DPI support.
+    HMODULE u=GetModuleHandleW(L"user32.dll");
+    using DpiContext=BOOL(WINAPI*)(HANDLE);
+    auto dpiContext=(DpiContext)GetProcAddress(u,"SetProcessDpiAwarenessContext");
+    if(!dpiContext || !dpiContext((HANDLE)-4))SetProcessDPIAware();
     Gdiplus::GdiplusStartupInput gdipInput;
     Gdiplus::GdiplusStartup(&gdipToken,&gdipInput,nullptr);
     INITCOMMONCONTROLSEX controls={sizeof(controls),ICC_STANDARD_CLASSES};
@@ -576,7 +614,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int show){
     wc.hbrBackground=(HBRUSH)(COLOR_WINDOW+1);
     if(!RegisterClassExW(&wc))return 1;
     HWND hwnd=CreateWindowExW(0,wc.lpszClassName,L"Aula Manager Portable — mantenimiento de aulas",
-        WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,1240,850,
+        WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,1330,880,
         nullptr,nullptr,instance,nullptr);
     if(!hwnd)return 2;
     ShowWindow(hwnd,show);UpdateWindow(hwnd);
