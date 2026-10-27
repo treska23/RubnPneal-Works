@@ -1,11 +1,14 @@
 name: Aula Manager Portable - Windows x86
 on:
   push:
-    branches: [ "feat/aula-manager-portable" ]
+    branches: [ "feat/aula-manager-portable", "codex/aula-manager-responsive" ]
     paths:
       - "AulaManagerPortable/**"
       - ".github/workflows/aula-manager-portable.yml"
   workflow_dispatch:
+  pull_request:
+    branches: [ "feat/aula-manager-portable" ]
+    paths: [ "AulaManagerPortable/**", ".github/workflows/aula-manager-portable.yml" ]
 jobs:
   build:
     runs-on: windows-latest

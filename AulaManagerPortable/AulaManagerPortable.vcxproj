@@ -50,12 +50,16 @@
       <EnableUAC>true</EnableUAC><UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Manifest><AdditionalManifestFiles>$(ProjectDir)app.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles></Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Core.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClInclude Include="src\Core.h" />
-    <ClInclude Include="src\Skin.h" />
+    <ClInclude Include="src\Theme.h" />
+    <ClInclude Include="src\Interface.h" />
+    <ClInclude Include="src\Window.h" />
+    <ClInclude Include="src\Batch.h" />
     <Manifest Include="app.manifest" />
     <ResourceCompile Include="src\resources.rc" />
   </ItemGroup>

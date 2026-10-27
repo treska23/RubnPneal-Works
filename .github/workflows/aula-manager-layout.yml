@@ -1,0 +1,41 @@
+name: Aula Manager - layout y funciones
+on:
+  push:
+    branches: ["feat/aula-manager-portable", "codex/aula-manager-responsive"]
+    paths: ["AulaManagerPortable/**", ".github/workflows/aula-manager-layout.yml"]
+  pull_request:
+    branches: ["feat/aula-manager-portable"]
+    paths: ["AulaManagerPortable/**", ".github/workflows/aula-manager-layout.yml"]
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+      - name: Compilar aplicación y pruebas nativas
+        run: |
+          msbuild AulaManagerPortable\AulaManagerPortable.sln /m /p:Configuration=Release /p:Platform=Win32 /verbosity:minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          msbuild AulaManagerPortable\tests\CoreTests.vcxproj /m /p:Configuration=Release /p:Platform=Win32 /verbosity:minimal
+          exit $LASTEXITCODE
+      - name: Validar 196 distribuciones con fuentes reales y textos largos
+        run: |
+          $test = Start-Process -FilePath 'AulaManagerPortable\build\Release\AulaManagerPortable.exe' -ArgumentList '--self-test' -WindowStyle Hidden -PassThru -Wait
+          Get-Content 'AulaManagerPortable\build\Release\layout-tests.txt'
+          exit $test.ExitCode
+      - name: Validar vista previa, identificación Unicode e informes UTF-8
+        run: |
+          & 'AulaManagerPortable\build\tests\CoreTests.exe'
+          exit $LASTEXITCODE
+      - name: Guardar resultados y capturas con datos ficticios
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AulaManager-v04-Review
+          path: |
+            AulaManagerPortable/build/Release/layout-tests.txt
+            AulaManagerPortable/build/Release/review-*.png
+          if-no-files-found: error
