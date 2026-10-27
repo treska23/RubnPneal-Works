@@ -170,12 +170,25 @@ inline void OwnerButton(DRAWITEMSTRUCT* item,int page,HFONT font){
     }
     Color bg=White(),fg=Navy(),border=Line();
     bool navigation=id>=100 && id<106;
+    bool quick=id>=217 && id<=221;
     bool active=navigation && id-100==page;
     bool primary=id==215||id==201||id==207||id==211||id==212;
     bool destructive=id==205;
     bool restore=id==202||id==214;
     bool green=id==208;
-    if(navigation){
+    if(quick){
+        const Color backgrounds[]={
+            Color(255,229,243,255),Color(255,255,233,239),Color(255,226,248,237),
+            Color(255,238,233,255),Color(255,226,244,255)
+        };
+        const Color inks[]={
+            Color(255,20,109,193),Color(255,175,49,73),Color(255,28,124,85),
+            Color(255,97,72,171),Color(255,31,112,177)
+        };
+        bg=backgrounds[id-217];
+        fg=inks[id-217];
+        border=Color(255,210,231,245);
+    }else if(navigation){
         bg=active?Blue():Color(255,240,249,255);
         fg=active?White():Navy();
         border=active?Blue():Color(255,232,244,252);
@@ -200,13 +213,38 @@ inline void OwnerButton(DRAWITEMSTRUCT* item,int page,HFONT font){
         g.FillEllipse(&accent,17.f,h/2-5.f,10.f,10.f);
         label.left=42;
     }
+    if(quick){
+        SolidBrush accent(fg);
+        g.FillEllipse(&accent,14.f,h/2.f-12.f,24.f,24.f);
+        Pen glyph(White(),2.3f);
+        glyph.SetStartCap(LineCapRound);
+        glyph.SetEndCap(LineCapRound);
+        // Símbolos vectoriales simples, compatibles con Windows 7 (sin fuentes de iconos).
+        if(id==217){ // limpieza
+            g.DrawLine(&glyph,21.f,h/2.f+4.f,31.f,h/2.f-5.f);
+            g.DrawLine(&glyph,21.f,h/2.f-1.f,30.f,h/2.f+8.f);
+        }else if(id==218){ // seguridad
+            g.DrawLine(&glyph,21.f,h/2.f,25.f,h/2.f+5.f);
+            g.DrawLine(&glyph,25.f,h/2.f+5.f,32.f,h/2.f-6.f);
+        }else if(id==219){ // documento
+            g.DrawRectangle(&glyph,22.f,h/2.f-7.f,9.f,14.f);
+            g.DrawLine(&glyph,23.f,h/2.f-2.f,30.f,h/2.f-2.f);
+        }else if(id==220){ // actualizar
+            g.DrawArc(&glyph,20.f,h/2.f-8.f,13.f,15.f,0.f,270.f);
+            g.DrawLine(&glyph,31.f,h/2.f-8.f,32.f,h/2.f-1.f);
+        }else{ // informe
+            g.DrawRectangle(&glyph,21.f,h/2.f-7.f,11.f,14.f);
+            g.DrawLine(&glyph,23.f,h/2.f-3.f,29.f,h/2.f-3.f);
+            g.DrawLine(&glyph,23.f,h/2.f+2.f,29.f,h/2.f+2.f);
+        }
+    }
     if(item->itemState&ODS_FOCUS){
         Pen focus(Color(255,84,174,241),1);
         GraphicsPath focusPath;Round(focusPath,4.f,4.f,w-9.f,h-9.f,9.f);
         g.DrawPath(&focus,&focusPath);
     }
     // Calculate required line count and center text vertically. Never clip button captions into ellipses.
-    LONG leftPad=navigation?42:12;
+    LONG leftPad=navigation?42:(quick?51:12);
     LONG rightPad=12;
     RECT measured={0,0,(LONG)w-leftPad-rightPad,1000};
     HGDIOBJ old=SelectObject(item->hDC,font);
@@ -216,7 +254,7 @@ inline void OwnerButton(DRAWITEMSTRUCT* item,int page,HFONT font){
     label.left=leftPad;label.top=(LONG)((h-textH)/2.f);
     label.right=(LONG)w-rightPad;label.bottom=(LONG)h-2;
     Text(item->hDC,name,label,RGB(fg.GetR(),fg.GetG(),fg.GetB()),font,
-         (navigation?DT_LEFT:DT_CENTER)|DT_WORDBREAK|DT_NOPREFIX);
+         ((navigation||quick)?DT_LEFT:DT_CENTER)|DT_WORDBREAK|DT_NOPREFIX);
 
 }
 }
