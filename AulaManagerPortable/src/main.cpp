@@ -3,6 +3,7 @@
 #include "Core.h"
 #include <windows.h>
 #include <shellapi.h>
+#include <commctrl.h>
 #include <algorithm>
 #include <vector>
 
