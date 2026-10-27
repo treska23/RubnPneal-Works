@@ -43,66 +43,81 @@ inline void Text(HDC dc,const std::wstring& value,RECT rc,COLORREF fg,HFONT font
     DrawTextW(dc,value.c_str(),-1,&rc,flags);
     SelectObject(dc,old);
 }
-inline void Dashboard(HDC dc,RECT rect,int page){
+
+struct Rect {int x=0,y=0,w=0,h=0;};
+inline Rect Inset(Rect r,int l,int t,int right,int bottom){
+    return {r.x+l,r.y+t,(std::max)(0,r.w-l-right),(std::max)(0,r.h-t-bottom)};
+}
+inline int Clamp(int v,int lo,int hi){return (std::max)(lo,(std::min)(hi,v));}
+struct Metrics{
+    int w=1280,h=850,side=235,margin=22,gap=16,footer=48;
+    Rect hero,id,body,left,right,footerR;
+    bool narrow=false;
+};
+inline Metrics Measure(int w,int h,int page){
+    Metrics m; m.w=(std::max)(w,940);m.h=(std::max)(h,650);
+    m.side=Clamp(m.w/6,188,260);
+    m.margin=Clamp(m.w/70,16,28);
+    m.gap=Clamp(m.w/85,12,21);
+    int x=m.side+m.margin;
+    int cw=m.w-x-m.margin;
+    int hy=(page==0?Clamp(m.h/6,116,148):Clamp(m.h/7,105,135));
+    m.hero={x,24,cw,hy};
+    int iy=m.hero.y+m.hero.h+m.gap;
+    if(page==0){
+        m.id={x,iy,cw,Clamp(m.h/8,98,116)};
+        iy=m.id.y+m.id.h+m.gap;
+    }
+    m.body={x,iy,cw,(std::max)(220,m.h-iy-70)};
+    m.footerR={m.side,m.h-m.footer,m.w-m.side,m.footer};
+    int leftWidth=(int)(cw*0.625f);
+    m.left={x,iy,leftWidth-m.gap/2,m.body.h};
+    m.right={m.left.x+m.left.w+m.gap,iy,cw-m.left.w-m.gap,m.body.h};
+    m.narrow=m.w<1120;
+    return m;
+}
+inline void Dashboard(HDC dc,RECT client,int page){
     Graphics g(dc);
     g.SetSmoothingMode(SmoothingModeAntiAlias);
     g.Clear(Bg());
-    FLOAT h=(FLOAT)rect.bottom, w=(FLOAT)rect.right;
-
-    // Menú lateral: blanco azulado sereno con borde muy discreto.
-    LinearGradientBrush side(Point(0,0),Point(248,0),Color(255,231,246,255),Color(255,245,251,255));
-    g.FillRectangle(&side,0,0,245,(INT)h);
-    SolidBrush sideDivider(Line());
-    g.FillRectangle(&sideDivider,244,0,1,(INT)h);
-
-    // Marca: aplicación de mantenimiento, no icono genérico.
-    Gradient(g,24,29,50,50,Blue(),Sky(),12);
+    auto m=Measure(client.right-client.left,client.bottom-client.top,page);
+    LinearGradientBrush side(Point(0,0),Point(m.side,0),Color(255,226,244,255),Color(255,245,251,255));
+    g.FillRectangle(&side,0,0,m.side,m.h);
+    SolidBrush divider(Line());
+    g.FillRectangle(&divider,m.side-1,0,1,m.h);
+    Gradient(g,20.f,24.f,54.f,54.f,Blue(),Sky(),12.f);
     Pen whitePen(White(),3);
-    g.DrawRectangle(&whitePen,34,42,29,19);
-    g.DrawLine(&whitePen,47,61,47,68);
-    g.DrawLine(&whitePen,40,68,55,68);
-    SolidBrush dot(White());
-    g.FillEllipse(&dot,59,33,8,8);
-
-    RECT title={87,30,232,57};
-    Text(dc,L"AULA",title,RGB(18,61,105),(HFONT)GetStockObject(DEFAULT_GUI_FONT),DT_LEFT|DT_SINGLELINE|DT_VCENTER);
-    RECT slogan={88,55,232,89};
-    Text(dc,L"MANAGER  PORTABLE",slogan,RGB(40,127,191),(HFONT)GetStockObject(DEFAULT_GUI_FONT),DT_LEFT|DT_WORDBREAK);
-
-    Pen line(Line(),1);
-    g.DrawLine(&line,20,148,223,148);
-    g.DrawLine(&line,20,(INT)h-132,223,(INT)h-132);
-
-    // Etiqueta discreta de estado y ubicación portátil.
-    SolidBrush mint(Color(255,22,175,126));
-    g.FillEllipse(&mint,27,(INT)h-106,10,10);
-    RECT state={47,(LONG)h-114,219,(LONG)h-80};
-    Text(dc,L"LISTO PARA TRABAJAR",state,RGB(19,79,107),(HFONT)GetStockObject(DEFAULT_GUI_FONT),DT_LEFT|DT_SINGLELINE|DT_VCENTER);
-    RECT port={27,(LONG)h-72,215,(LONG)h-31};
-    Text(dc,L"Modo portable\nSin instalación",port,RGB(90,126,151),(HFONT)GetStockObject(DEFAULT_GUI_FONT),DT_LEFT|DT_WORDBREAK);
-
-    // Parte principal: cabecera aérea y tarjeta blanca.
+    g.DrawRectangle(&whitePen,31,38,31,21);
+    g.DrawLine(&whitePen,46,59,46,67);
+    g.DrawLine(&whitePen,38,67,54,67);
+    SolidBrush dot(White());g.FillEllipse(&dot,61,30,10,10);
+    auto header=m.hero;
+    Gradient(g,(FLOAT)header.x,(FLOAT)header.y,(FLOAT)header.w,(FLOAT)header.h,
+             Color(255,218,238,254),Color(255,239,250,255),19.f);
     if(page==0){
-        Gradient(g,263,27,w-299,232,Color(255,219,240,255),Color(255,238,249,255),19);
-        Panel(g,263,280,w-299,430,19);
-        Gradient(g,w-181,47,102,88,Color(140,145,211,255),Color(45,204,234,252),19);
-        // Mini terminal en cabecera.
-        Pen screen(Color(255,32,112,189),5);
-        g.DrawRectangle(&screen,w-162.f,66.f,65.f,42.f);
-        g.DrawLine(&screen,w-130.f,108.f,w-130.f,121.f);
-        g.DrawLine(&screen,w-146.f,121.f,w-114.f,121.f);
+        auto id=m.id;
+        Panel(g,(FLOAT)id.x,(FLOAT)id.y,(FLOAT)id.w,(FLOAT)id.h,16.f);
+        Panel(g,(FLOAT)m.left.x,(FLOAT)m.left.y,(FLOAT)m.left.w,(FLOAT)m.left.h,18.f);
+        Panel(g,(FLOAT)m.right.x,(FLOAT)m.right.y,(FLOAT)m.right.w,(FLOAT)m.right.h,18.f);
+        // Monitor ilustrado pequeño, sin textos ni dependencias externas.
+        FLOAT mx=(FLOAT)(header.x+header.w-110),my=(FLOAT)(header.y+22);
+        Pen monitor(Color(255,54,143,210),4.f);
+        g.DrawRectangle(&monitor,mx,my,65.f,44.f);
+        g.DrawLine(&monitor,mx+32.f,my+44.f,mx+32.f,my+57.f);
+        g.DrawLine(&monitor,mx+17.f,my+57.f,mx+48.f,my+57.f);
     }else{
-        Gradient(g,263,26,w-299,112,Color(255,220,241,255),Color(255,241,251,255),19);
-        Panel(g,263,153,w-299,555,19);
+        Panel(g,(FLOAT)m.body.x,(FLOAT)m.body.y,(FLOAT)m.body.w,(FLOAT)m.body.h,18.f);
     }
-    SolidBrush statusBg(White());
-    g.FillRectangle(&statusBg,245,(INT)h-45,(INT)w-245,45);
-    g.DrawLine(&line,245,(INT)h-45,(INT)w,(INT)h-45);
-    SolidBrush ready(Color(255,15,178,138));
-    g.FillEllipse(&ready,267,(INT)h-28,10,10);
-    RECT foot={286,(LONG)h-38,(LONG)w-20,(LONG)h-9};
-    Text(dc,L"Todo listo  •  Cambios manuales y registrados  •  Datos junto al ejecutable",foot,
-         RGB(94,126,150),(HFONT)GetStockObject(DEFAULT_GUI_FONT),DT_LEFT|DT_VCENTER|DT_SINGLELINE);
+    Pen hair(Line(),1.f);
+    g.DrawLine(&hair,14.f,143.f,(FLOAT)(m.side-14),143.f);
+    g.DrawLine(&hair,14.f,(FLOAT)(m.h-140),(FLOAT)(m.side-14),(FLOAT)(m.h-140));
+    SolidBrush foot(White());g.FillRectangle(&foot,m.footerR.x,m.footerR.y,m.footerR.w,m.footerR.h);
+    g.DrawLine(&hair,(FLOAT)m.side,(FLOAT)m.footerR.y,(FLOAT)m.w,(FLOAT)m.footerR.y);
+    SolidBrush ready(Color(255,12,182,138));
+    g.FillEllipse(&ready,(FLOAT)(m.side+24),(FLOAT)(m.h-30),10.f,10.f);
+    RECT caption={m.side+45,m.h-43,m.w-24,m.h-5};
+    Text(dc,L"Listo  ·  Modo portable  ·  Acciones con confirmación y registro",caption,
+         RGB(81,118,146),(HFONT)GetStockObject(DEFAULT_GUI_FONT),DT_LEFT|DT_VCENTER|DT_SINGLELINE);
 }
 inline void OwnerButton(DRAWITEMSTRUCT* item,int page,HFONT font){
     if(!item)return;
