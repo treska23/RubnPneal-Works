@@ -131,9 +131,10 @@ void PaintLabels(HDC dc){
     };
     RECT client={};GetClientRect(mainWindow,&client);
     auto m=skin::Measure(client.right,client.bottom,currentPage);
-    paintText(L"AULA MANAGER",{83,30,m.side-7,62},fontBrand,RGB(16,66,116),DT_LEFT);
-    paintText(L"PORTABLE  ·  v0.3",{83,64,m.side-7,103},fontMeta,RGB(61,121,176),DT_LEFT);
-    paintText(L"● LISTO PARA TRABAJAR",{24,m.h-120,m.side-16,m.h-91},fontMeta,RGB(24,137,121),DT_LEFT);
+    paintText(L"AULA",{90,27,m.side-8,57},fontBrand,RGB(16,66,116),DT_LEFT);
+    paintText(L"MANAGER",{90,52,m.side-8,82},fontBrand,RGB(16,66,116),DT_LEFT);
+    paintText(L"PORTABLE  ·  v0.3",{90,82,m.side-8,119},fontMeta,RGB(61,121,176),DT_LEFT);
+    paintText(L"● EQUIPO LISTO",{24,m.h-120,m.side-16,m.h-91},fontMeta,RGB(24,137,121),DT_LEFT);
     paintText(L"Pendrive · Sin instalación",{24,m.h-88,m.side-16,m.h-49},fontMeta,RGB(90,132,156),DT_LEFT);
     for(const auto& entry:labels){
         const UiLabel& l=entry.second;
@@ -181,14 +182,29 @@ void AlignPage(){
         At(L"save",ux+p1+18+p2+17,uy+36,saveW,40);
         At(L"detailsTitle",left.x+26,left.y+21,left.w-50,39);
         int headerBottom=left.y+73;
-        int available=(std::max)(1,left.h-116);
-        int row=skin::Clamp((left.h-163)/8,22,46);
         int labelW=skin::Clamp(left.w/3,155,215);
+        int valueW=left.w-labelW-65;
+        HDC dc=GetDC(mainWindow);
+        HGDIOBJ oldFont=SelectObject(dc,fontNormal);
+        int rowHeight[8]={};
+        int total=0;
+        for(int i=0;i<8;++i){
+            std::wstring name=L"value"+std::to_wstring(i);
+            std::wstring value=labels[name].text;
+            RECT needed={0,0,valueW,1000};
+            DrawTextW(dc,value.c_str(),-1,&needed,DT_CALCRECT|DT_WORDBREAK|DT_NOPREFIX);
+            rowHeight[i]=(std::max)(26,(int)(needed.bottom-needed.top)+7);
+            total+=rowHeight[i];
+        }
+        SelectObject(dc,oldFont);ReleaseDC(mainWindow,dc);
+        int available=(std::max)(205,left.h-73-61);
+        int spacing=(std::max)(0,(available-total)/8);
+        int yy=headerBottom;
         for(int i=0;i<8;++i){
             std::wstring a=L"key"+std::to_wstring(i),b=L"value"+std::to_wstring(i);
-            int yy=headerBottom+i*row;
-            At(a.c_str(),left.x+26,yy,labelW,row+8);
-            At(b.c_str(),left.x+labelW+33,yy,left.w-labelW-65,row+11);
+            At(a.c_str(),left.x+26,yy,labelW,rowHeight[i]);
+            At(b.c_str(),left.x+labelW+33,yy,valueW,rowHeight[i]);
+            yy+=rowHeight[i]+spacing;
         }
         At(L"admin",left.x+24,left.y+left.h-55,(std::min)(270,left.w-48),42);
         At(L"actionsTitle",right.x+24,right.y+19,right.w-48,36);
@@ -315,7 +331,7 @@ void Navigate(int page){
         Text(L"stationCaption",L"Puesto físico (p. ej., PC10)");
         Edit(L"centerEdit",aula::IniRead(L"Centro"),centerEdit);
         Edit(L"stationEdit",aula::IniRead(L"Puesto"),stationEdit);
-        Btn(L"save",L"Guardar identificación",SAVE_ID);
+        Btn(L"save",L"Guardar puesto",SAVE_ID);
         Text(L"detailsTitle",L"Información del equipo",true);
         std::vector<std::pair<std::wstring,std::wstring>> rows={
             {L"Nombre del equipo",i.machine},
@@ -340,7 +356,7 @@ void Navigate(int page){
         Text(L"hint",L"Registros junto al ejecutable.",false,true);
         // Resumen inferior con datos reales, sin inventar uso de CPU ni estado del antivirus integrado.
         Strong(L"lowTitle0",L"Estado del equipo");
-        Text(L"lowLine0a",L"Windows: "+i.windows);
+        Text(L"lowLine0a",L"Sistema operativo identificado");
         Text(L"lowLine0b",L"Administrador: "+std::wstring(i.administrator?L"Sí":L"No"));
         auto av=aula::Programs();
         unsigned thirdParty=0;
