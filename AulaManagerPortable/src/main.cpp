@@ -106,6 +106,9 @@ void Text(const wchar_t* key,const std::wstring& text,bool isTitle=false,bool mu
                    isTitle?fontTitle:(muted?fontMeta:fontNormal));
     Put(key,c);
 }
+void Strong(const wchar_t* key,const std::wstring& text){
+    Put(key,Element(L"STATIC",text,SS_LEFT|SS_NOPREFIX,0,0,100,36,0,fontBrand));
+}
 void Edit(const wchar_t* key,const std::wstring& value,HWND& output,DWORD style=ES_AUTOHSCROLL){
     output=Element(L"EDIT",value,WS_BORDER|WS_TABSTOP|style,0,0,200,36);
     Put(key,output);
@@ -147,7 +150,7 @@ void AlignPage(){
         At(L"detailsTitle",left.x+26,left.y+21,left.w-50,39);
         int headerBottom=left.y+73;
         int available=(std::max)(1,left.h-116);
-        int row=skin::Clamp((left.h-166)/8,26,46);
+        int row=skin::Clamp((left.h-163)/8,22,46);
         int labelW=skin::Clamp(left.w/3,155,215);
         for(int i=0;i<8;++i){
             std::wstring a=L"key"+std::to_wstring(i),b=L"value"+std::to_wstring(i);
@@ -164,7 +167,24 @@ void AlignPage(){
             std::wstring name=L"action"+std::to_wstring(i);
             At(name.c_str(),right.x+24,btnTop+i*space,right.w-48,btnH);
         }
-        At(L"hint",left.x+27,left.y+left.h-29,left.w-45,24);
+        At(L"hint",left.x+27,left.y+left.h-23,left.w-45,23);
+        for(int i=0;i<3;++i){
+            std::wstring title=L"lowTitle"+std::to_wstring(i);
+            std::wstring row1=L"lowLine"+std::to_wstring(i)+L"a";
+            std::wstring row2=L"lowLine"+std::to_wstring(i)+L"b";
+            std::wstring row3=L"lowLine"+std::to_wstring(i)+L"c";
+            HWND items[]={Find(title.c_str()),Find(row1.c_str()),Find(row2.c_str()),Find(row3.c_str())};
+            if(m.showBottom){
+                const skin::Rect& r=(i==0?m.low1:(i==1?m.low2:m.low3));
+                At(title.c_str(),r.x+20,r.y+14,r.w-40,32);
+                At(row1.c_str(),r.x+20,r.y+55,r.w-40,31);
+                At(row2.c_str(),r.x+20,r.y+86,r.w-40,31);
+                At(row3.c_str(),r.x+20,r.y+115,r.w-40,28);
+                for(HWND h:items)if(h)ShowWindow(h,SW_SHOW);
+            }else{
+                for(HWND h:items)if(h)ShowWindow(h,SW_HIDE);
+            }
+        }
         return;
     }
     const int innerX=card.x+28, innerW=card.w-56, innerY=card.y+20,innerH=card.h-45;
@@ -283,7 +303,26 @@ void Navigate(int page){
                                 L"Migración de Windows",L"Generar informe"};
         const int actionIds[]={QUICK_CLEAN,QUICK_AV,QUICK_LO,QUICK_MIG,QUICK_REPORT};
         for(int n=0;n<5;n++)Btn((L"action"+std::to_wstring(n)).c_str(),names[n],actionIds[n]);
-        Text(L"hint",L"Los registros se guardan junto al ejecutable.",false,true);
+        Text(L"hint",L"Registros junto al ejecutable.",false,true);
+        // Resumen inferior con datos reales, sin inventar uso de CPU ni estado del antivirus integrado.
+        Strong(L"lowTitle0",L"Estado del equipo");
+        Text(L"lowLine0a",L"Windows: "+i.windows);
+        Text(L"lowLine0b",L"Administrador: "+std::wstring(i.administrator?L"Sí":L"No"));
+        auto av=aula::Programs();
+        unsigned thirdParty=0;
+        for(const auto& p:av)if(p.antivirus)++thirdParty;
+        Text(L"lowLine0c",L"Posibles antivirus de terceros: "+std::to_wstring(thirdParty));
+        Strong(L"lowTitle1",L"Uso de recursos");
+        MEMORYSTATUSEX mem={};mem.dwLength=sizeof(mem);
+        std::wstring memoryText=L"RAM física: "+std::to_wstring(i.ramMb)+L" MB";
+        if(GlobalMemoryStatusEx(&mem))memoryText+=L"  ·  "+std::to_wstring(mem.dwMemoryLoad)+L"% utilizado";
+        Text(L"lowLine1a",memoryText);
+        Text(L"lowLine1b",L"Disco de Windows libre: "+std::to_wstring(i.freeGb)+L" GB");
+        Text(L"lowLine1c",L"Comprobar espacio antes de migrar");
+        Strong(L"lowTitle2",L"Trabajo recomendado");
+        Text(L"lowLine2a",L"1. Identificar el puesto físico");
+        Text(L"lowLine2b",L"2. Revisar y previsualizar cambios");
+        Text(L"lowLine2c",L"3. Exportar informe al terminar");
     }else if(page==1){
         Text(L"explain",L"Selecciona únicamente los ajustes que necesites. Los cambios de servicios y registro guardan su estado anterior.");
         Box(L"check0",L"Limpiar temporales del usuario con más de 7 días",checkTemp,true);
