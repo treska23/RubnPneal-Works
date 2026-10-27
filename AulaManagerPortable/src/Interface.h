@@ -146,7 +146,11 @@ void Clear(){
  checkTemp=checkSysTemp=checkCeip=checkDiag=checkServices=checkTablet=checkRemote=checkBackup=checkLicense=nullptr;
 }
 void Notice(const std::wstring& message,UINT icon=MB_ICONINFORMATION){MessageBoxW(mainWindow,message.c_str(),L"Aula Manager Portable",MB_OK|icon);}
-void SaveIdentity(){if(layoutTesting||jobRunning)return;if(centerEdit)aula::IniWrite(L"Centro",TextOf(centerEdit));if(stationEdit)aula::IniWrite(L"Puesto",TextOf(stationEdit));}
+void SaveIdentity(){
+ if(layoutTesting||jobRunning)return;
+ auto trim=[](const std::wstring& value){auto a=value.find_first_not_of(L" \t\r\n"),b=value.find_last_not_of(L" \t\r\n");return a==std::wstring::npos?std::wstring():value.substr(a,b-a+1);};
+ if(centerEdit)aula::IniWrite(L"Centro",trim(TextOf(centerEdit)));if(stationEdit)aula::IniWrite(L"Puesto",trim(TextOf(stationEdit)));
+}
 void RefreshLog(){if(logEdit){SetWindowTextW(logEdit,aula::ReadLog().c_str());SendMessageW(logEdit,EM_SETSEL,(WPARAM)-1,(LPARAM)-1);SendMessageW(logEdit,EM_SCROLLCARET,0,0);}}
 void AppendLog(const std::wstring& s){aula::Log(s);RefreshLog();}
 std::wstring Identity(){std::wstring c=layoutTesting?L"Centro municipal de ejemplo":aula::IniRead(L"Centro"),p=layoutTesting?L"PC10":aula::IniRead(L"Puesto");return L"Centro: "+(c.empty()?L"Sin identificar":c)+L"   ·   Puesto físico: "+(p.empty()?L"Sin identificar":p);}
@@ -181,9 +185,10 @@ void LayoutContent(int width,int height){
   }
   int tx=x+22,tw=w-44;
   if(tw>=700){int bw=296,textW=tw-bw-24;
+   ShowWindow(Find(L"fullTitle"),SW_SHOW);ShowWindow(Find(L"fullDescription"),SW_SHOW);
    int bottom=PlaceText(L"fullTitle",tx,y,textW,8);bottom=PlaceText(L"fullDescription",tx,bottom,textW,0);
    int bh=(std::max)(58,ButtonHeight(L"fullRun",bw));At(L"fullRun",tx+tw-bw,y,bw,bh);y=(std::max)(bottom,y+bh)+22;
-  }else{y=PlaceText(L"fullTitle",tx,y,tw,8);y=PlaceText(L"fullDescription",tx,y,tw,16);
+  }else{ShowWindow(Find(L"fullTitle"),SW_HIDE);ShowWindow(Find(L"fullDescription"),SW_HIDE);
    int bh=(std::max)(54,ButtonHeight(L"fullRun",tw));At(L"fullRun",tx,y,tw,bh);y+=bh+22;}
   panels.push_back({x,start,w,y-start});y+=gap;
   bool split=w>=850;int lw=split?(w-gap)*3/5:w,rw=split?w-lw-gap:w;

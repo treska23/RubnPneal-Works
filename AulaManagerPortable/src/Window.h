@@ -73,12 +73,36 @@ int VerifyLayout(){
    }
   }
  }
+ // Exercise the real background-job controller against an empty, isolated TEMP.
+ // No file removal, registry change, or installer is called by these checks.
+ wchar_t previousTemp[32768]={};DWORD previousLength=GetEnvironmentVariableW(L"TEMP",previousTemp,32768);
+ std::wstring fixture=aula::ExeFolder()+L"\\PreviewFixture-"+std::to_wstring(GetCurrentProcessId());
+ bool fixtureReady=CreateDirectoryW(fixture.c_str(),nullptr)!=FALSE;
+ if(!fixtureReady){++failures;out<<"FAIL could not create async preview fixture\n";}
+ else{
+  SetEnvironmentVariableW(L"TEMP",fixture.c_str());dpi=96;MakeFonts();
+  for(bool cancelled:{false,true}){
+   Navigate(1);DWORD started=GetTickCount();StartPreview();
+   if(GetTickCount()-started>1000){++failures;out<<"FAIL preview blocks the UI on startup\n";}
+   if(cancelled)CancelJob();
+   while(jobRunning&&GetTickCount()-started<5000){
+    MsgWaitForMultipleObjects(0,nullptr,FALSE,25,QS_ALLINPUT);MSG message;
+    while(PeekMessageW(&message,nullptr,0,0,PM_REMOVE)){TranslateMessage(&message);DispatchMessageW(&message);}
+   }
+   if(jobRunning){++failures;CancelJob();JoinJob();jobRunning=false;out<<"FAIL background preview did not finish\n";}
+   else if(JobText().find(L"No se ha borrado ningún archivo") == std::wstring::npos){++failures;out<<"FAIL missing preview result\n";}
+   else if(cancelled&&JobStatus().find(L"Proceso cancelado")!=0){++failures;out<<"FAIL cancellation result is stale\n";}
+   else out<<(cancelled?"PASS asynchronous preview cancellation\n":"PASS asynchronous preview completion\n");
+  }
+  SetEnvironmentVariableW(L"TEMP",previousLength?previousTemp:nullptr);RemoveDirectoryW(fixture.c_str());
+ }
  out<<"Cases: "<<cases<<"\nFailures: "<<failures<<"\n";return failures?1:0;
 }
 LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
  switch(msg){
  case WM_CREATE:{
   mainWindow=hwnd;HDC dc=GetDC(hwnd);dpi=GetDeviceCaps(dc,LOGPIXELSY);ReleaseDC(hwnd,dc);
+  selectedMsi=aula::IniRead(L"LibreOfficeMSI");
   using DpiFn=UINT(WINAPI*)(HWND);auto getDpi=(DpiFn)GetProcAddress(GetModuleHandleW(L"user32.dll"),"GetDpiForWindow");if(getDpi)dpi=(int)getDpi(hwnd);
   whiteEdit=CreateSolidBrush(RGB(255,255,255));heroBrush=CreateSolidBrush(RGB(226,243,254));fieldBrush=CreateSolidBrush(RGB(248,252,255));MakeFonts();
   viewWindow=CreateWindowExW(WS_EX_CONTROLPARENT,L"AulaManagerViewport",L"Contenido",WS_CHILD|WS_VISIBLE|WS_VSCROLL|WS_CLIPCHILDREN,0,0,100,100,hwnd,nullptr,GetModuleHandleW(nullptr),nullptr);

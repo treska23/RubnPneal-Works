@@ -22,7 +22,7 @@ El análisis y la ejecución se realizan en segundo plano: la ventana sigue resp
 - Escalado DPI por monitor en Windows compatibles y soporte de DPI de sistema en Windows 7.
 - Campos de identificación Unicode; informes TXT con BOM UTF-8 para lectores de Windows.
 
-La versión portable que se entrega se compila desde **AulaManagerPortable**. La carpeta **AulaManagerWpf** del repositorio contiene un prototipo anterior incompleto y no forma parte de este paquete.
+La versión portable que se entrega se compila desde **AulaManagerPortable**. La carpeta **AulaManagerWpf** del repositorio no forma parte de este paquete.
 
 ## Comprobaciones reproducibles
 

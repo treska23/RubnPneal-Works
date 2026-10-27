@@ -33,6 +33,8 @@ void CancelJob(){
 }
 void FinishJob(){
  if(jobThread.joinable())jobThread.join();jobRunning=false;KillTimer(mainWindow,1);
+ {std::lock_guard<std::mutex> guard(jobMutex);jobStatus=cancelRequested?L"Proceso cancelado · revisa el informe":
+   (jobIssues?L"Proceso finalizado · hay tareas pendientes":L"Proceso finalizado correctamente");}
  if(closeWhenDone){DestroyWindow(mainWindow);return;}
  Navigate(6);RefreshJob();
 }

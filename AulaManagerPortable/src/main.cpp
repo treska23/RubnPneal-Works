@@ -26,7 +26,7 @@ void Navigate(int page){
         Edit(L"stationEdit",layoutTesting?L"PC10":aula::IniRead(L"Puesto"),stationEdit);
 
         if(jobRunning){EnableWindow(centerEdit,FALSE);EnableWindow(stationEdit,FALSE);}
-        Strong(L"fullTitle",L"Un botón. Todo el proceso.");
+        Strong(L"fullTitle",L"Puesta a punto del puesto");
         Text(L"fullDescription",L"Limpieza, ajustes recomendados, antivirus de terceros, LibreOffice e informe final.",false,true);
         Btn(L"fullRun",jobRunning?L"Ver progreso de la puesta a punto":L"Puesta a punto completa",FULL_RUN);
         Text(L"detailsTitle",L"Información del equipo",true);
@@ -45,7 +45,7 @@ void Navigate(int page){
             Text((L"value"+std::to_wstring(n)).c_str(),rows[n].second);
         }
         if(!i.administrator)Btn(L"admin",L"Reiniciar como administrador",ELEVATE);
-        Strong(L"actionsTitle",L"Acciones rápidas");
+        Strong(L"actionsTitle",L"Herramientas avanzadas");
         const wchar_t* names[]={L"Limpiar archivos temporales",L"Programas y antivirus",L"Actualizar LibreOffice",
                                 L"Migración de Windows",L"Generar informe"};
         const int actionIds[]={QUICK_CLEAN,QUICK_AV,QUICK_LO,QUICK_MIG,QUICK_REPORT};
@@ -214,6 +214,7 @@ void Action(int id){
         ShellExecuteW(mainWindow,L"open",L"control.exe",L"appwiz.cpl",nullptr,SW_SHOWNORMAL);break;
     case MSI_PICK:
         selectedMsi=aula::ChooseMsi(mainWindow);
+        if(!selectedMsi.empty())aula::IniWrite(L"LibreOfficeMSI",selectedMsi);
         SetLabel(L"filename",selectedMsi.empty()?L"Ningún MSI seleccionado.":selectedMsi);
         break;
     case MSI_INSTALL:{
