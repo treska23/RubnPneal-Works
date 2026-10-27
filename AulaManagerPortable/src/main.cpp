@@ -172,7 +172,7 @@ void AlignPage(){
     case 1:{
         At(L"explain",innerX,innerY,innerW,58);
         int top=innerY+65;
-        int row=(std::min)(56,(std::max)(34,(innerH-225)/7)));
+        int row=(std::min)(56,(std::max)(34,(innerH-225)/7));
         for(int i=0;i<7;i++){
             std::wstring name=L"check"+std::to_wstring(i);
             At(name.c_str(),innerX+8,top+i*row,innerW-16,row-3);
