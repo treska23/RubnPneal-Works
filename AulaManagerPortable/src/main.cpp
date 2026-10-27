@@ -17,7 +17,7 @@ constexpr int NAV_BASE=100;
 constexpr int PREVIEW=200,EXECUTE=201,RESTORE=202,ELEVATE=203,REFRESH=204,
               REMOVE_APP=205,MSI_PICK=206,MSI_INSTALL=207,OPEN_LO=208,
               FOLDER_PICK=209,SCAN=210,MIGRATE=211,REPORT=212,OPEN_REPORTS=213,
-              RESTORE_CEIP=214,SAVE_ID=215,OPEN_WIN=216;
+              RESTORE_CEIP=214,SAVE_ID=215,OPEN_WIN=216,QUICK_CLEAN=217,QUICK_AV=218,QUICK_LO=219,QUICK_MIG=220,QUICK_REPORT=221;
 HWND mainWindow=nullptr,centerEdit=nullptr,stationEdit=nullptr,logEdit=nullptr;
 HWND programList=nullptr,msiLabel=nullptr,folderLabel=nullptr,scanLabel=nullptr;
 HWND checkTemp=nullptr,checkSysTemp=nullptr,checkCeip=nullptr,checkDiag=nullptr,
@@ -109,9 +109,15 @@ void Navigate(int page){
           L" MB     Espacio libre (unidad Windows): "+std::to_wstring(i.freeGb)+
           L" GB\r\nLibreOffice: "+i.libreoffice+
           L"\r\nPrivilegios de administrador: "+(i.administrator?L"SÍ":L"NO");
-        Label(data,x,335,800,203);
+        Label(data,x,345,555,235);
         if(!i.administrator)Button(L"Reiniciar como administrador",x,550,284,38,ELEVATE);
-        Label(L"Los datos y los registros se guardan junto al ejecutable, en la carpeta Datos del pendrive.",x,620,790,38);
+        Label(L"Acciones rápidas",860,315,300,34,true);
+        Button(L"Limpiar temporales",860,368,302,43,QUICK_CLEAN);
+        Button(L"Programas y antivirus",860,421,302,43,QUICK_AV);
+        Button(L"Actualizar LibreOffice",860,474,302,43,QUICK_LO);
+        Button(L"Migración Windows",860,527,302,43,QUICK_MIG);
+        Button(L"Generar informe",860,580,302,43,QUICK_REPORT);
+        Label(L"Todos los datos y registros se guardan en la carpeta Datos junto al ejecutable.",x,656,525,40);
     }
     if(page==1){
         Label(L"Mantenimiento y limpieza",x,40,790,48,true);
@@ -252,6 +258,11 @@ void DoMigration(){
 void Action(int id){
     if(id>=NAV_BASE&&id<NAV_BASE+6){Navigate(id-NAV_BASE);return;}
     switch(id){
+    case QUICK_CLEAN: Navigate(1); break;
+    case QUICK_AV: Navigate(2); break;
+    case QUICK_LO: Navigate(3); break;
+    case QUICK_MIG: Navigate(4); break;
+    case QUICK_REPORT: Navigate(5); break;
     case SAVE_ID:
         SaveIdentity();AppendLog(L"Identificación del puesto guardada: "+Identity());Notice(L"Centro y puesto guardados junto al ejecutable.");break;
     case ELEVATE:
@@ -352,7 +363,7 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
             return 0;
         }
         if(id>=NAV_BASE && id<NAV_BASE+6 && notification==BN_CLICKED){Action(id);return 0;}
-        if(id>=PREVIEW && id<=OPEN_WIN && notification==BN_CLICKED){Action(id);return 0;}
+        if(id>=PREVIEW && id<=QUICK_REPORT && notification==BN_CLICKED){Action(id);return 0;}
         return 0;
     }
     case WM_DRAWITEM:{
@@ -404,7 +415,8 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int show){
     WNDCLASSEXW wc={sizeof(wc)};
     wc.hInstance=instance;wc.lpfnWndProc=Proc;wc.lpszClassName=L"AulaManagerPortableWindow";
     wc.hCursor=LoadCursorW(nullptr,IDC_ARROW);
-    wc.hIcon=LoadIconW(nullptr,IDI_APPLICATION);
+    wc.hIcon=LoadIconW(instance,MAKEINTRESOURCEW(101));
+    wc.hIconSm=wc.hIcon;
     wc.hbrBackground=(HBRUSH)(COLOR_WINDOW+1);
     if(!RegisterClassExW(&wc))return 1;
     HWND hwnd=CreateWindowExW(0,wc.lpszClassName,L"Aula Manager Portable — mantenimiento de aulas",
