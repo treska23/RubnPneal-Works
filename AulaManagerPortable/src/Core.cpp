@@ -43,9 +43,9 @@ std::wstring ReadReg(HKEY root,const std::wstring& key,const wchar_t* field,REGS
     b[1023]=0;
     return b;
 }
-DWORD ReadRegDword(HKEY root,const std::wstring& key,const wchar_t* field,DWORD fallback) {
+DWORD ReadRegDword(HKEY root,const std::wstring& key,const wchar_t* field,DWORD fallback,REGSAM extra=0) {
     HKEY h=nullptr; DWORD val=0,size=sizeof(val),type=0;
-    if(RegOpenKeyExW(root,key.c_str(),0,KEY_READ,&h)!=ERROR_SUCCESS) return fallback;
+    if(RegOpenKeyExW(root,key.c_str(),0,KEY_READ|extra,&h)!=ERROR_SUCCESS) return fallback;
     LONG r=RegQueryValueExW(h,field,0,&type,(LPBYTE)&val,&size); RegCloseKey(h);
     return r==ERROR_SUCCESS && type==REG_DWORD ? val : fallback;
 }
@@ -107,7 +107,7 @@ void ListRegistry(HKEY root, REGSAM view, std::vector<Program>& output){
         std::wstring key=std::wstring(base)+L"\\"+sub;
         std::wstring name=Trim(ReadReg(root,key,L"DisplayName",view));
         if(name.empty())continue;
-        DWORD hidden=ReadRegDword(root,key,L"SystemComponent",0);
+        DWORD hidden=ReadRegDword(root,key,L"SystemComponent",0,view);
         if(hidden==1)continue;
         Program p;
         p.name=name; p.version=ReadReg(root,key,L"DisplayVersion",view);
@@ -119,7 +119,7 @@ void ListRegistry(HKEY root, REGSAM view, std::vector<Program>& output){
             L"avg internet security",L"avira security",L"norton",L"mcafee",L"kaspersky",
             L"eset",L"bitdefender",L"panda dome",L"sophos",L"trend micro",L"360 total security",
             L"webroot",L"f-secure",L"g data",L"malwarebytes",L"antivirus",L"internet security"});
-        p.isMsi=ReadRegDword(root,key,L"WindowsInstaller",0)==1;
+        p.isMsi=ReadRegDword(root,key,L"WindowsInstaller",0,view)==1;
         output.push_back(p);
     }
     RegCloseKey(h);
@@ -228,6 +228,7 @@ Inspection Inspect(){
     v.osMajor=os.dwMajorVersion;v.osMinor=os.dwMinorVersion;v.build=os.dwBuildNumber;
     v.windows7=(v.osMajor==6&&v.osMinor==1);
     v.windows=ReadReg(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"ProductName",KEY_WOW64_64KEY);
+    if(v.windows.empty())v.windows=ReadReg(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"ProductName");
     if(v.windows.empty())v.windows=L"Windows";
     v.windows+=L" (build "+std::to_wstring(v.build)+L")";
     if(v.windows7&&os.szCSDVersion[0])v.windows+=L" "+std::wstring(os.szCSDVersion);
