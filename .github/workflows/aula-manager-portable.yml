@@ -1,0 +1,25 @@
+name: Aula Manager Portable - Windows x86
+on:
+  push:
+    branches: [ "feat/aula-manager-portable" ]
+    paths:
+      - "AulaManagerPortable/**"
+      - ".github/workflows/aula-manager-portable.yml"
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: MSBuild para Visual Studio
+        uses: microsoft/setup-msbuild@v2
+      - name: Compilar Win32 Release estático
+        run: msbuild AulaManagerPortable\AulaManagerPortable.sln /m /p:Configuration=Release /p:Platform=Win32 /verbosity:minimal
+      - name: Publicar ejecutable portable
+        uses: actions/upload-artifact@v4
+        with:
+          name: AulaManagerPortable-Windows7-10-x86
+          path: AulaManagerPortable/build/Release/AulaManagerPortable.exe
+          if-no-files-found: error
