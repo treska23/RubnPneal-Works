@@ -1,6 +1,7 @@
 #define UNICODE
 #define _UNICODE
 #include "Core.h"
+#include "Skin.h"
 #include <windows.h>
 #include <shellapi.h>
 #include <commctrl.h>
@@ -23,6 +24,8 @@ HWND checkTemp=nullptr,checkSysTemp=nullptr,checkCeip=nullptr,checkDiag=nullptr,
      checkServices=nullptr,checkTablet=nullptr,checkRemote=nullptr,checkBackup=nullptr,checkLicense=nullptr;
 HFONT fontNormal=nullptr,fontTitle=nullptr,fontSmall=nullptr;
 HBRUSH background=nullptr;
+HBRUSH whiteEdit=nullptr;
+ULONG_PTR gdipToken=0;
 std::vector<HWND> children;
 std::vector<aula::Program> installed;
 std::wstring selectedMsi,selectedFolder;
@@ -38,7 +41,8 @@ void Font(HWND h,HFONT f){
 }
 HWND Element(const wchar_t* cls,const std::wstring& label,DWORD style,
              int x,int y,int width,int height,int id=0,HFONT f=nullptr){
-    HWND h=CreateWindowExW(0,cls,label.c_str(),WS_CHILD|WS_VISIBLE|style,
+    DWORD ex=wcscmp(cls,L"STATIC")==0?WS_EX_TRANSPARENT:0;
+    HWND h=CreateWindowExW(ex,cls,label.c_str(),WS_CHILD|WS_VISIBLE|style,
                            x,y,width,height,mainWindow,(HMENU)(INT_PTR)id,GetModuleHandleW(nullptr),nullptr);
     Font(h,f?f:fontNormal);children.push_back(h);return h;
 }
@@ -46,14 +50,16 @@ HWND Label(const std::wstring& t,int x,int y,int w,int h,bool title=false){
     return Element(L"STATIC",t,SS_LEFT,x,y,w,h,0,title?fontTitle:fontNormal);
 }
 HWND Button(const wchar_t* t,int x,int y,int w,int h,int id){
-    return Element(L"BUTTON",t,BS_PUSHBUTTON|WS_TABSTOP,x,y,w,h,id);
+    return Element(L"BUTTON",t,BS_OWNERDRAW|WS_TABSTOP,x,y,w,h,id);
 }
 HWND Check(const wchar_t* t,int x,int y,int w,int h,bool initial=false){
-    HWND hWnd=Element(L"BUTTON",t,BS_AUTOCHECKBOX|WS_TABSTOP,x,y,w,h);
-    if(initial)SendMessageW(hWnd,BM_SETCHECK,BST_CHECKED,0);
+    HWND hWnd=Element(L"BUTTON",t,BS_OWNERDRAW|WS_TABSTOP,x,y,w,h);
+    SetPropW(hWnd,L"AulaCheckbox",(HANDLE)1);
+    if(initial)SetPropW(hWnd,L"AulaChecked",(HANDLE)1);
+    InvalidateRect(hWnd,nullptr,TRUE);
     return hWnd;
 }
-bool Checked(HWND h){return h && SendMessageW(h,BM_GETCHECK,0,0)==BST_CHECKED;}
+bool Checked(HWND h){return h && GetPropW(h,L"AulaChecked")!=nullptr;}
 void Clear(){
     for(HWND h:children)if(h&&IsWindow(h))DestroyWindow(h);
     children.clear();
@@ -85,7 +91,8 @@ void Navigate(int page){
     SaveIdentity();
     currentPage=page;
     Clear();
-    const int x=232;
+    InvalidateRect(mainWindow,nullptr,TRUE);
+    const int x=282;
     if(page==0){
         aula::Inspection i=aula::Inspect();
         Label(L"Resumen del equipo",x,38,830,46,true);
@@ -317,25 +324,18 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
     switch(msg){
     case WM_CREATE:{
         mainWindow=hwnd;
-        background=CreateSolidBrush(RGB(248,249,251));
+        background=CreateSolidBrush(RGB(244,249,253));
+        whiteEdit=CreateSolidBrush(RGB(255,255,255));
         fontNormal=CreateFontW(-17,0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,0,0,CLEARTYPE_QUALITY,
                               DEFAULT_PITCH,L"Segoe UI");
         fontSmall=CreateFontW(-15,0,0,0,FW_NORMAL,0,0,0,DEFAULT_CHARSET,0,0,CLEARTYPE_QUALITY,
                               DEFAULT_PITCH,L"Consolas");
         fontTitle=CreateFontW(-29,0,0,0,FW_SEMIBOLD,0,0,0,DEFAULT_CHARSET,0,0,CLEARTYPE_QUALITY,
                               DEFAULT_PITCH,L"Segoe UI");
-        HWND side=CreateWindowW(L"STATIC",L"",WS_CHILD|WS_VISIBLE|SS_LEFT,0,0,210,750,hwnd,nullptr,GetModuleHandleW(nullptr),nullptr);
-        HBRUSH sidebarBrush=CreateSolidBrush(RGB(232,237,244)); // se limpia al cerrar; fondo general
-        SetPropW(hwnd,L"SidebarBrush",sidebarBrush);
-        Font(side,fontNormal);
-        HWND logo=CreateWindowW(L"STATIC",L"AULA MANAGER",WS_CHILD|WS_VISIBLE,22,38,175,36,hwnd,nullptr,GetModuleHandleW(nullptr),nullptr);
-        Font(logo,fontTitle);
-        HWND sub=CreateWindowW(L"STATIC",L"Portable · Mantenimiento",WS_CHILD|WS_VISIBLE,23,79,185,43,hwnd,nullptr,GetModuleHandleW(nullptr),nullptr);
-        Font(sub,fontNormal);
         const wchar_t* nav[]={L"Resumen",L"Mantenimiento",L"Programas / antivirus",L"LibreOffice",L"Migración Windows",L"Informes"};
         for(int i=0;i<6;++i){
-            HWND b=CreateWindowW(L"BUTTON",nav[i],WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON|WS_TABSTOP,
-                                 17,150+i*66,179,48,hwnd,(HMENU)(INT_PTR)(NAV_BASE+i),GetModuleHandleW(nullptr),nullptr);
+            HWND b=CreateWindowW(L"BUTTON",nav[i],WS_CHILD|WS_VISIBLE|BS_OWNERDRAW|WS_TABSTOP,
+                                 16,170+i*65,210,50,hwnd,(HMENU)(INT_PTR)(NAV_BASE+i),GetModuleHandleW(nullptr),nullptr);
             Font(b,fontNormal);
         }
         Navigate(0);
@@ -344,35 +344,52 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
     }
     case WM_COMMAND:{
         int id=LOWORD(wParam), notification=HIWORD(wParam);
+        HWND source=(HWND)lParam;
+        if(notification==BN_CLICKED && source && GetPropW(source,L"AulaCheckbox")){
+            if(GetPropW(source,L"AulaChecked"))RemovePropW(source,L"AulaChecked");
+            else SetPropW(source,L"AulaChecked",(HANDLE)1);
+            InvalidateRect(source,nullptr,TRUE);
+            return 0;
+        }
         if(id>=NAV_BASE && id<NAV_BASE+6 && notification==BN_CLICKED){Action(id);return 0;}
         if(id>=PREVIEW && id<=OPEN_WIN && notification==BN_CLICKED){Action(id);return 0;}
         return 0;
     }
+    case WM_DRAWITEM:{
+        DRAWITEMSTRUCT* d=(DRAWITEMSTRUCT*)lParam;
+        if(d && d->CtlType==ODT_BUTTON){
+            skin::OwnerButton(d,currentPage,fontNormal);
+            return TRUE;
+        }
+        return FALSE;
+    }
     case WM_CTLCOLORSTATIC:
         SetBkMode((HDC)wParam,TRANSPARENT);
-        SetTextColor((HDC)wParam,RGB(31,42,57));
-        return (LRESULT)background;
+        SetTextColor((HDC)wParam,RGB(28,68,110));
+        return (LRESULT)GetStockObject(HOLLOW_BRUSH);
+    case WM_CTLCOLOREDIT:
+    case WM_CTLCOLORLISTBOX:
+        SetTextColor((HDC)wParam,RGB(22,62,104));
+        SetBkColor((HDC)wParam,RGB(255,255,255));
+        return (LRESULT)whiteEdit;
     case WM_CTLCOLORBTN:
         SetBkMode((HDC)wParam,TRANSPARENT);
-        return (LRESULT)background;
+        return (LRESULT)GetStockObject(HOLLOW_BRUSH);
     case WM_ERASEBKGND:{
         RECT r;GetClientRect(hwnd,&r);
-        FillRect((HDC)wParam,&r,background);
-        RECT sr={0,0,210,r.bottom};
-        HBRUSH sb=(HBRUSH)GetPropW(hwnd,L"SidebarBrush");
-        if(sb)FillRect((HDC)wParam,&sr,sb);
+        skin::Dashboard((HDC)wParam,r,currentPage);
         return 1;
     }
     case WM_GETMINMAXINFO:{
         MINMAXINFO* p=(MINMAXINFO*)lParam;
-        p->ptMinTrackSize.x=1070;p->ptMinTrackSize.y=750;return 0;
+        p->ptMinTrackSize.x=1220;p->ptMinTrackSize.y=820;return 0;
     }
     case WM_DESTROY:
         if(fontNormal)DeleteObject(fontNormal);
         if(fontSmall)DeleteObject(fontSmall);
         if(fontTitle)DeleteObject(fontTitle);
         if(background)DeleteObject(background);
-        if(GetPropW(hwnd,L"SidebarBrush")){DeleteObject((HBRUSH)GetPropW(hwnd,L"SidebarBrush"));RemovePropW(hwnd,L"SidebarBrush");}
+        if(whiteEdit)DeleteObject(whiteEdit);
         PostQuitMessage(0);return 0;
     default:return DefWindowProcW(hwnd,msg,wParam,lParam);
     }
@@ -380,6 +397,8 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
 }
 int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int show){
     SetProcessDPIAware();
+    Gdiplus::GdiplusStartupInput gdipInput;
+    Gdiplus::GdiplusStartup(&gdipToken,&gdipInput,nullptr);
     INITCOMMONCONTROLSEX controls={sizeof(controls),ICC_STANDARD_CLASSES};
     InitCommonControlsEx(&controls);
     WNDCLASSEXW wc={sizeof(wc)};
@@ -389,7 +408,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int show){
     wc.hbrBackground=(HBRUSH)(COLOR_WINDOW+1);
     if(!RegisterClassExW(&wc))return 1;
     HWND hwnd=CreateWindowExW(0,wc.lpszClassName,L"Aula Manager Portable — mantenimiento de aulas",
-        WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,1090,760,
+        WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN,CW_USEDEFAULT,CW_USEDEFAULT,1240,850,
         nullptr,nullptr,instance,nullptr);
     if(!hwnd)return 2;
     ShowWindow(hwnd,show);UpdateWindow(hwnd);
@@ -397,5 +416,6 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int show){
     while(GetMessageW(&msg,nullptr,0,0)>0){
         if(!IsDialogMessageW(hwnd,&msg)){TranslateMessage(&msg);DispatchMessageW(&msg);}
     }
+    Gdiplus::GdiplusShutdown(gdipToken);
     return (int)msg.wParam;
 }
