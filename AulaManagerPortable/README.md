@@ -1,8 +1,12 @@
-# Aula Manager Portable (prototipo técnico 0.1)
+# Aula Manager Portable — v0.3 (vista adaptable, prototipo técnico)
 
 Aplicación **nativa de escritorio Windows (Win32, C++17, Visual Studio 2022)**, en español, orientada a las revisiones de aulas de centros municipales de mayores. **No tiene instalador** y la compilación Release/Win32 utiliza **CRT estática (/MT)**: el ejecutable puede llevarse en un pendrive y arrancar tanto en Windows 7 SP1 de 32 bits como en Windows 10 de 32 o 64 bits, sin instalar .NET ni Visual C++ Redistributable. El funcionamiento en cada equipo real debe verificarse antes de uso en producción.
 
 > ESTADO: **primera versión funcional en desarrollo**, no sustituye todavía todas las operaciones de Nivel 3 de Aurora/Aula Optimizer. No se ha probado en los ordenadores reales de los centros. No ejecute mantenimiento masivo antes de validarlo en un PC piloto. El compilador de GitHub Actions valida que el proyecto se puede generar, pero no demuestra compatibilidad de hardware ni ausencia de regresiones.
+
+## Interfaz v0.3
+
+La ventana ahora redistribuye todos sus paneles y controles al maximizar o redimensionar (`WM_SIZE`), permite texto de varias líneas sin elipsis en los botones, utiliza tamaños de fuente legibles, un diseño azul/celeste y blanco, accesos rápidos diferenciados por color, y su icono está integrado en el ejecutable. Las etiquetas de información calculan alturas según el contenido (sistema operativo y CPU largos no deben solaparse). En pantallas suficientemente amplias se muestran tres tarjetas inferiores de estado, recursos y tareas recomendadas; en pantallas más pequeñas estas se ocultan para priorizar los controles de trabajo. Se compiló en Windows CI y se generaron capturas automáticas de comprobación, **sin sustituir una prueba manual en los equipos del aula**.
 
 ## Cómo abrir y compilar
 
