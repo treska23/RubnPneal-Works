@@ -57,7 +57,7 @@ struct Metrics{
 };
 inline Metrics Measure(int w,int h,int page){
     Metrics m; m.w=(std::max)(w,940);m.h=(std::max)(h,650);
-    m.side=Clamp(m.w/6,188,260);
+    m.side=Clamp(m.w/6,225,260);
     m.margin=Clamp(m.w/70,16,28);
     m.gap=Clamp(m.w/85,12,21);
     int x=m.side+m.margin;
@@ -205,7 +205,18 @@ inline void OwnerButton(DRAWITEMSTRUCT* item,int page,HFONT font){
         GraphicsPath focusPath;Round(focusPath,4.f,4.f,w-9.f,h-9.f,9.f);
         g.DrawPath(&focus,&focusPath);
     }
+    // Calculate required line count and center text vertically. Never clip button captions into ellipses.
+    LONG leftPad=navigation?42:12;
+    LONG rightPad=12;
+    RECT measured={0,0,(LONG)w-leftPad-rightPad,1000};
+    HGDIOBJ old=SelectObject(item->hDC,font);
+    DrawTextW(item->hDC,name.c_str(),-1,&measured,DT_CALCRECT|DT_WORDBREAK|DT_NOPREFIX);
+    SelectObject(item->hDC,old);
+    LONG textH=(std::max)(18L,measured.bottom);
+    label.left=leftPad;label.top=(LONG)((h-textH)/2.f);
+    label.right=(LONG)w-rightPad;label.bottom=(LONG)h-2;
     Text(item->hDC,name,label,RGB(fg.GetR(),fg.GetG(),fg.GetB()),font,
-         (navigation?DT_LEFT:DT_CENTER)|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS);
+         (navigation?DT_LEFT:DT_CENTER)|DT_WORDBREAK|DT_NOPREFIX);
+
 }
 }
