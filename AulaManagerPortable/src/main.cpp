@@ -7,6 +7,9 @@
 #include <commctrl.h>
 #include <algorithm>
 #include <vector>
+#include <map>
+#include <string>
+#include <cmath>
 
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "gdi32.lib")
@@ -22,7 +25,10 @@ HWND mainWindow=nullptr,centerEdit=nullptr,stationEdit=nullptr,logEdit=nullptr;
 HWND programList=nullptr,msiLabel=nullptr,folderLabel=nullptr,scanLabel=nullptr;
 HWND checkTemp=nullptr,checkSysTemp=nullptr,checkCeip=nullptr,checkDiag=nullptr,
      checkServices=nullptr,checkTablet=nullptr,checkRemote=nullptr,checkBackup=nullptr,checkLicense=nullptr;
-HFONT fontNormal=nullptr,fontTitle=nullptr,fontSmall=nullptr;
+HFONT fontNormal=nullptr,fontTitle=nullptr,fontSmall=nullptr,fontMeta=nullptr,fontBrand=nullptr;
+HWND navButtons[6]={},brandTitle=nullptr,brandSubtitle=nullptr,sideStatus=nullptr;
+std::map<std::wstring,HWND> ui;
+bool layoutReady=false;
 HBRUSH background=nullptr;
 HBRUSH whiteEdit=nullptr;
 ULONG_PTR gdipToken=0;
@@ -63,6 +69,7 @@ bool Checked(HWND h){return h && GetPropW(h,L"AulaChecked")!=nullptr;}
 void Clear(){
     for(HWND h:children)if(h&&IsWindow(h))DestroyWindow(h);
     children.clear();
+    ui.clear();
     centerEdit=stationEdit=logEdit=programList=msiLabel=folderLabel=scanLabel=nullptr;
     checkTemp=checkSysTemp=checkCeip=checkDiag=checkServices=checkTablet=checkRemote=checkBackup=checkLicense=nullptr;
 }
@@ -87,106 +94,255 @@ bool Confirm(const std::wstring& question){
     return MessageBoxW(mainWindow,question.c_str(),L"Confirmar operación",
         MB_YESNO|MB_ICONWARNING|MB_DEFBUTTON2)==IDYES;
 }
+
+void Put(const wchar_t* key,HWND control){if(control)ui[key]=control;}
+HWND Find(const wchar_t* key){auto it=ui.find(key);return it==ui.end()?nullptr:it->second;}
+void At(const wchar_t* key,int x,int y,int w,int h){
+    HWND control=Find(key);
+    if(control)MoveWindow(control,x,y,(std::max)(0,w),(std::max)(0,h),TRUE);
+}
+void Text(const wchar_t* key,const std::wstring& text,bool isTitle=false,bool muted=false){
+    HWND c=Element(L"STATIC",text,SS_LEFT|SS_NOPREFIX,0,0,100,30,0,
+                   isTitle?fontTitle:(muted?fontMeta:fontNormal));
+    Put(key,c);
+}
+void Edit(const wchar_t* key,const std::wstring& value,HWND& output,DWORD style=ES_AUTOHSCROLL){
+    output=Element(L"EDIT",value,WS_BORDER|WS_TABSTOP|style,0,0,200,36);
+    Put(key,output);
+}
+void Btn(const wchar_t* key,const wchar_t* text,int id){
+    Put(key,Button(text,0,0,200,44,id));
+}
+void Box(const wchar_t* key,const wchar_t* text,HWND& output,bool checked=false){
+    output=Check(text,0,0,350,45,checked);Put(key,output);
+}
+void AlignPage(){
+    if(!mainWindow||!layoutReady)return;
+    RECT rc={};GetClientRect(mainWindow,&rc);
+    int W=rc.right,H=rc.bottom;
+    if(W<=0||H<=0)return;
+    auto m=skin::Measure(W,H,currentPage);
+    int sidebar=m.side;
+    if(brandTitle)MoveWindow(brandTitle,84,27,sidebar-90,31,TRUE);
+    if(brandSubtitle)MoveWindow(brandSubtitle,84,58,sidebar-90,48,TRUE);
+    const int navStart=170;
+    const int navStep=(std::min)(65,(std::max)(49,(H-365)/6));
+    for(int i=0;i<6;i++)if(navButtons[i])
+        MoveWindow(navButtons[i],16,navStart+i*navStep,sidebar-32,navStep-10,TRUE);
+    if(sideStatus)MoveWindow(sideStatus,25,H-120,sidebar-45,68,TRUE);
+    auto hero=m.hero,card=m.body,left=m.left,right=m.right;
+    At(L"heading",hero.x+27,hero.y+16,hero.w-165,43);
+    At(L"subtitle",hero.x+29,hero.y+67,hero.w-165,hero.h-77);
+    auto id=m.id;
+    if(currentPage==0){
+        int ux=id.x+25, uy=id.y+13, iw=id.w-50;
+        int saveW=(std::min)(225,(std::max)(176,iw/5));
+        int p1=(int)((iw-saveW-35)*.55);
+        int p2=iw-saveW-35-p1;
+        At(L"centerCaption",ux,uy,p1,26);
+        At(L"stationCaption",ux+p1+18,uy,p2,26);
+        At(L"centerEdit",ux,uy+36,p1,38);
+        At(L"stationEdit",ux+p1+18,uy+36,p2,38);
+        At(L"save",ux+p1+18+p2+17,uy+36,saveW,40);
+        At(L"detailsTitle",left.x+26,left.y+21,left.w-50,39);
+        int headerBottom=left.y+73;
+        int available=(std::max)(1,left.h-116);
+        int row=(std::max)(29,available/8);
+        int labelW=skin::Clamp(left.w/3,155,215);
+        for(int i=0;i<8;++i){
+            std::wstring a=L"key"+std::to_wstring(i),b=L"value"+std::to_wstring(i);
+            int yy=headerBottom+i*row;
+            At(a.c_str(),left.x+26,yy,labelW,row+8);
+            At(b.c_str(),left.x+labelW+33,yy,left.w-labelW-65,row+11);
+        }
+        At(L"admin",left.x+24,left.y+left.h-55,(std::min)(270,left.w-48),42);
+        At(L"actionsTitle",right.x+24,right.y+19,right.w-48,36);
+        int btnTop=right.y+74;
+        int space=(std::max)(33,(right.h-99)/5);
+        int btnH=(std::min)(56,(std::max)(36,space-9));
+        for(int i=0;i<5;++i){
+            std::wstring name=L"action"+std::to_wstring(i);
+            At(name.c_str(),right.x+24,btnTop+i*space,right.w-48,btnH);
+        }
+        At(L"hint",left.x+27,left.y+left.h-18,left.w-45,24);
+        return;
+    }
+    const int innerX=card.x+28, innerW=card.w-56, innerY=card.y+20,innerH=card.h-45;
+    switch(currentPage){
+    case 1:{
+        At(L"explain",innerX,innerY,innerW,58);
+        int top=innerY+65;
+        int row=(std::min)(56,(std::max)(34,(innerH-225)/7)));
+        for(int i=0;i<7;i++){
+            std::wstring name=L"check"+std::to_wstring(i);
+            At(name.c_str(),innerX+8,top+i*row,innerW-16,row-3);
+        }
+        int by=top+7*row+18;
+        int half=(std::min)(255,(innerW-18)/2);
+        At(L"preview",innerX,by,half,46);
+        At(L"execute",innerX+half+20,by,half,46);
+        At(L"restore",innerX,by+58,half,43);
+        At(L"ceip",innerX+half+20,by+58,half,43);
+        At(L"note",innerX,by+114,innerW,70);
+        break;
+    }
+    case 2:{
+        At(L"explain",innerX,innerY,innerW,52);
+        At(L"programs",innerX,innerY+64,innerW,(std::max)(80,innerH-180));
+        int buttonY=innerY+innerH-102;
+        int buttonW=(innerW-36)/3;
+        At(L"refresh",innerX,buttonY,buttonW,45);
+        At(L"remove",innerX+buttonW+18,buttonY,buttonW,45);
+        At(L"windowsApps",innerX+(buttonW+18)*2,buttonY,buttonW,45);
+        At(L"note",innerX,buttonY+57,innerW,48);
+        break;
+    }
+    case 3:{
+        At(L"installed",innerX,innerY+10,innerW,35);
+        At(L"explain",innerX,innerY+62,innerW,70);
+        At(L"compat",innerX,innerY+154,innerW,90);
+        At(L"pick",innerX,innerY+262,(std::min)(270,innerW/3),48);
+        At(L"filename",innerX,innerY+330,innerW,60);
+        At(L"update",innerX,innerY+415,(std::min)(285,innerW/3),47);
+        At(L"official",innerX+(std::min)(285,innerW/3)+20,innerY+415,(std::min)(250,innerW/3),47);
+        At(L"note",innerX,innerY+488,innerW,75);
+        break;
+    }
+    case 4:{
+        At(L"explain",innerX,innerY,innerW,64);
+        At(L"system",innerX,innerY+68,innerW,53);
+        At(L"compat",innerX,innerY+132,innerW,81);
+        At(L"pick",innerX,innerY+228,(std::min)(310,innerW/3),47);
+        At(L"folder",innerX,innerY+287,innerW,41);
+        At(L"scan",innerX,innerY+338,(std::min)(260,innerW/3),47);
+        At(L"scanText",innerX,innerY+399,innerW,52);
+        At(L"backup",innerX,innerY+462,innerW,34);
+        At(L"license",innerX,innerY+504,innerW,34);
+        At(L"migrate",innerX,innerY+552,(std::min)(350,innerW/2),47);
+        break;
+    }
+    case 5:{
+        At(L"identity",innerX,innerY,innerW,35);
+        At(L"log",innerX,innerY+51,innerW,(std::max)(80,innerH-174));
+        At(L"report",innerX,innerY+innerH-111,(std::min)(275,innerW/3),47);
+        At(L"openReports",innerX+(std::min)(275,innerW/3)+20,innerY+innerH-111,(std::min)(290,innerW/3),47);
+        At(L"note",innerX,innerY+innerH-52,innerW,44);
+        break;
+    }
+    }
+}
 void Navigate(int page){
     SaveIdentity();
     currentPage=page;
     Clear();
-    InvalidateRect(mainWindow,nullptr,TRUE);
-    const int x=282;
+    const wchar_t* pages[]={L"Resumen del equipo",L"Mantenimiento y limpieza",L"Programas y antivirus",
+                            L"LibreOffice",L"Migración de Windows 7 a Windows 10",L"Registro e informes"};
+    const wchar_t* subtitles[]={
+        L"Información del sistema y acceso rápido a las principales tareas de mantenimiento.",
+        L"Selecciona las operaciones. Ninguna tarea se ejecuta automáticamente.",
+        L"Inventario de programas instalados y desinstalación controlada.",
+        L"Actualización mediante instaladores oficiales compatibles con este equipo.",
+        L"Comprueba requisitos antes de abrir el instalador original de Microsoft.",
+        L"Registro de intervenciones por centro y por puesto físico."
+    };
+    Text(L"heading",pages[page],true);
+    Text(L"subtitle",subtitles[page],false,true);
     if(page==0){
         aula::Inspection i=aula::Inspect();
-        Label(L"Resumen del equipo",x,38,830,46,true);
-        Label(L"Identifica cada ordenador por su puesto físico. Dos PCs clonados pueden compartir nombre de Windows.",x,95,790,48);
-        Label(L"Centro municipal",x,155,240,23);
-        centerEdit=Element(L"EDIT",aula::IniRead(L"Centro"),WS_BORDER|ES_AUTOHSCROLL|WS_TABSTOP,x,182,365,30);
-        Label(L"Puesto físico (ej. PC10, Profesor)",x+395,155,300,23);
-        stationEdit=Element(L"EDIT",aula::IniRead(L"Puesto"),WS_BORDER|ES_AUTOHSCROLL|WS_TABSTOP,x+395,182,320,30);
-        Button(L"Guardar identificación",x,227,210,37,SAVE_ID);
-        Label(L"Información detectada",x,292,710,28,true);
-        std::wstring data=L"Equipo Windows: "+i.machine+L"\r\nSistema: "+i.windows+
-          L"\r\nArquitectura: "+i.architecture+
-          L"\r\nCPU: "+i.cpu+L"\r\nRAM: "+std::to_wstring(i.ramMb)+
-          L" MB     Espacio libre (unidad Windows): "+std::to_wstring(i.freeGb)+
-          L" GB\r\nLibreOffice: "+i.libreoffice+
-          L"\r\nPrivilegios de administrador: "+(i.administrator?L"SÍ":L"NO");
-        Label(data,x,345,555,235);
-        if(!i.administrator)Button(L"Reiniciar como administrador",x,550,284,38,ELEVATE);
-        Label(L"Acciones rápidas",860,315,300,34,true);
-        Button(L"Limpiar temporales",860,368,302,43,QUICK_CLEAN);
-        Button(L"Programas y antivirus",860,421,302,43,QUICK_AV);
-        Button(L"Actualizar LibreOffice",860,474,302,43,QUICK_LO);
-        Button(L"Migración Windows",860,527,302,43,QUICK_MIG);
-        Button(L"Generar informe",860,580,302,43,QUICK_REPORT);
-        Label(L"Todos los datos y registros se guardan en la carpeta Datos junto al ejecutable.",x,656,525,40);
-    }
-    if(page==1){
-        Label(L"Mantenimiento y limpieza",x,40,790,48,true);
-        Label(L"Selecciona operaciones concretas. No hay optimización oculta ni cambios automáticos.",x,96,790,38);
-        checkTemp=Check(L"Eliminar temporales del usuario con más de 7 días (sin seguir enlaces/junctions)",x,150,800,28,true);
-        checkSysTemp=Check(L"Incluir también C:\\Windows\\Temp (necesita administrador)",x+22,185,755,26);
-        checkCeip=Check(L"Reducir CEIP/SQM en Windows (con respaldo del registro)",x,227,790,28);
-        checkDiag=Check(L"Deshabilitar servicios de diagnóstico opcionales: DiagTrack / dmwappushservice",x,264,790,28);
-        checkServices=Check(L"Deshabilitar servicios opcionales: Fax y compartir Windows Media",x,301,790,28);
-        checkTablet=Check(L"Deshabilitar servicio TabletInputService SOLO si no hay pantalla táctil",x,338,790,28);
-        checkRemote=Check(L"Deshabilitar Registro remoto (puede afectar a administración remota)",x,375,790,28);
-        Button(L"Vista previa de limpieza",x,440,250,39,PREVIEW);
-        Button(L"Aplicar seleccionadas",x+270,440,235,39,EXECUTE);
-        Button(L"Restaurar servicios",x,499,220,37,RESTORE);
-        Button(L"Restaurar CEIP",x+238,499,185,37,RESTORE_CEIP);
-        Label(L"Recomendación: empieza por temporales. Algunos cambios de servicios requieren reiniciar Windows.\nNo se desactivan Windows Update, el cortafuegos ni Microsoft Defender.",x,580,805,67);
-    }
-    if(page==2){
-        Label(L"Programas y antivirus",x,40,790,48,true);
-        Label(L"Se muestran TODOS los programas registrados, con posibles antivirus al principio. No se eliminan automáticamente.",x,96,810,46);
-        programList=Element(L"LISTBOX",L"",WS_BORDER|LBS_NOTIFY|WS_VSCROLL|WS_HSCROLL|WS_TABSTOP,x,152,795,383,0,fontSmall);
+        Text(L"centerCaption",L"Centro municipal");
+        Text(L"stationCaption",L"Puesto físico (p. ej., PC10)");
+        Edit(L"centerEdit",aula::IniRead(L"Centro"),centerEdit);
+        Edit(L"stationEdit",aula::IniRead(L"Puesto"),stationEdit);
+        Btn(L"save",L"Guardar identificación",SAVE_ID);
+        Text(L"detailsTitle",L"Información del equipo",true);
+        std::vector<std::pair<std::wstring,std::wstring>> rows={
+            {L"Nombre del equipo",i.machine},
+            {L"Sistema operativo",i.windows},
+            {L"Arquitectura",i.architecture},
+            {L"Procesador",i.cpu},
+            {L"Memoria RAM",std::to_wstring(i.ramMb)+L" MB"},
+            {L"Espacio libre (C:)",std::to_wstring(i.freeGb)+L" GB"},
+            {L"LibreOffice",i.libreoffice},
+            {L"Administrador",i.administrator?L"Sí":L"No"}
+        };
+        for(int n=0;n<8;n++){
+            Text((L"key"+std::to_wstring(n)).c_str(),rows[n].first);
+            Text((L"value"+std::to_wstring(n)).c_str(),rows[n].second);
+        }
+        if(!i.administrator)Btn(L"admin",L"Reiniciar como administrador",ELEVATE);
+        Text(L"actionsTitle",L"Acciones rápidas",true);
+        const wchar_t* names[]={L"Limpiar archivos temporales",L"Programas y antivirus",L"Actualizar LibreOffice",
+                                L"Migración de Windows",L"Generar informe"};
+        const int actionIds[]={QUICK_CLEAN,QUICK_AV,QUICK_LO,QUICK_MIG,QUICK_REPORT};
+        for(int n=0;n<5;n++)Btn((L"action"+std::to_wstring(n)).c_str(),names[n],actionIds[n]);
+        Text(L"hint",L"Los registros se guardan junto al ejecutable.",false,true);
+    }else if(page==1){
+        Text(L"explain",L"Selecciona únicamente los ajustes que necesites. Los cambios de servicios y registro guardan su estado anterior.");
+        Box(L"check0",L"Limpiar temporales del usuario con más de 7 días",checkTemp,true);
+        Box(L"check1",L"Incluir C:\\Windows\\Temp (administrador)",checkSysTemp);
+        Box(L"check2",L"Reducir telemetría CEIP/SQM (con respaldo)",checkCeip);
+        Box(L"check3",L"Deshabilitar servicios de diagnóstico opcionales",checkDiag);
+        Box(L"check4",L"Deshabilitar Fax y compartir Windows Media",checkServices);
+        Box(L"check5",L"Deshabilitar TabletInputService (solo si no hay pantalla táctil)",checkTablet);
+        Box(L"check6",L"Deshabilitar Registro remoto (puede afectar administración remota)",checkRemote);
+        Btn(L"preview",L"Vista previa",PREVIEW);
+        Btn(L"execute",L"Aplicar operaciones seleccionadas",EXECUTE);
+        Btn(L"restore",L"Restaurar servicios",RESTORE);
+        Btn(L"ceip",L"Restaurar CEIP",RESTORE_CEIP);
+        Text(L"note",L"Windows Update, el cortafuegos y Microsoft Defender no se desactivan. Algunos cambios requieren reinicio.",false,true);
+    }else if(page==2){
+        Text(L"explain",L"Posibles antivirus al principio. La apertura de un desinstalador no garantiza su eliminación.");
+        programList=Element(L"LISTBOX",L"",WS_BORDER|LBS_NOTIFY|WS_VSCROLL|WS_HSCROLL|WS_TABSTOP,0,0,200,300,0,fontNormal);
+        Put(L"programs",programList);
         installed=aula::Programs();
         for(const auto& p:installed){
             std::wstring label=(p.antivirus?L"[POSIBLE ANTIVIRUS] ":L"")+p.name+
                 (p.version.empty()?L"":L"  ("+p.version+L")");
             SendMessageW(programList,LB_ADDSTRING,0,(LPARAM)label.c_str());
         }
-        Button(L"Actualizar listado",x,553,198,39,REFRESH);
-        Button(L"Desinstalar seleccionado",x+217,553,254,39,REMOVE_APP);
-        Button(L"Programas y características",x+490,553,295,39,OPEN_WIN);
-        Label(L"Importante: la desinstalación del fabricante puede requerir confirmaciones o reinicio. Revisa después que el programa haya desaparecido.",x,612,800,52);
-    }
-    if(page==3){
+        Btn(L"refresh",L"Actualizar listado",REFRESH);
+        Btn(L"remove",L"Desinstalar seleccionado",REMOVE_APP);
+        Btn(L"windowsApps",L"Programas de Windows",OPEN_WIN);
+        Text(L"note",L"Si el desinstalador pide contraseña o reinicio, resuélvelo desde Windows y vuelve a actualizar la lista.",false,true);
+    }else if(page==3){
         aula::Inspection i=aula::Inspect();
-        Label(L"LibreOffice",x,40,790,48,true);
-        Label(L"Instalado: "+i.libreoffice,x,105,795,28);
-        Label(L"Utiliza un instalador MSI descargado de LibreOffice. Puedes llevarlo previamente en el mismo pendrive.",x,152,800,48);
-        if(i.windows7)
-            Label(L"Windows 7: solo se permite un MSI de la rama 7.4.x, que admitía Windows 7 SP1. Las versiones actuales oficialmente exigen Windows 10/11.",x,220,805,71);
-        else Label(L"Comprueba la versión, firma y arquitectura del instalador oficial antes de instalar.",x,220,805,42);
-        Button(L"Elegir archivo .MSI",x,312,240,38,MSI_PICK);
-        msiLabel=Label(selectedMsi.empty()?L"Ningún MSI seleccionado.":selectedMsi,x,362,795,55);
-        Button(L"Iniciar actualización",x,441,240,43,MSI_INSTALL);
-        Button(L"Abrir web oficial",x+260,441,220,43,OPEN_LO);
-        Label(L"El instalador se abre en modo visible (/passive) y puede pedir reinicio.\nLa operación se registrará como iniciada hasta verificar la versión instalada.",x,541,802,69);
-    }
-    if(page==4){
+        Text(L"installed",L"Versión detectada: "+i.libreoffice,true);
+        Text(L"explain",L"Selecciona un MSI oficial de LibreOffice guardado en el pendrive. No se realizan descargas ocultas.");
+        Text(L"compat",i.windows7?
+             L"Windows 7 SP1: utiliza una versión compatible de LibreOffice 7.4.x. Las versiones actuales no son compatibles.":
+             L"Revisa firma digital, versión e idioma del instalador antes de ejecutarlo.");
+        Btn(L"pick",L"Seleccionar archivo MSI",MSI_PICK);
+        msiLabel=Element(L"STATIC",selectedMsi.empty()?L"No se ha elegido ningún instalador.":selectedMsi,SS_LEFT,
+                         0,0,200,50,0,fontMeta);Put(L"filename",msiLabel);
+        Btn(L"update",L"Iniciar actualización",MSI_INSTALL);
+        Btn(L"official",L"Web oficial de LibreOffice",OPEN_LO);
+        Text(L"note",L"Se abrirá el instalador visible. Después comprueba que la versión nueva figura instalada.",false,true);
+    }else if(page==4){
         aula::Inspection i=aula::Inspect();
-        Label(L"Migración Windows 7 → Windows 10",x,40,820,48,true);
-        Label(L"Sin Media Creation Tool en el PC antiguo: prepara una ISO oficial en otro PC y extrae su contenido en un USB.",x,97,815,45);
-        Label(L"Sistema: "+i.windows+L" | "+i.architecture+L" | RAM "+std::to_wstring(i.ramMb)+L" MB | libre "+std::to_wstring(i.freeGb)+L" GB",x,157,807,57);
-        Label(L"Debes conservar idioma, edición y arquitectura; pasar de 32 a 64 bits requiere instalación limpia.\nWindows 10 dejó de tener soporte general en 2025: evalúa ESU o sustitución.",x,221,815,68);
-        Button(L"Elegir carpeta de ISO / USB",x,315,280,39,FOLDER_PICK);
-        folderLabel=Label(selectedFolder.empty()?L"No seleccionada.":selectedFolder,x,367,815,31);
-        Button(L"Comprobar requisitos",x,418,240,40,SCAN);
-        scanLabel=Label(L"Esperando selección de medio de instalación.",x,468,805,57);
-        checkBackup=Check(L"He hecho una copia de seguridad externa verificable de los datos del equipo.",x,552,810,30);
-        checkLicense=Check(L"Tengo medio oficial, licencia válida y arquitectura/idioma comprobados.",x,589,810,30);
-        Button(L"Iniciar instalador de Windows",x,636,350,38,MIGRATE);
-    }
-    if(page==5){
-        Label(L"Registro e informes",x,40,790,48,true);
-        Label(Identity(),x,100,805,34);
+        Text(L"explain",L"Prepara una ISO oficial en un equipo moderno y copia su contenido a un USB. No uses Media Creation Tool en Windows 7.");
+        Text(L"system",L"Sistema: "+i.windows+L"   ·   "+i.architecture+
+             L"   ·   RAM: "+std::to_wstring(i.ramMb)+L" MB   ·   Libre: "+std::to_wstring(i.freeGb)+L" GB");
+        Text(L"compat",L"La actualización que conserve programas debe iniciarse desde Windows, con arquitectura, idioma y edición compatibles. Windows 10 ya está fuera de soporte general.");
+        Btn(L"pick",L"Seleccionar carpeta ISO / USB",FOLDER_PICK);
+        folderLabel=Element(L"STATIC",selectedFolder.empty()?L"No se ha seleccionado ningún medio.":selectedFolder,
+                            SS_LEFT,0,0,200,40,0,fontMeta);Put(L"folder",folderLabel);
+        Btn(L"scan",L"Comprobar requisitos",SCAN);
+        scanLabel=Element(L"STATIC",L"Esperando selección del instalador.",SS_LEFT,
+                          0,0,200,50,0,fontNormal);Put(L"scanText",scanLabel);
+        Box(L"backup",L"He realizado y verificado una copia de seguridad externa.",checkBackup);
+        Box(L"license",L"Dispongo de medio oficial, licencia válida y arquitectura/idioma adecuados.",checkLicense);
+        Btn(L"migrate",L"Abrir instalador Windows",MIGRATE);
+    }else if(page==5){
+        Text(L"identity",Identity());
         logEdit=Element(L"EDIT",aula::ReadLog(),WS_BORDER|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY|WS_VSCROLL,
-                        x,154,795,399,0,fontSmall);
-        Button(L"Exportar informe TXT",x,572,230,41,REPORT);
-        Button(L"Abrir carpeta de informes",x+248,572,267,41,OPEN_REPORTS);
-        Label(L"Los informes incluyen las actuaciones realmente registradas; no presuponen que una desinstalación haya finalizado.",x,634,802,45);
+                        0,0,200,280,0,fontSmall);
+        Put(L"log",logEdit);
+        Btn(L"report",L"Exportar informe TXT",REPORT);
+        Btn(L"openReports",L"Abrir carpeta de informes",OPEN_REPORTS);
+        Text(L"note",L"Los informes distinguen tareas iniciadas de intervenciones finalizadas.",false,true);
     }
+    AlignPage();
+    InvalidateRect(mainWindow,nullptr,FALSE);
 }
 void DoMaintenance(bool preview){
     if(preview){
