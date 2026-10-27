@@ -147,7 +147,7 @@ void AlignPage(){
         At(L"detailsTitle",left.x+26,left.y+21,left.w-50,39);
         int headerBottom=left.y+73;
         int available=(std::max)(1,left.h-116);
-        int row=(std::max)(29,available/8);
+        int row=skin::Clamp((left.h-166)/8,26,46);
         int labelW=skin::Clamp(left.w/3,155,215);
         for(int i=0;i<8;++i){
             std::wstring a=L"key"+std::to_wstring(i),b=L"value"+std::to_wstring(i);
@@ -164,7 +164,7 @@ void AlignPage(){
             std::wstring name=L"action"+std::to_wstring(i);
             At(name.c_str(),right.x+24,btnTop+i*space,right.w-48,btnH);
         }
-        At(L"hint",left.x+27,left.y+left.h-18,left.w-45,24);
+        At(L"hint",left.x+27,left.y+left.h-29,left.w-45,24);
         return;
     }
     const int innerX=card.x+28, innerW=card.w-56, innerY=card.y+20,innerH=card.h-45;
@@ -172,18 +172,18 @@ void AlignPage(){
     case 1:{
         At(L"explain",innerX,innerY,innerW,58);
         int top=innerY+65;
-        int row=(std::min)(56,(std::max)(34,(innerH-225)/7));
+        int row=skin::Clamp((innerH-292)/7,28,52);
         for(int i=0;i<7;i++){
             std::wstring name=L"check"+std::to_wstring(i);
             At(name.c_str(),innerX+8,top+i*row,innerW-16,row-3);
         }
-        int by=top+7*row+18;
+        int by=top+7*row+12;
         int half=(std::min)(255,(innerW-18)/2);
         At(L"preview",innerX,by,half,46);
         At(L"execute",innerX+half+20,by,half,46);
         At(L"restore",innerX,by+58,half,43);
         At(L"ceip",innerX+half+20,by+58,half,43);
-        At(L"note",innerX,by+114,innerW,70);
+        At(L"note",innerX,by+108,innerW,64);
         break;
     }
     case 2:{
@@ -198,27 +198,35 @@ void AlignPage(){
         break;
     }
     case 3:{
-        At(L"installed",innerX,innerY+10,innerW,35);
-        At(L"explain",innerX,innerY+62,innerW,70);
-        At(L"compat",innerX,innerY+154,innerW,90);
-        At(L"pick",innerX,innerY+262,(std::min)(270,innerW/3),48);
-        At(L"filename",innerX,innerY+330,innerW,60);
-        At(L"update",innerX,innerY+415,(std::min)(285,innerW/3),47);
-        At(L"official",innerX+(std::min)(285,innerW/3)+20,innerY+415,(std::min)(250,innerW/3),47);
-        At(L"note",innerX,innerY+488,innerW,75);
+        const float shrink=(std::min)(1.f, (float)innerH/610.f);
+        auto fit=[&](const wchar_t* key,int deltaY,int h){
+            At(key,innerX,innerY+(int)(deltaY*shrink),innerW,(std::max)(28,(int)(h*shrink)));
+        };
+        fit(L"installed",10,35);
+        fit(L"explain",62,70);
+        fit(L"compat",154,90);
+        At(L"pick",innerX,innerY+(int)(262*shrink),(std::min)(270,innerW/3),(std::max)(32,(int)(48*shrink)));
+        fit(L"filename",330,60);
+        At(L"update",innerX,innerY+(int)(415*shrink),(std::min)(285,innerW/3),(std::max)(32,(int)(47*shrink)));
+        At(L"official",innerX+(std::min)(285,innerW/3)+20,innerY+(int)(415*shrink),(std::min)(250,innerW/3),(std::max)(32,(int)(47*shrink)));
+        fit(L"note",488,75);
         break;
     }
     case 4:{
-        At(L"explain",innerX,innerY,innerW,64);
-        At(L"system",innerX,innerY+68,innerW,53);
-        At(L"compat",innerX,innerY+132,innerW,81);
-        At(L"pick",innerX,innerY+228,(std::min)(310,innerW/3),47);
-        At(L"folder",innerX,innerY+287,innerW,41);
-        At(L"scan",innerX,innerY+338,(std::min)(260,innerW/3),47);
-        At(L"scanText",innerX,innerY+399,innerW,52);
-        At(L"backup",innerX,innerY+462,innerW,34);
-        At(L"license",innerX,innerY+504,innerW,34);
-        At(L"migrate",innerX,innerY+552,(std::min)(350,innerW/2),47);
+        const float shrink=(std::min)(1.f,(float)innerH/630.f);
+        auto fit=[&](const wchar_t* key,int deltaY,int h){
+            At(key,innerX,innerY+(int)(deltaY*shrink),innerW,(std::max)(28,(int)(h*shrink)));
+        };
+        fit(L"explain",0,64);
+        fit(L"system",68,53);
+        fit(L"compat",132,81);
+        At(L"pick",innerX,innerY+(int)(228*shrink),(std::min)(310,innerW/3),(std::max)(32,(int)(47*shrink)));
+        fit(L"folder",287,41);
+        At(L"scan",innerX,innerY+(int)(338*shrink),(std::min)(260,innerW/3),(std::max)(32,(int)(47*shrink)));
+        fit(L"scanText",399,52);
+        fit(L"backup",462,34);
+        fit(L"license",504,34);
+        At(L"migrate",innerX,innerY+(int)(552*shrink),(std::min)(350,innerW/2),(std::max)(32,(int)(47*shrink)));
         break;
     }
     case 5:{
