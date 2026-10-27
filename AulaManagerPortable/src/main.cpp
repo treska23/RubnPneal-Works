@@ -206,7 +206,7 @@ void AlignPage(){
             At(b.c_str(),left.x+labelW+33,yy,valueW,rowHeight[i]);
             yy+=rowHeight[i]+spacing;
         }
-        At(L"admin",left.x+24,left.y+left.h-55,(std::min)(270,left.w-48),42);
+        At(L"admin",left.x+24,left.y+left.h-46,(std::min)(280,left.w-48),37);
         At(L"actionsTitle",right.x+24,right.y+19,right.w-48,36);
         int btnTop=right.y+74;
         int space=(std::max)(33,(right.h-99)/5);
@@ -348,7 +348,7 @@ void Navigate(int page){
             Text((L"value"+std::to_wstring(n)).c_str(),rows[n].second);
         }
         if(!i.administrator)Btn(L"admin",L"Reiniciar como administrador",ELEVATE);
-        Text(L"actionsTitle",L"Acciones rápidas",true);
+        Strong(L"actionsTitle",L"Acciones rápidas");
         const wchar_t* names[]={L"Limpiar archivos temporales",L"Programas y antivirus",L"Actualizar LibreOffice",
                                 L"Migración de Windows",L"Generar informe"};
         const int actionIds[]={QUICK_CLEAN,QUICK_AV,QUICK_LO,QUICK_MIG,QUICK_REPORT};
