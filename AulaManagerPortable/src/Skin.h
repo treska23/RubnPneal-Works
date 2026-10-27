@@ -18,23 +18,22 @@ inline Color Line(){return Color(255,214,232,245);}
 inline Color White(){return Color(255,255,255,255);}
 inline Color Tint(){return Color(255,228,245,255);}
 
-inline GraphicsPath Round(FLOAT x,FLOAT y,FLOAT w,FLOAT h,FLOAT r) {
-    GraphicsPath path;
+inline void Round(GraphicsPath& path,FLOAT x,FLOAT y,FLOAT w,FLOAT h,FLOAT r) {
     r=(std::min)(r,(std::min)(w,h)/2);
     const FLOAT d=r*2;
     path.AddArc(x,y,d,d,180,90);path.AddArc(x+w-d,y,d,d,270,90);
     path.AddArc(x+w-d,y+h-d,d,d,0,90);path.AddArc(x,y+h-d,d,d,90,90);
-    path.CloseFigure();return path;
+    path.CloseFigure();
 }
 inline void Panel(Graphics& g,FLOAT x,FLOAT y,FLOAT w,FLOAT h,FLOAT r=18){
-    auto path=Round(x,y,w,h,r);
+    GraphicsPath path;Round(path,x,y,w,h,r);
     SolidBrush shadow(Color(16,50,91,122));
-    auto shadowPath=Round(x,y+3,w,h,r);g.FillPath(&shadow,&shadowPath);
+    GraphicsPath shadowPath;Round(shadowPath,x,y+3,w,h,r);g.FillPath(&shadow,&shadowPath);
     SolidBrush bg(White());Pen border(Line(),1.2f);
     g.FillPath(&bg,&path);g.DrawPath(&border,&path);
 }
 inline void Gradient(Graphics& g,FLOAT x,FLOAT y,FLOAT w,FLOAT h,Color start,Color end,FLOAT radius){
-    auto path=Round(x,y,w,h,radius);
+    GraphicsPath path;Round(path,x,y,w,h,radius);
     LinearGradientBrush fill(PointF(x,y),PointF(x+w,y+h),start,end);
     g.FillPath(&fill,&path);
 }
@@ -89,9 +88,9 @@ inline void Dashboard(HDC dc,RECT rect,int page){
         Gradient(g,w-181,47,102,88,Color(140,145,211,255),Color(45,204,234,252),19);
         // Mini terminal en cabecera.
         Pen screen(Color(255,32,112,189),5);
-        g.DrawRectangle(&screen,w-162,66,65,42);
-        g.DrawLine(&screen,w-130,108,w-130,121);
-        g.DrawLine(&screen,w-146,121,w-114,121);
+        g.DrawRectangle(&screen,w-162.f,66.f,65.f,42.f);
+        g.DrawLine(&screen,w-130.f,108.f,w-130.f,121.f);
+        g.DrawLine(&screen,w-146.f,121.f,w-114.f,121.f);
     }else{
         Gradient(g,263,26,w-299,112,Color(255,220,241,255),Color(255,241,251,255),19);
         Panel(g,263,153,w-299,555,19);
@@ -124,15 +123,15 @@ inline void OwnerButton(DRAWITEMSTRUCT* item,int page,HFONT font){
     if(check){
         // Línea con checkbox azul vectorial, sin controles estándar grises.
         SolidBrush erase(White());
-        g.FillRectangle(&erase,0,0,w,h);
-        auto sq=Round(3,h/2-10,20,20,5);
+        g.FillRectangle(&erase,0.f,0.f,w,h);
+        GraphicsPath sq;Round(sq,3.f,h/2-10.f,20.f,20.f,5.f);
         SolidBrush fill(checked?Blue():White());
         Pen outline(checked?Blue():Color(255,153,185,208),1.7f);
         g.FillPath(&fill,&sq);g.DrawPath(&outline,&sq);
         if(checked){
             Pen tick(White(),2.6f);
             tick.SetStartCap(LineCapRound);tick.SetEndCap(LineCapRound);
-            g.DrawLine(&tick,8,h/2,12,h/2+4);g.DrawLine(&tick,12,h/2+4,20,h/2-5);
+            g.DrawLine(&tick,8.f,h/2,12.f,h/2+4.f);g.DrawLine(&tick,12.f,h/2+4.f,20.f,h/2-5.f);
         }
         RECT label={34,0,(LONG)w,(LONG)h};
         Text(item->hDC,name,label,RGB(49,86,119),font,DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_END_ELLIPSIS);
@@ -160,19 +159,19 @@ inline void OwnerButton(DRAWITEMSTRUCT* item,int page,HFONT font){
     }
     if(pressed&&!primary&&!navigation)bg=Color(255,217,238,252);
     if(disabled)bg=Color(255,239,242,244);
-    auto path=Round(1,1,w-3,h-3,navigation?12.f:10.f);
+    GraphicsPath path;Round(path,1.f,1.f,w-3.f,h-3.f,navigation?12.f:10.f);
     SolidBrush brush(bg);Pen stroke(border,1.3f);
     g.FillPath(&brush,&path);g.DrawPath(&stroke,&path);
     RECT label=rc;
     label.left=0;label.top=0;label.right=(LONG)w;label.bottom=(LONG)h;
     if(navigation){
         SolidBrush accent(active?White():Sky());
-        g.FillEllipse(&accent,17,h/2-5,10,10);
+        g.FillEllipse(&accent,17.f,h/2-5.f,10.f,10.f);
         label.left=42;
     }
     if(item->itemState&ODS_FOCUS){
         Pen focus(Color(255,84,174,241),1);
-        auto focusPath=Round(4,4,w-9,h-9,9);
+        GraphicsPath focusPath;Round(focusPath,4.f,4.f,w-9.f,h-9.f,9.f);
         g.DrawPath(&focus,&focusPath);
     }
     Text(item->hDC,name,label,RGB(fg.GetR(),fg.GetG(),fg.GetB()),font,
