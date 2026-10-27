@@ -619,6 +619,11 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
         return (LRESULT)GetStockObject(HOLLOW_BRUSH);
     case WM_ERASEBKGND:
         return 1;
+    case WM_PRINTCLIENT:{
+        RECT area={};GetClientRect(hwnd,&area);
+        skin::Dashboard((HDC)wParam,area,currentPage);
+        return 0;
+    }
     case WM_PAINT:{
         PAINTSTRUCT ps={};
         HDC dc=BeginPaint(hwnd,&ps);
