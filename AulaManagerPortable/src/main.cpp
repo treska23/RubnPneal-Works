@@ -167,7 +167,8 @@ void AlignPage(){
             std::wstring name=L"action"+std::to_wstring(i);
             At(name.c_str(),right.x+24,btnTop+i*space,right.w-48,btnH);
         }
-        At(L"hint",left.x+27,left.y+left.h-23,left.w-45,23);
+        // El estado y la ubicación de los registros ya figuran en la barra inferior.
+        if(HWND hint=Find(L"hint"))ShowWindow(hint,SW_HIDE);
         for(int i=0;i<3;++i){
             std::wstring title=L"lowTitle"+std::to_wstring(i);
             std::wstring row1=L"lowLine"+std::to_wstring(i)+L"a";
