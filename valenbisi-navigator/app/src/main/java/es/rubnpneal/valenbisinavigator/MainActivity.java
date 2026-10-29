@@ -83,7 +83,7 @@ public class MainActivity extends Activity {
         p.topMargin=dp(top);parent.addView(child,p);
     }
     private Button button(String label,boolean primary){
-        Button b=new Button(this);b.setText(label);b.setTextAllCaps(false);
+        Button b=new Button(this);b.setText(label);b.setAllCaps(false);
         b.setTextColor(primary?BG:TEXT); b.setTextSize(14);
         b.setBackground(shape(primary?GREEN:Color.rgb(47,65,81),12));
         b.setPadding(dp(10),dp(4),dp(10),dp(4));
