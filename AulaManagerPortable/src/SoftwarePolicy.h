@@ -27,13 +27,15 @@ inline SoftwareDecision ClassroomSoftwarePolicy(const Program& program, const In
     if (program.systemComponent) return {SoftwareAction::KeepWindows, L"Componente del sistema identificado por Windows"};
 
     const bool microsoft = publisher.find(L"microsoft") != std::wstring::npos;
+    if(microsoft && ContainsAny(name,{L" sdk",L"software development kit",L"targeting pack",L"developer pack"}))
+        return {SoftwareAction::Remove,L"Herramienta de desarrollo externa al perfil del aula"};
     if (microsoft && ContainsAny(name, {L"visual c++", L".net framework", L".net runtime", L"windows desktop runtime",
-                                      L"directx", L"webview2 runtime", L"microsoft .net"}))
+                                      L"directx", L"webview2 runtime", L".net host", L"asp.net core"}))
         return {SoftwareAction::KeepRuntime, L"Biblioteca compartida necesaria para Windows o LibreOffice"};
     if (microsoft && (ContainsAny(name, {L"security update for", L"actualización de seguridad para", L"update for windows",
-                                        L"actualización para windows", L"windows defender", L"microsoft defender", L"security essentials",
-                                        L"internet explorer", L"windows media player", L"windows service pack", L"microsoft edge update"}) ||
-                      (system.osMajor >= 10 && (name == L"microsoft edge" || name == L"microsoft onedrive"))))
+                                        L"actualización para windows", L"windows defender", L"microsoft defender",
+                                        L"internet explorer", L"windows media player", L"windows service pack"}) ||
+                      (system.osMajor >= 10 && (name == L"microsoft edge" || name == L"microsoft edge update" || name == L"microsoft onedrive"))))
         return {SoftwareAction::KeepWindows, L"Componente o aplicación incluida en Windows"};
 
     // Driver packages remain part of the operating system. Removing them can

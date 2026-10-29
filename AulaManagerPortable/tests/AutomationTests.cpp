@@ -63,6 +63,9 @@ int wmain(){
     Check(ClassroomSoftwarePolicy(App(L"NVIDIA Graphics Driver",L"NVIDIA"),win7).action==SoftwareAction::KeepDriver,"hardware driver is retained");
     Check(ClassroomSoftwarePolicy(App(L"Microsoft Visual C++ Redistributable",L"Microsoft Corporation"),win7).action==SoftwareAction::KeepRuntime,"required runtime is retained");
     Check(ClassroomSoftwarePolicy(App(L"Microsoft Edge",L"Microsoft Corporation"),win7).action==SoftwareAction::Remove,"Edge is external on Windows 7");
+    Check(ClassroomSoftwarePolicy(App(L"Microsoft Edge Update",L"Microsoft Corporation"),win7).action==SoftwareAction::Remove,"Edge updater is also external on Windows 7");
+    Check(ClassroomSoftwarePolicy(App(L"Microsoft Security Essentials",L"Microsoft Corporation"),win7).action==SoftwareAction::Remove,"separately installed Security Essentials is external on Windows 7");
+    Check(ClassroomSoftwarePolicy(App(L"Microsoft .NET SDK 7.0",L"Microsoft Corporation"),win7).action==SoftwareAction::Remove,"development SDKs are not confused with required runtime libraries");
     Check(ClassroomSoftwarePolicy(App(L"Microsoft Edge",L"Microsoft Corporation"),win10).action==SoftwareAction::KeepWindows,"default Windows 10 browser is retained");
     Check(ClassroomSoftwarePolicy(App(L"Zoom"),win7,{L"Zoom"}).action==SoftwareAction::KeepException,"saved exception is applied to every PC");
     Check(CompareVersion(L"25.2.10.1",L"25.2.7.2")>0,"versions are compared numerically");

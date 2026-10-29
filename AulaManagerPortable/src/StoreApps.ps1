@@ -22,7 +22,7 @@ $defaults = @('Microsoft.3DBuilder','Microsoft.BingWeather','Microsoft.DesktopAp
  'Microsoft.XboxSpeechToTextOverlay','Microsoft.ZuneMusic','Microsoft.ZuneVideo','Microsoft.ScreenSketch',
  'Microsoft.MicrosoftEdge','Microsoft.MicrosoftEdge.Stable','Microsoft.WindowsNotepad','Microsoft.Paint',
  'Microsoft.YourPhone','Microsoft.WebMediaExtensions','Microsoft.WebpImageExtension','Microsoft.VP9VideoExtensions',
- 'Microsoft.RawImageExtension','Microsoft.HEIFImageExtension','Microsoft.WindowsTerminal')
+ 'Microsoft.RawImageExtension','Microsoft.HEIFImageExtension')
 function Keep-Package($package) {
     $name = if ($package.Name) { $package.Name } else { $package.DisplayName }
     if ($name -in $exceptions -or $name -like 'LibreOffice*') { return $true }
