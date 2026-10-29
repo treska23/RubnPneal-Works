@@ -29,6 +29,18 @@ jobs:
           if ($proc.ExitCode -ne 0) { throw "WPF failed: $($proc.ExitCode)" }
           if (!(Test-Path smoke-results/passed.txt)) { throw 'Missing smoke test result' }
           Get-Content smoke-results/passed.txt
+      - name: Check executable architecture and Windows subsystem
+        shell: pwsh
+        run: |
+          $bytes = [IO.File]::ReadAllBytes((Join-Path $PWD 'AulaManagerWpf/bin/${{ matrix.arch }}/Release/net48/AulaManager.exe'))
+          $pe = [BitConverter]::ToInt32($bytes, 60)
+          $machine = [BitConverter]::ToUInt16($bytes, $pe + 4)
+          $expected = if ('${{ matrix.arch }}' -eq 'x86') { 0x14c } else { 0x8664 }
+          if ($machine -ne $expected) { throw 'Wrong executable architecture' }
+          $major = [BitConverter]::ToUInt16($bytes, $pe + 24 + 48)
+          $minor = [BitConverter]::ToUInt16($bytes, $pe + 24 + 50)
+          if ($major -gt 6 -or ($major -eq 6 -and $minor -gt 1)) { throw 'Executable requires newer Windows than Windows 7' }
+          Write-Output "Executable machine: $machine; minimum subsystem: $major.$minor. This does not replace a Windows 7 runtime test."
       - name: Package portable folder
         shell: pwsh
         run: |
@@ -36,6 +48,11 @@ jobs:
           New-Item -ItemType Directory -Path "dist/$name" -Force | Out-Null
           Copy-Item 'AulaManagerWpf/bin/${{ matrix.arch }}/Release/net48/AulaManager.exe*' "dist/$name/"
           Copy-Item AulaManagerWpf/README.md "dist/$name/LEEME.md"
+          Copy-Item AulaManagerWpf/Iniciar-AulaManager.cmd "dist/$name/"
+          Set-Content "dist/$name/AulaManager.arch" '${{ matrix.arch }}' -Encoding ascii
+          & cmd.exe /d /c "dist\$name\Iniciar-AulaManager.cmd" --check
+          if ($LASTEXITCODE -ne 0) { throw 'Startup preflight failed' }
+          Remove-Item "dist/$name/AulaManager-arranque.txt"
           Compress-Archive "dist/$name/*" "dist/$name.zip"
           Get-FileHash "dist/$name.zip" -Algorithm SHA256 | Format-List | Out-File "dist/$name.sha256.txt"
       - uses: actions/upload-artifact@v4

@@ -12,7 +12,8 @@ también existe en Framework 4.8 y no impide ejecutar en Windows 7.
    actualizaciones necesarias. Windows 10/11 con Framework 4.8 o posterior.
 2. Descarga el ZIP x86 para Windows de 32 bits; en Windows de 64 bits puedes usar
    x86 o x64. Extrae todo el ZIP en una carpeta o USB con permisos de escritura.
-3. Ejecuta AulaManager.exe. Conserva AulaManager.exe.config a su lado.
+3. Abre Iniciar-AulaManager.cmd para comprobar primero Framework y conservar
+   un diagnóstico de arranque. Conserva AulaManager.exe.config junto al EXE.
 4. Identificación, registros, respaldos e informes se guardan junto al ejecutable.
    Elevar permisos solo es necesario para las operaciones que lo solicitan.
 
@@ -21,6 +22,12 @@ Framework es un componente del sistema y no admite despliegue self-contained
 copiando sus DLL junto al EXE. Si falta 4.8, hay que instalarlo una vez con
 permisos de administrador (puede usarse el instalador offline oficial).
 No se instala ningún runtime automáticamente. No usar 4.8.1 en Windows 7.
+Si aparece un aviso de incompatibilidad, conserva su texto exacto y el archivo
+AulaManager-arranque.txt generado por el iniciador. Indica qué ZIP has usado.
+El x64 no puede abrirse en Windows de 32 bits: utiliza el ZIP x86 también si
+no estás seguro de la arquitectura. Si no se detecta 4.8, el iniciador lo explica
+sin intentar cargar primero la aplicación WPF. No se considera solucionado un
+fallo concreto de Windows 7 solamente porque las pruebas de CI pasen.
 No se elige .NET Core 3.1/.NET 6 como alternativa: están fuera de soporte y
 sus paquetes autocontenidos también tienen requisitos nativos del sistema.
 
