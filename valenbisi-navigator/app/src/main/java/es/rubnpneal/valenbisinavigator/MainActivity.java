@@ -186,8 +186,6 @@ public class MainActivity extends Activity {
         JSONObject data=root.getJSONObject("data");
         JSONArray list=data.optJSONArray("feeds");
         if(list==null){
-            java.util.Iterator<String> keys=data.keys();
-            while(keys.hasNext()&&list==null)list=data.optJSONObject(keys.next())!=null?data.optJSONObject(keys.next())==null?null:null:null;
             // Buscar los feeds por idioma si no están en data.feeds.
             for(String lang:new String[]{"es","en","fr"}){
                 JSONObject language=data.optJSONObject(lang);
