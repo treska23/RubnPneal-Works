@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://rubnpneal-works.treska23.workers.dev/sitemap.xml
