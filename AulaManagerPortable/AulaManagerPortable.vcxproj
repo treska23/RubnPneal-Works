@@ -45,7 +45,7 @@
       <RuntimeLibrary Condition="'$(Configuration)'=='Debug'">MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Windows</SubSystem><MinimumRequiredVersion>6.01</MinimumRequiredVersion>
       <AdditionalDependencies>comctl32.lib;advapi32.lib;shell32.lib;comdlg32.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableUAC>true</EnableUAC><UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -54,8 +54,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Core.cpp" />
+    <ClCompile Include="src\InstalledSoftware.cpp" />
+    <ClCompile Include="src\OfficePackage.cpp" />
+    <ClCompile Include="src\Telemetry.cpp" />
+    <ClCompile Include="src\StoreApps.cpp" />
+
     <ClCompile Include="src\main.cpp" />
     <ClInclude Include="src\Core.h" />
+    <ClInclude Include="src\Automation.h" />
+    <ClInclude Include="src\SoftwarePolicy.h" />
+    <ClInclude Include="src\Win7Build.h" />
+
     <ClInclude Include="src\Theme.h" />
     <ClInclude Include="src\Interface.h" />
     <ClInclude Include="src\Window.h" />

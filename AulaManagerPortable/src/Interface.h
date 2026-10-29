@@ -188,7 +188,8 @@ void LayoutContent(int width,int height){
    ShowWindow(Find(L"fullTitle"),SW_SHOW);ShowWindow(Find(L"fullDescription"),SW_SHOW);
    int bottom=PlaceText(L"fullTitle",tx,y,textW,8);bottom=PlaceText(L"fullDescription",tx,bottom,textW,0);
    int bh=(std::max)(58,ButtonHeight(L"fullRun",bw));At(L"fullRun",tx+tw-bw,y,bw,bh);y=(std::max)(bottom,y+bh)+22;
-  }else{ShowWindow(Find(L"fullTitle"),SW_HIDE);ShowWindow(Find(L"fullDescription"),SW_HIDE);
+  }else{ShowWindow(Find(L"fullTitle"),SW_SHOW);ShowWindow(Find(L"fullDescription"),SW_SHOW);
+   y=PlaceText(L"fullTitle",tx,y,tw,8);y=PlaceText(L"fullDescription",tx,y,tw,16);
    int bh=(std::max)(54,ButtonHeight(L"fullRun",tw));At(L"fullRun",tx,y,tw,bh);y+=bh+22;}
   panels.push_back({x,start,w,y-start});y+=gap;
   bool split=w>=850;int lw=split?(w-gap)*3/5:w,rw=split?w-lw-gap:w;
@@ -251,7 +252,8 @@ void LayoutContent(int width,int height){
    }
    case 6:{
     y=PlaceText(L"jobStatus",ix,y,iw,18);
-    At(L"jobLog",ix,y,iw,(std::max)(230,height-y-190));y+=(std::max)(230,height-y-190)+18;
+    int reserve=190;
+    At(L"jobLog",ix,y,iw,(std::max)(200,height-y-reserve));y+=(std::max)(200,height-y-reserve)+18;
     y=ButtonRow({L"cancelJob",L"jobReports"},ix,y,iw);y=PlaceText(L"note",ix,y,iw,0);break;
    }
   }
@@ -308,9 +310,10 @@ void PaintSurface(HWND hwnd,HDC dc){
  }
  if(hwnd==mainWindow){
   if(!compactNav){DrawTextAt(dc,L"AULA MANAGER",{22,79,195,28},fontBrand,RGB(28,68,102));DrawTextAt(dc,L"Mantenimiento de aulas",{22,108,194,22},fontMeta,RGB(100,122,141));
-   if(h>620){DrawTextAt(dc,L"PORTABLE  ·  v0.4",{22,h-100,190,22},fontMeta,RGB(41,126,178));DrawTextAt(dc,L"Tus registros viajan contigo",{22,h-72,184,40},fontMeta,RGB(100,122,141));}
+   if(h>620){DrawTextAt(dc,L"PORTABLE  ·  v0.5",{22,h-100,190,22},fontMeta,RGB(41,126,178));DrawTextAt(dc,L"Tus registros viajan contigo",{22,h-72,184,40},fontMeta,RGB(100,122,141));}
   }
-  DrawTextAt(dc,w-sidebar>660?L"Listo  ·  Datos junto al ejecutable  ·  Operaciones con confirmación":L"Listo  ·  Modo portable",{sidebar+38,h-28,w-sidebar-52,24},fontMeta,RGB(100,122,141));
+  DrawTextAt(dc,jobRunning?L"En curso  ·  Puedes seguir el avance y cancelar":
+   (w-sidebar>660?L"Listo  ·  Datos junto al ejecutable  ·  Preparación automática":L"Listo  ·  Modo portable"),{sidebar+38,h-28,w-sidebar-52,24},fontMeta,RGB(100,122,141));
  }
 }
 LRESULT CommonColor(UINT msg,WPARAM wp,LPARAM lp){

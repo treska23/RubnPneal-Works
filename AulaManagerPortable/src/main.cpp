@@ -27,8 +27,8 @@ void Navigate(int page){
 
         if(jobRunning){EnableWindow(centerEdit,FALSE);EnableWindow(stationEdit,FALSE);}
         Strong(L"fullTitle",L"Puesta a punto del puesto");
-        Text(L"fullDescription",L"Limpieza, ajustes recomendados, antivirus de terceros, LibreOffice e informe final.",false,true);
-        Btn(L"fullRun",jobRunning?L"Ver progreso de la puesta a punto":L"Puesta a punto completa",FULL_RUN);
+        Text(L"fullDescription",L"Un botón: recoger datos, quitar telemetría, desinstalar aplicaciones externas y antivirus, instalar o actualizar LibreOffice y guardar el informe. Guarda tus documentos y cierra las aplicaciones antes de empezar.",false,true);
+        Btn(L"fullRun",jobRunning?L"Ver progreso de la puesta a punto":L"Preparar el equipo",FULL_RUN);
         Text(L"detailsTitle",L"Información del equipo",true);
         std::vector<std::pair<std::wstring,std::wstring>> rows={
             {L"Nombre del equipo",i.machine},
@@ -68,8 +68,8 @@ void Navigate(int page){
         Text(L"lowLine1c",L"Comprobar espacio antes de migrar");
         Strong(L"lowTitle2",L"Trabajo recomendado");
         Text(L"lowLine2a",L"1. Identificar el puesto físico");
-        Text(L"lowLine2b",L"2. Revisar y previsualizar cambios");
-        Text(L"lowLine2c",L"3. Exportar informe al terminar");
+        Text(L"lowLine2b",L"2. Pulsar Preparar el equipo");
+        Text(L"lowLine2c",L"3. Consultar el informe automático");
     }else if(page==1){
         Text(L"explain",L"Selecciona únicamente los ajustes que necesites. Los cambios de servicios y registro guardan su estado anterior.");
         Box(L"check0",L"Limpiar temporales del usuario con más de 7 días",checkTemp,true);
@@ -82,7 +82,7 @@ void Navigate(int page){
         Btn(L"preview",L"Vista previa",PREVIEW);
         Btn(L"execute",L"Aplicar operaciones seleccionadas",EXECUTE);
         Btn(L"restore",L"Restaurar servicios",RESTORE);
-        Btn(L"ceip",L"Restaurar CEIP",RESTORE_CEIP);
+        Btn(L"ceip",L"Restaurar telemetría",RESTORE_CEIP);
         Text(L"note",L"Windows Update, el cortafuegos y Microsoft Defender no se desactivan. Algunos cambios requieren reinicio.",false,true);
     }else if(page==2){
         Text(L"explain",L"Posibles antivirus al principio. La apertura de un desinstalador no garantiza su eliminación.");
@@ -101,9 +101,9 @@ void Navigate(int page){
     }else if(page==3){
         aula::Inspection i=UiInspection();
         Text(L"installed",L"Versión detectada: "+i.libreoffice,true);
-        Text(L"explain",L"Selecciona un MSI oficial de LibreOffice guardado en el pendrive. No se realizan descargas ocultas.");
+        Text(L"explain",L"El botón Preparar el equipo usa automáticamente los instaladores incluidos. Esta herramienta avanzada permite elegir otro MSI oficial.");
         Text(L"compat",i.windows7?
-             L"Windows 7 SP1: utiliza una versión compatible de LibreOffice 7.4.x. Las versiones actuales no son compatibles.":
+             L"Windows 7 SP1: el paquete incluye LibreOffice 25.2.7.2. La rama 25.8 y las posteriores requieren otro sistema.":
              L"Revisa firma digital, versión e idioma del instalador antes de ejecutarlo.");
         Btn(L"pick",L"Seleccionar archivo MSI",MSI_PICK);
         Text(L"filename",selectedMsi.empty()?L"No se ha elegido ningún instalador.":selectedMsi,false,true);
@@ -200,9 +200,8 @@ void Action(int id){
         break;
     }
     case RESTORE_CEIP:{
-        std::wstring message;
-        if(Confirm(L"¿Restaurar el valor CEIP original respaldado para este puesto?")){
-            aula::ChangeCeip(true,message);Notice(message);
+        if(Confirm(L"¿Restaurar las políticas, tareas y servicios de telemetría respaldados para este puesto?")){
+            StartJob([]{for(const auto& result:aula::ConfigureTelemetry(true,&cancelRequested))RecordAutomaticStep(result);ExportJobReport();});
         }
         break;
     }

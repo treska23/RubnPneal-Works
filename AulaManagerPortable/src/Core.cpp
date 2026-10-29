@@ -1,4 +1,5 @@
 #include "Core.h"
+#include "Automation.h"
 #include <shellapi.h>
 #include <shlobj.h>
 #include <commdlg.h>
@@ -93,18 +94,19 @@ std::wstring LocalDate(bool forFile) {
     else swprintf_s(b,64,L"%02u/%02u/%04u %02u:%02u:%02u",t.wDay,t.wMonth,t.wYear,t.wHour,t.wMinute,t.wSecond);
     return b;
 }
-void AppendUtf8(const std::wstring& path,const std::wstring& text) {
+bool AppendUtf8(const std::wstring& path,const std::wstring& text) {
     int sz=WideCharToMultiByte(CP_UTF8,0,text.c_str(),(int)text.size(),nullptr,0,nullptr,nullptr);
-    if(sz<=0)return;
+    if(sz<=0)return false;
     std::string utf8(sz,'\0');
     WideCharToMultiByte(CP_UTF8,0,text.c_str(),(int)text.size(),&utf8[0],sz,nullptr,nullptr);
     HANDLE h=CreateFileW(path.c_str(),FILE_APPEND_DATA,FILE_SHARE_READ,nullptr,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,nullptr);
-    if(h==INVALID_HANDLE_VALUE)return;
+    if(h==INVALID_HANDLE_VALUE)return false;
     LARGE_INTEGER fileSize={};GetFileSizeEx(h,&fileSize);
     DWORD done=0;
-    if(fileSize.QuadPart==0){const BYTE bom[3]={0xef,0xbb,0xbf};WriteFile(h,bom,3,&done,nullptr);}
-    WriteFile(h,utf8.data(),(DWORD)utf8.size(),&done,nullptr);
-    CloseHandle(h);
+    bool ok=true;
+    if(fileSize.QuadPart==0){const BYTE bom[3]={0xef,0xbb,0xbf};ok=WriteFile(h,bom,3,&done,nullptr)&&done==3;}
+    ok=ok&&WriteFile(h,utf8.data(),(DWORD)utf8.size(),&done,nullptr)&&done==utf8.size();
+    CloseHandle(h);return ok;
 }
 bool HasAny(const std::wstring& text,const std::vector<std::wstring>& names) {
     for(const auto& n:names)if(text.find(n)!=std::wstring::npos)return true;
@@ -126,9 +128,13 @@ void ListRegistry(HKEY root, REGSAM view, std::vector<Program>& output){
         DWORD hidden=ReadRegDword(root,key,L"SystemComponent",0,view);
         if(hidden==1)continue;
         Program p;
+        p.registryRoot=root==HKEY_LOCAL_MACHINE?L"HKLM":L"HKCU";p.registryView=(unsigned)view;
         p.name=name; p.version=ReadReg(root,key,L"DisplayVersion",view);
         p.publisher=ReadReg(root,key,L"Publisher",view);
         p.uninstall=ReadReg(root,key,L"UninstallString",view);
+        p.quietUninstall=ReadReg(root,key,L"QuietUninstallString",view);
+        p.location=ReadReg(root,key,L"InstallLocation",view);
+        p.systemComponent=hidden==1;
         p.keyName=sub;
         std::wstring lc=Lower(p.name);
         p.antivirus=HasAny(lc,{L"avast free antivirus",L"avast premium security",L"avg antivirus",
@@ -225,14 +231,21 @@ bool IsAdmin(){
     }
     return admin==TRUE;
 }
+std::wstring BackupRead(const wchar_t* section,const wchar_t* key){return ReadBackup(section,key);}
+bool BackupWrite(const wchar_t* section,const wchar_t* key,const std::wstring& value){return WriteBackup(section,key,value);}
 std::vector<Program> Programs(){
     std::vector<Program> output;
-    ListRegistry(HKEY_LOCAL_MACHINE,KEY_WOW64_32KEY,output);
-    ListRegistry(HKEY_LOCAL_MACHINE,KEY_WOW64_64KEY,output);
-    ListRegistry(HKEY_CURRENT_USER,0,output);
+    SYSTEM_INFO hardware={};GetNativeSystemInfo(&hardware);
+    if(hardware.wProcessorArchitecture==PROCESSOR_ARCHITECTURE_INTEL){
+        ListRegistry(HKEY_LOCAL_MACHINE,0,output);ListRegistry(HKEY_CURRENT_USER,0,output);
+    }else{
+        for(REGSAM view:{KEY_WOW64_32KEY,KEY_WOW64_64KEY}){
+            ListRegistry(HKEY_LOCAL_MACHINE,view,output);ListRegistry(HKEY_CURRENT_USER,view,output);
+        }
+    }
     std::set<std::wstring> seen;
     output.erase(std::remove_if(output.begin(),output.end(),[&](const Program& p){
-        return !seen.insert(Lower(p.name)+L"\x1f"+p.keyName+L"\x1f"+p.uninstall).second;
+        return !seen.insert(p.registryRoot+L"\x1f"+std::to_wstring(p.registryView)+L"\x1f"+p.keyName).second;
     }),output.end());
     std::sort(output.begin(),output.end(),[](const Program& a,const Program& b){
         if(a.antivirus!=b.antivirus)return a.antivirus>b.antivirus;
@@ -249,6 +262,7 @@ Inspection Inspect(){
     OSVERSIONINFOEXW os={};os.dwOSVersionInfoSize=sizeof(os);
     if(ver)ver((OSVERSIONINFOW*)&os);
     v.osMajor=os.dwMajorVersion;v.osMinor=os.dwMinorVersion;v.build=os.dwBuildNumber;
+    v.servicePackMajor=os.wServicePackMajor;
     v.windows7=(v.osMajor==6&&v.osMinor==1);
     v.windows=ReadReg(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"ProductName",KEY_WOW64_64KEY);
     if(v.windows.empty())v.windows=ReadReg(HKEY_LOCAL_MACHINE,L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",L"ProductName");
@@ -271,6 +285,7 @@ Inspection Inspect(){
     for(const auto& p:Programs()){
         if(Lower(p.name).find(L"libreoffice")==0){
             v.libreoffice=p.name+(p.version.empty()?L"":L" "+p.version);
+            v.libreofficeVersion=p.version;v.libreofficeX64=p.registryView==KEY_WOW64_64KEY;
             break;
         }
     }
@@ -294,7 +309,8 @@ bool SaveReport(const std::wstring& center,const std::wstring& station){
     std::wstring folder=Join(DataFolder(),L"Informes");
     CreateDirectoryW(folder.c_str(),nullptr);
     Inspection i=Inspect();
-    std::wstring name=Join(folder,Sanitize(center)+L"_"+Sanitize(station)+L"_"+LocalDate(true)+L".txt");
+    std::wstring name=Join(folder,Sanitize(center)+L"_"+Sanitize(station)+L"_"+LocalDate(true)+L"_"+
+        std::to_wstring(GetCurrentProcessId())+L"_"+std::to_wstring(GetTickCount())+L".txt");
     HANDLE h=CreateFileW(name.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
     if(h==INVALID_HANDLE_VALUE)return false;
     CloseHandle(h);
@@ -303,8 +319,7 @@ bool SaveReport(const std::wstring& center,const std::wstring& station){
        L"\r\nCPU: "+i.cpu+L"\r\nRAM MB: "+std::to_wstring(i.ramMb)+
        L"\r\nEspacio libre GB: "+std::to_wstring(i.freeGb)+
        L"\r\nLibreOffice: "+i.libreoffice+L"\r\n\r\nACTUACIONES Y RESULTADOS REALES\r\n"+ReadLog();
-    AppendUtf8(name,report);
-    return true;
+    return AppendUtf8(name,report);
 }
 TaskResult TempFiles(bool preview,bool includeWindowsTemp,const std::atomic_bool* cancel){
     FILETIME now={};GetSystemTimeAsFileTime(&now);
@@ -453,7 +468,7 @@ std::wstring PackageProperty(MSIHANDLE database,const wchar_t* property){
     }
     return value;
 }
-bool ValidateLibreOfficePackage(const std::wstring& path,const Inspection& system,std::wstring& error){
+bool ValidateLibreOfficePackage(const std::wstring& path,const Inspection& system,std::wstring& error,const std::wstring& expectedHash){
     MSIHANDLE database=0;
     if(MsiOpenDatabaseW(path.c_str(),MSIDBOPEN_READONLY,&database)!=ERROR_SUCCESS){error=L"El archivo no es un paquete MSI válido.";return false;}
     auto product=PackageProperty(database,L"ProductName"),version=PackageProperty(database,L"ProductVersion"),maker=PackageProperty(database,L"Manufacturer");
@@ -461,8 +476,12 @@ bool ValidateLibreOfficePackage(const std::wstring& path,const Inspection& syste
     if(MsiGetSummaryInformationW(database,nullptr,0,&summary)==ERROR_SUCCESS){MsiSummaryInfoGetPropertyW(summary,7,&type,nullptr,nullptr,arch,&length);MsiCloseHandle(summary);}
     MsiCloseHandle(database);
     if(Lower(product).find(L"libreoffice")!=0||Lower(maker).find(L"document foundation")==std::wstring::npos){error=L"El paquete no se identifica como LibreOffice de The Document Foundation.";return false;}
-    if(system.windows7&&version.find(L"7.4.")!=0){error=L"El MSI no contiene una versión 7.4.x de LibreOffice compatible con el perfil Windows 7.";return false;}
+    if(system.windows7&&CompareVersion(version,L"25.8")>=0){error=L"Esta versión de LibreOffice no admite Windows 7. Se requiere una versión anterior a 25.8.";return false;}
     if(system.architecture==L"32 bits"&&Lower(arch).find(L"x64")!=std::wstring::npos){error=L"El MSI es de 64 bits y este Windows es de 32 bits.";return false;}
+    if(!expectedHash.empty()){
+        if(FileSha256(path)!=Lower(expectedHash)){error=L"El MSI no coincide con SHA256 oficial";return false;}
+        return true; // Exact official release hash also works with old Windows 7 certificate stores.
+    }
     WINTRUST_FILE_INFO file={sizeof(file)};file.pcwszFilePath=path.c_str();
     WINTRUST_DATA trust={sizeof(trust)};trust.dwUIChoice=WTD_UI_NONE;trust.fdwRevocationChecks=WTD_REVOKE_NONE;
     trust.dwUnionChoice=WTD_CHOICE_FILE;trust.pFile=&file;trust.dwStateAction=WTD_STATEACTION_VERIFY;trust.dwProvFlags=WTD_CACHE_ONLY_URL_RETRIEVAL;
@@ -471,7 +490,7 @@ bool ValidateLibreOfficePackage(const std::wstring& path,const Inspection& syste
     if(status!=ERROR_SUCCESS){error=L"Windows no pudo validar la firma del MSI. Usa un instalador oficial y revisa certificados/fecha del equipo.";return false;}
     return true;
 }
-bool InstallLibreOffice(const std::wstring& msi,HWND parent,std::wstring& error,HANDLE* process,bool approved){
+bool InstallLibreOffice(const std::wstring& msi,HWND parent,std::wstring& error,HANDLE* process,bool approved,const std::wstring& expectedHash){
     Inspection i=Inspect();
     if(msi.size()<4||Lower(msi.substr(msi.size()-4))!=L".msi"||!Exists(msi)){
         error=L"Selecciona un archivo .MSI existente.";return false;
@@ -479,15 +498,13 @@ bool InstallLibreOffice(const std::wstring& msi,HWND parent,std::wstring& error,
     if(Lower(msi).find(L"libreoffice")==std::wstring::npos){
         error=L"El archivo elegido no parece ser un instalador de LibreOffice.";return false;
     }
-    if(i.windows7 && Lower(msi).find(L"7.4.")==std::wstring::npos){
-        error=L"En Windows 7 esta versión solo admite un MSI de LibreOffice 7.4.x elegido y verificado previamente. No se instalará una versión moderna incompatible.";return false;
-    }
-    if(!ValidateLibreOfficePackage(msi,i,error))return false;
+    if(!ValidateLibreOfficePackage(msi,i,error,expectedHash))return false;
     int r=approved?IDYES:MessageBoxW(parent,L"Instalar LibreOffice desde este archivo MSI local?\nComprueba que lo descargaste del sitio oficial y que su arquitectura coincide con Windows.\nCierra LibreOffice y guarda los documentos antes de seguir.",
        L"Confirmación de instalación",MB_YESNO|MB_ICONWARNING|MB_DEFBUTTON2);
     if(r!=IDYES){error=L"Cancelado por el usuario.";return false;}
-    std::wstring args=L"/i \""+msi+L"\" /passive /norestart";
-    if(!LaunchTracked(L"msiexec.exe",args,parent,process,error))return false;
+    std::wstring args=L"/i \""+msi+L"\" "+(approved?L"/qn":L"/passive")+L" /norestart REBOOT=ReallySuppress";
+    wchar_t systemDirectory[MAX_PATH]={};GetSystemDirectoryW(systemDirectory,MAX_PATH);
+    if(!LaunchTracked(std::wstring(systemDirectory)+L"\\msiexec.exe",args,parent,process,error))return false;
     Log(L"Actualización de LibreOffice iniciada. PENDIENTE: verificar al terminar la versión instalada.");
     return true;
 }

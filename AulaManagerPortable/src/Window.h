@@ -51,6 +51,8 @@ int VerifyLayout(){
      if(nr.top<0||nr.bottom>windowBounds.bottom||nr.right>Px(sidebar))fail("navigation out of bounds");
      if(!compactNav&&TextHeight(TextOf(nav),Dip(nr.right-nr.left)-67,fontNormal)>Dip(nr.bottom-nr.top))fail("clipped navigation");}
     if(positions.size()<4)fail("missing content");
+    if(page==0)for(auto key:{L"fullTitle",L"fullDescription",L"fullRun"})
+     if(!positions.count(key)||!(GetWindowLongW(Find(key),GWL_STYLE)&WS_VISIBLE))fail("missing primary workflow explanation or button");
     for(const auto& entry:positions){const auto& r=entry.second;
      if(r.w<=0||r.h<=0||r.x<0||r.y<0||r.x+r.w>width+1||r.y+r.h>contentHeight)fail("out of bounds");
      auto l=labels.find(entry.first);
@@ -113,7 +115,7 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
    TOOLINFOW info={sizeof(info)};info.uFlags=TTF_IDISHWND|TTF_SUBCLASS;info.hwnd=hwnd;info.uId=(UINT_PTR)navButtons[i];info.lpszText=const_cast<wchar_t*>(nav[i]);SendMessageW(tooltips,TTM_ADDTOOLW,0,(LPARAM)&info);
   }
   layoutReady=true;Navigate(0);
-  if(!layoutTesting)aula::Log(L"Aula Manager v0.4: interfaz con ajuste de texto, desplazamiento y escalado DPI iniciada.");return 0;
+  if(!layoutTesting)aula::Log(L"Aula Manager v0.5: interfaz con ajuste de texto, desplazamiento y escalado DPI iniciada.");return 0;
  }
  case WM_COMMAND:{
   int id=LOWORD(wp),notification=HIWORD(wp);

@@ -1,4 +1,5 @@
 #pragma once
+#include "Win7Build.h"
 #ifndef UNICODE
 #define UNICODE
 #endif
@@ -16,11 +17,17 @@
 namespace aula {
 struct Program {
     std::wstring name, version, publisher, uninstall, keyName;
+    std::wstring quietUninstall, location, registryRoot;
+    unsigned registryView=0;
     bool isMsi=false, antivirus=false;
+    bool systemComponent=false;
 };
 struct Inspection {
     std::wstring machine, windows, cpu, architecture, libreoffice, network;
+    std::wstring libreofficeVersion;
+    bool libreofficeX64=false;
     DWORD osMajor=0, osMinor=0, build=0;
+    DWORD servicePackMajor=0;
     ULONGLONG ramMb=0, freeGb=0;
     bool windows7=false, administrator=false;
 };
@@ -35,6 +42,8 @@ std::wstring TimeStamp();
 std::wstring Sanitize(const std::wstring&);
 std::wstring IniRead(const wchar_t* key, const wchar_t* fallback=L"");
 void IniWrite(const wchar_t* key, const std::wstring& value);
+std::wstring BackupRead(const wchar_t* section,const wchar_t* key);
+bool BackupWrite(const wchar_t* section,const wchar_t* key,const std::wstring& value);
 Inspection Inspect();
 std::vector<Program> Programs();
 bool IsAdmin();
@@ -49,7 +58,7 @@ bool ValidInstallerFolder(const std::wstring& folder, const Inspection& inspecti
 std::wstring ChooseFolder(HWND parent);
 std::wstring ChooseMsi(HWND parent);
 bool OpenInstaller(const std::wstring& folder, HWND parent);
-bool InstallLibreOffice(const std::wstring& msi, HWND parent, std::wstring& error,HANDLE* process=nullptr,bool approved=false);
+bool InstallLibreOffice(const std::wstring& msi, HWND parent, std::wstring& error,HANDLE* process=nullptr,bool approved=false,const std::wstring& expectedHash=L"");
 bool UninstallProgram(const Program& program, HWND parent, std::wstring& error,HANDLE* process=nullptr);
 bool IsThirdPartyAntivirus(const Program& program);
 bool ParseUninstallCommand(const std::wstring& command,std::wstring& executable,std::wstring& arguments);

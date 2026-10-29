@@ -1,28 +1,47 @@
-name: Aula Manager Portable - Windows x86
+name: Aula Manager Portable - Windows 7 y 10
 on:
   push:
-    branches: [ "feat/aula-manager-portable", "codex/aula-manager-responsive" ]
-    paths:
-      - "AulaManagerPortable/**"
-      - ".github/workflows/aula-manager-portable.yml"
-  workflow_dispatch:
+    branches: ["feat/aula-manager-portable", "codex/aula-manager-responsive"]
+    paths: ["AulaManagerPortable/**", ".github/workflows/aula-manager-portable.yml"]
   pull_request:
-    branches: [ "feat/aula-manager-portable" ]
-    paths: [ "AulaManagerPortable/**", ".github/workflows/aula-manager-portable.yml" ]
+    branches: ["feat/aula-manager-portable"]
+    paths: ["AulaManagerPortable/**", ".github/workflows/aula-manager-portable.yml"]
+  workflow_dispatch:
 jobs:
-  build:
-    runs-on: windows-latest
+  verify:
+    runs-on: windows-2022
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: MSBuild para Visual Studio
-        uses: microsoft/setup-msbuild@v2
-      - name: Compilar Win32 Release estático
-        run: msbuild AulaManagerPortable\AulaManagerPortable.sln /m /p:Configuration=Release /p:Platform=Win32 /verbosity:minimal
-      - name: Publicar ejecutable portable
+      - name: Compilar con MSVC 2022 fijado y comprobar el PE real
+        shell: powershell
+        run: ./AulaManagerPortable/scripts/build-portable.ps1 -Tests
+      - name: Pruebas de compatibilidad y proceso completo
+        shell: powershell
+        run: |
+          node --test AulaManagerPortable/tests/PeAuditTests.cjs
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          & AulaManagerPortable/build/Win7/tests/AutomationTests.exe
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          & AulaManagerPortable/build/Win7/tests/CoreTests.exe
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          & AulaManagerPortable/src/StoreApps.ps1 -SelfTest
+          exit $LASTEXITCODE
+      - name: Verificar interfaz y tareas en segundo plano
+        shell: powershell
+        run: |
+          $test = Start-Process -FilePath 'AulaManagerPortable/build/Win7/AulaManagerPortable.exe' -ArgumentList '--self-test' -WindowStyle Hidden -PassThru -Wait
+          Get-Content 'AulaManagerPortable/build/Win7/layout-tests.txt'
+          exit $test.ExitCode
+      - name: Guardar ejecutable comprobado y resultados
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: AulaManagerPortable-Windows7-10-x86
-          path: AulaManagerPortable/build/Release/AulaManagerPortable.exe
+          name: AulaManager-v05-Windows7-10-nativo
+          path: |
+            AulaManagerPortable/build/Win7/AulaManagerPortable.exe
+            AulaManagerPortable/build/Win7/compatibilidad-win7.json
+            AulaManagerPortable/build/Win7/layout-tests.txt
+            AulaManagerPortable/build/Win7/review-*.png
           if-no-files-found: error

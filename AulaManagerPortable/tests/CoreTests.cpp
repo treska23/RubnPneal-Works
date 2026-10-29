@@ -1,9 +1,9 @@
-#include "../src/Core.h"
+#include "../src/Automation.h"
 #include <fstream>
 #include <iterator>
 #include <iostream>
 
-int wmain(){
+int wmain(int argc,wchar_t** argv){
     int failures=0;
     auto check=[&](bool ok,const char* description){std::cout<<(ok?"PASS ":"FAIL ")<<description<<'\n';if(!ok)++failures;};
     const std::wstring center=L"Centro — revisión 東京",station=L"PC-01";
@@ -22,6 +22,8 @@ int wmain(){
         CloseHandle(file);return written==3;
     };
     check(makeFile(L"old.txt",true)&&makeFile(L"recent.txt",false),"create old and recent files");
+    check(aula::FileSha256(folder+L"\\old.txt")==L"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+          "native SHA256 matches the known abc vector");
     SetEnvironmentVariableW(L"TEMP",folder.c_str());
     auto preview=aula::TempFiles(true,false);
     check(preview.examined==2&&preview.changed==1&&preview.bytes==3,"preview selects only files older than seven days");
@@ -38,6 +40,29 @@ int wmain(){
     check(aula::ParseUninstallCommand(L"C:\\Program Files\\Vendor\\uninstall.exe /uninstall /quiet",executable,arguments)&&executable==L"C:\\Program Files\\Vendor\\uninstall.exe"&&arguments==L"/uninstall /quiet","unquoted uninstall path with spaces parsed correctly");
     check(aula::ParseUninstallCommand(L"\"C:\\Program Files\\Vendor\\uninstall.exe\" /remove \"a b\"",executable,arguments)&&arguments==L"/remove \"a b\"","quoted uninstall arguments preserved");
     check(!aula::ParseUninstallCommand(L"\"unclosed.exe /x",executable,arguments),"malformed uninstall command rejected");
+    aula::Program msi;msi.keyName=L"{11111111-2222-3333-4444-555555555555}";msi.isMsi=true;std::wstring error;
+    check(aula::BuildAutomaticUninstall(msi,executable,arguments,error)&&arguments.find(L"/qn")!=std::wstring::npos&&arguments.find(L"ReallySuppress")!=std::wstring::npos,
+          "MSI removal is silent and suppresses automatic reboot");
+    aula::Program quiet;quiet.quietUninstall=L"\"C:\\Vendor\\remove.exe\" /quiet /norestart";
+    check(aula::BuildAutomaticUninstall(quiet,executable,arguments,error)&&arguments==L"/quiet /norestart","vendor quiet uninstall is used without interactive selection");
+    quiet.quietUninstall=L"cmd.exe /c something";
+    check(!aula::BuildAutomaticUninstall(quiet,executable,arguments,error),"indirect shell uninstall commands are not guessed");
+    aula::Inspection system;system.windows7=true;system.servicePackMajor=1;system.architecture=L"64 bits";system.freeGb=10;
+    aula::OfficePreparation office;
+    system.libreofficeVersion=L"25.2.8.1";
+    check(aula::PrepareLibreOffice(system,office,nullptr,{},error)&&!office.installNeeded,"newer installed LibreOffice is preserved without downloading or downgrading");
+    system.libreofficeVersion.clear();system.servicePackMajor=0;
+    check(!aula::PrepareLibreOffice(system,office,nullptr,{},error),"Windows 7 without SP1 stops before installer download or system changes");
+    if(argc==3&&std::wstring(argv[1])==L"--packages"){
+        system.servicePackMajor=1;
+        for(bool x64:{false,true}){
+            system.architecture=x64?L"64 bits":L"32 bits";office={};
+            check(aula::PrepareLibreOffice(system,office,nullptr,{},error,argv[2])&&office.x64==x64&&office.version==L"25.2.7.2"&&!office.productCode.empty(),
+                  x64?"real x64 offline MSI passes SHA256, identity, version and architecture checks":"real x86 offline MSI passes SHA256, identity, version and architecture checks");
+        }
+        system.architecture=L"64 bits";system.libreofficeVersion=L"7.4.7.2";system.libreofficeX64=false;office={};
+        check(aula::PrepareLibreOffice(system,office,nullptr,{},error,argv[2])&&!office.x64,"32-bit LibreOffice on 64-bit Windows keeps its installed architecture when updating");
+    }
     check(GetFileAttributesW((folder+L"\\old.txt").c_str())!=INVALID_FILE_ATTRIBUTES&&
         GetFileAttributesW((folder+L"\\recent.txt").c_str())!=INVALID_FILE_ATTRIBUTES,"preview leaves both files untouched");
     aula::Log(L"Prueba de exportación: tildes, ñ y 東京.");
