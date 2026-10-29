@@ -141,7 +141,7 @@ public partial class MainWindow : Window
         FreeDiskText.Text = $"Disco libre: {_pc.DiskFreeGb:N1} GB";
         MigrationSpecsText.Text = $"Sistema: {_pc.Windows} · {_pc.Architecture} · RAM: {_pc.RamMb:N0} MB · Libre: {_pc.DiskFreeGb:N1} GB";
         LibreWarningText.Text = _pc.IsWindows7
-            ? "Windows 7 SP1: utiliza únicamente versiones compatibles de LibreOffice (p. ej. 7.4.x)."
+            ? "Windows 7 SP1: actualización automática a LibreOffice 25.2 (última serie compatible, archivada). Puede requerir actualizaciones de Windows, incluida KB3063858."
             : "Comprueba firma digital, arquitectura e idioma del MSI antes de instalarlo.";
     }
     private static bool IsAdministrator()
@@ -162,15 +162,20 @@ public partial class MainWindow : Window
         catch (Exception ex) { Warn("No se pudo elevar: " + ex.Message); }
     }
     private string ReportDirectory => Path.Combine(_dataFolder, "Informes");
+    private string WriteReport()
+    {
+        Directory.CreateDirectory(ReportDirectory);
+        string file = Path.Combine(ReportDirectory,
+            $"{Clean(CenterBox.Text)}_{Clean(StationBox.Text)}_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
+        string header = $"AULA MANAGER — INFORME\nCentro: {CenterBox.Text}\nPuesto físico: {StationBox.Text}\nWindows: {_pc.Windows}\nCPU: {_pc.Cpu}\nRAM: {_pc.RamMb} MB\nFecha: {DateTime.Now:dd/MM/yyyy HH:mm:ss}\n\nACTUACIONES REGISTRADAS\n";
+        File.WriteAllText(file, header + string.Join(Environment.NewLine, _session), new UTF8Encoding(true));
+        return file;
+    }
     private void ExportReport_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            Directory.CreateDirectory(ReportDirectory);
-            string file = Path.Combine(ReportDirectory,
-                $"{Clean(CenterBox.Text)}_{Clean(StationBox.Text)}_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
-            string header = $"AULA MANAGER — INFORME\nCentro: {CenterBox.Text}\nPuesto físico: {StationBox.Text}\nWindows: {_pc.Windows}\nCPU: {_pc.Cpu}\nRAM: {_pc.RamMb} MB\nFecha: {DateTime.Now:dd/MM/yyyy HH:mm:ss}\n\nACTUACIONES REGISTRADAS\n";
-            File.WriteAllText(file, header + string.Join(Environment.NewLine, _session), new UTF8Encoding(true));
+            string file = WriteReport();
             Log("Informe exportado: " + file);
             Info("Informe guardado:\n" + file);
         }
@@ -201,7 +206,7 @@ public partial class MainWindow : Window
         public string Version { get; set; } = "";
         public string UninstallCommand { get; set; } = "";
         public string Guid { get; set; } = "";
-        public bool Msi, IsAntivirus;
+        public bool Msi, IsAntivirus, Is64Bit;
         public string Display => (IsAntivirus ? "[POSIBLE ANTIVIRUS] " : "") + Name +
                                  (Version.Length > 0 ? $"  ({Version})" : "");
     }

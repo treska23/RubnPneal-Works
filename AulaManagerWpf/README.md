@@ -1,10 +1,25 @@
-# Aula Manager WPF — Windows 7 SP1 / 10 / 11
+# Aula Manager WPF v0.4.2 — Windows 7 SP1 / 10 / 11
 
 Esta es la aplicación C# WPF existente, adaptada a .NET Framework 4.8.
 Mantenimiento, limpieza, CEIP/SQM, servicios opcionales, inventario, informes,
 LibreOffice y asistente de migración permanecen en WPF. No se ha vuelto a C++.
 System.Windows.Forms se usa solamente para el selector de carpetas; esa API
 también existe en Framework 4.8 y no impide ejecutar en Windows 7.
+
+## Hacer todo el mantenimiento
+
+En Resumen y Mantenimiento aparece el botón **Hacer todo el mantenimiento**.
+Después de identificar centro y puesto y abrir con permisos de administrador,
+una sola confirmación muestra y ejecuta el lote completo: temporales del usuario
+y Windows de más de siete días, CEIP/SQM, DiagTrack, dmwappushservice, Fax,
+WMPNetworkSvc, TabletInputService y RemoteRegistry. Conserva el respaldo previo
+de CEIP y servicios, busca/descarga/instala LibreOffice compatible, actualiza el inventario y genera el informe automáticamente.
+Muestra el progreso y registra incidencias; los servicios ausentes no se cuentan
+como cambios correctos. La confirmación advierte de los efectos sobre la entrada
+táctil y la administración remota. La limpieza de temporales es irreversible.
+
+Las operaciones seleccionadas siguen disponibles para mantenimiento individual.
+LibreOffice ya no requiere buscar un MSI: Actualizar automáticamente realiza todo el proceso. Desinstalar un programa concreto y migrar Windows conservan sus asistentes específicos.
 
 ## Uso portable y requisitos
 
@@ -64,3 +79,36 @@ despliegue masivo hay que probar en máquinas o VM Windows 7 SP1 x86/x64 con
 vista previa, informe y, en una VM desechable, respaldo/restauración CEIP y
 servicios con permisos. CEIP y dos servicios no equivalen a eliminar toda la
 telemetría. Un servicio ausente se registra como incidencia, sin inventar éxito.
+
+## Actualización automática de LibreOffice
+
+El botón de LibreOffice y el lote completo consultan los servidores oficiales
+de The Document Foundation, descargan el MSI y comparan su SHA-256 con el oficial
+antes de instalar. Se conserva la arquitectura del LibreOffice ya instalado;
+si no está instalado, se usa la del sistema. No se fuerza un descenso de versión.
+Windows Installer se ejecuta con progreso visible y sin reiniciar automáticamente.
+Se espera a su terminación y se comprueba la versión registrada, sin presentar
+un simple lanzamiento del instalador como una actualización terminada.
+
+Windows 7/8: se utiliza 25.2.7.2, última revisión de la última serie compatible,
+desde el archivo oficial. La antigua restricción artificial a 7.4 se elimina.
+La serie 25.2 está archivada; Windows 7 SP1 puede requerir KB3063858 y otras
+actualizaciones. Windows 10/11: se descubre la última versión del directorio
+oficial stable que dispone de MSI para esa arquitectura.
+
+Se necesita conexión, espacio en la carpeta Descargas y permisos para instalar.
+Si LibreOffice tiene documentos abiertos, se pide cerrarlos sin forzar el cierre.
+Una descarga, comprobación o instalación fallida se registra como incidencia;
+en el lote se continúa hasta generar el informe. Los MSI verificados quedan en
+Descargas para reutilizarlos en otros equipos de igual arquitectura/versión.
+
+CI verifica metadatos oficiales para las cuatro combinaciones de Windows/arquitectura,
+descarga el MSI completo, verifica el hash e instala 25.2 x86 y la versión actual x64
+en los runners desechables Windows Server 2022. No modifica el LibreOffice del
+ordenador de desarrollo. Las pruebas no acreditan la instalación en Windows 7 real.
+
+Fuentes de compatibilidad y descargas:
+- https://books.libreoffice.org/en/WG252/WG2500-Preface.html
+- https://www.libreoffice.org/system-requirements/
+- https://download.documentfoundation.org/libreoffice/stable/
+- https://downloadarchive.documentfoundation.org/libreoffice/old/25.2.7.2/

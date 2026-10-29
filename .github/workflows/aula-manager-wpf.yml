@@ -20,12 +20,12 @@ jobs:
           dotnet-version: 8.0.x
       - name: Build .NET Framework 4.8
         run: dotnet build AulaManagerWpf/AulaManagerWpf.csproj -c Release -p:Platform=${{ matrix.arch }} --nologo
-      - name: WPF startup, pages, JSON and argument tests
+      - name: WPF, run-all plan, download and install LibreOffice
         shell: pwsh
         run: |
           $exe = Join-Path $PWD 'AulaManagerWpf/bin/${{ matrix.arch }}/Release/net48/AulaManager.exe'
-          $proc = Start-Process $exe -ArgumentList '--smoke-test' -PassThru -WindowStyle Hidden
-          if (!$proc.WaitForExit(60000)) { Stop-Process -Id $proc.Id -Force; throw 'WPF smoke test timeout' }
+          $proc = Start-Process $exe -ArgumentList '--smoke-test --libre-network-test --libre-install-test' -PassThru -WindowStyle Hidden
+          if (!$proc.WaitForExit(900000)) { Stop-Process -Id $proc.Id -Force; throw 'WPF smoke test timeout' }
           if ($proc.ExitCode -ne 0) { throw "WPF failed: $($proc.ExitCode)" }
           if (!(Test-Path smoke-results/passed.txt)) { throw 'Missing smoke test result' }
           Get-Content smoke-results/passed.txt
@@ -81,4 +81,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "aula-wpf-net48-${{ github.run_number }}-${GITHUB_SHA:0:7}" packages/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease --title "Aula Manager WPF .NET 4.8 (build ${{ github.run_number }})" --notes "WPF x86/x64. Requires installed .NET Framework 4.8. Windows 7 SP1 compatibility target; CI builds and smoke tests run on Windows Server 2022, not Windows 7. Extract the full ZIP before running AulaManager.exe."
+          gh release create "aula-wpf-net48-${{ github.run_number }}-${GITHUB_SHA:0:7}" packages/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease --title "Aula Manager WPF v0.4.2 (build ${{ github.run_number }})" --notes "WPF v0.4.2 x86/x64. Run-all maintenance, automatic compatible LibreOffice download/install and final report. Requires installed .NET Framework 4.8. Windows 7 SP1 compatibility target; CI builds and smoke tests run on Windows Server 2022, not Windows 7. Extract the full ZIP before running AulaManager.exe."

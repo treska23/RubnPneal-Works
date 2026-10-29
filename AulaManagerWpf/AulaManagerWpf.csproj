@@ -13,7 +13,7 @@
     <AssemblyName>AulaManager</AssemblyName>
     <RootNamespace>AulaManagerWpf</RootNamespace>
     <ApplicationIcon>..\AulaManagerPortable\src\aula-manager.ico</ApplicationIcon>
-    <Version>0.4.0</Version>
+    <Version>0.4.2</Version>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <DebugType>embedded</DebugType>
     <PublishTrimmed>false</PublishTrimmed>
@@ -22,5 +22,6 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 </Project>

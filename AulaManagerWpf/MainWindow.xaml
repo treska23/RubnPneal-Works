@@ -34,7 +34,7 @@
       <StackPanel VerticalAlignment="Center">
        <TextBlock Text="AULA" FontWeight="Bold" FontSize="21" Foreground="#123C68"/>
        <TextBlock Text="MANAGER" FontWeight="Bold" FontSize="19" Foreground="#123C68"/>
-       <TextBlock Text="PORTABLE  ·  v0.4" FontSize="10.5" Foreground="#3C83B7"/>
+       <TextBlock Text="PORTABLE  ·  v0.4.2" FontSize="10.5" Foreground="#3C83B7"/>
       </StackPanel>
      </StackPanel>
      <Separator Background="#D5E9F8" Margin="0,0,0,16"/>
@@ -61,6 +61,14 @@
 
     <!-- RESUMEN -->
     <StackPanel x:Name="PageOverview">
+     <Border Style="{StaticResource Card}" Margin="0,0,0,15" Background="#DDF7ED">
+      <StackPanel>
+       <Button x:Name="RunAllOverviewButton" Content="Hacer todo el mantenimiento" Click="RunAll_Click"
+               Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"/>
+       <TextBlock Text="Limpieza, CEIP/telemetría, servicios, actualización de LibreOffice e informe final en una sola ejecución. Requiere identificar el puesto y permisos de administrador."
+                  TextWrapping="Wrap" Margin="0,10,0,0"/>
+      </StackPanel>
+     </Border>
      <Border CornerRadius="17" Padding="25,22" Margin="0,0,0,15">
       <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
        <GradientStop Color="#DCEFFF" Offset="0"/><GradientStop Color="#F0FAFF" Offset="1"/>
@@ -174,6 +182,14 @@
 
     <!-- MANTENIMIENTO -->
     <StackPanel x:Name="PageMaintenance" Visibility="Collapsed">
+     <Border Style="{StaticResource Card}" Margin="0,0,0,15" Background="#DDF7ED">
+      <StackPanel>
+       <Button x:Name="RunAllMaintenanceButton" Content="Hacer todo el mantenimiento" Click="RunAll_Click"
+               Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"/>
+       <TextBlock Text="Ejecuta el mantenimiento, actualiza LibreOffice automáticamente y guarda el informe. Antes de comenzar verás la lista completa de cambios para confirmarla."
+                  TextWrapping="Wrap" Margin="0,10,0,0"/>
+      </StackPanel>
+     </Border>
      <Border Style="{StaticResource Card}" Margin="0,0,0,15" Background="#E3F3FF">
       <StackPanel><TextBlock Text="Mantenimiento y limpieza" Style="{StaticResource H1}"/>
        <TextBlock Text="Selecciona lo necesario y comprueba el resultado antes de aplicar cambios." Style="{StaticResource Secondary}" Margin="0,5,0,0"/>
@@ -187,6 +203,7 @@
        <CheckBox x:Name="DiagCheck" Content="Deshabilitar DiagTrack y dmwappushservice (servicios opcionales)"/>
        <CheckBox x:Name="ServicesCheck" Content="Deshabilitar Fax y Windows Media Network Sharing"/>
        <CheckBox x:Name="TabletCheck" Content="Deshabilitar TabletInputService (solo si no hay pantalla táctil)"/>
+       <CheckBox x:Name="UpdateLibreCheck" Content="Buscar, descargar e instalar LibreOffice compatible automáticamente"/>
        <CheckBox x:Name="RemoteCheck" Content="Deshabilitar RemoteRegistry (puede afectar la administración remota)"/>
        <WrapPanel Margin="0,12,0,18">
         <Button Content="Vista previa de limpieza" Click="Preview_Click" Margin="0,0,10,10"/>
@@ -223,14 +240,16 @@
     <StackPanel x:Name="PageLibre" Visibility="Collapsed">
      <Border Style="{StaticResource Card}" Background="#E3F3FF" Margin="0,0,0,15">
       <StackPanel><TextBlock Text="Actualizar LibreOffice" Style="{StaticResource H1}"/>
-       <TextBlock Text="Instalador local oficial. Compatible con el modo portable." Style="{StaticResource Secondary}"/>
+       <TextBlock Text="Busca, descarga, verifica e instala la versión compatible sin salir de Aula Manager." Style="{StaticResource Secondary}"/>
       </StackPanel></Border>
      <Border Style="{StaticResource Card}">
       <StackPanel>
        <TextBlock x:Name="LibreInstalledText" Style="{StaticResource H2}" Margin="0,0,0,15"/>
-       <TextBlock Text="Selecciona un archivo MSI oficial previamente descargado. Se abrirá el instalador visible de Windows."
+       <TextBlock Text="Pulsa Actualizar automáticamente. Se detectan Windows y la arquitectura, se descarga el instalador oficial y se verifica antes de instalar. Guarda tus documentos y cierra LibreOffice."
                   TextWrapping="Wrap" Margin="0,0,0,18"/>
        <TextBlock x:Name="LibreWarningText" Foreground="#B75B20" TextWrapping="Wrap" Margin="0,0,0,18"/>
+       <Button Content="Actualizar automáticamente" Click="AutoLibre_Click" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+       <TextBlock x:Name="LibreUpdateText" Text="La actualización también está incluida en Hacer todo el mantenimiento." TextWrapping="Wrap" Margin="0,0,0,16"/>
        <TextBox x:Name="LibreInstallerBox" IsReadOnly="True" Text="No hay instalador seleccionado." Margin="0,0,0,18"/>
        <WrapPanel><Button Content="Seleccionar MSI" Click="ChooseLibre_Click" Margin="0,0,12,10"/>
         <Button Content="Iniciar actualización" Click="RunLibre_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,12,10"/>
@@ -292,7 +311,7 @@
 
   <Border Grid.Row="1" Grid.ColumnSpan="2" Background="White" BorderBrush="#D7E7F3" BorderThickness="0,1,0,0">
    <Grid Margin="23,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-    <TextBlock Text="●  Listo" Foreground="#109D74" FontWeight="SemiBold" VerticalAlignment="Center"/>
+    <TextBlock x:Name="StatusText" Text="Listo" Foreground="#109D74" FontWeight="SemiBold" VerticalAlignment="Center"/>
     <TextBlock Grid.Column="1" Text="     Modo portable   ·   Datos y registros junto al ejecutable   ·   Ningún cambio automático"
      Foreground="#6C88A6" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
    </Grid>

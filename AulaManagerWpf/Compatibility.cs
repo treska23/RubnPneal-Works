@@ -17,7 +17,7 @@ public partial class MainWindow
         var content = (Panel)Content;
         content.IsEnabled = false;
         try { await work(); }
-        catch (Exception ex) { Log("Error: " + ex.Message); Warn(ex.Message); }
+        catch (Exception ex) { StatusText.Text = "Error: consulta el registro"; Log("Error: " + ex.Message); Warn(ex.Message); }
         finally { content.IsEnabled = true; _busy = false; }
     }
     // Windows argv quoting: preserve embedded quotes and trailing backslashes.

@@ -30,9 +30,10 @@ public partial class MainWindow
             Warn("Selecciona un instalador MSI de LibreOffice válido.");
             return;
         }
-        if (_pc.IsWindows7 && Path.GetFileName(_installerMsi).IndexOf("7.4.", StringComparison.OrdinalIgnoreCase) < 0)
+        var version = LibreVersion(Path.GetFileName(_installerMsi));
+        if (version == null || (IsLegacyLibre(Environment.OSVersion.Version) && !IsLegacyLibreCompatible(version)))
         {
-            Warn("En Windows 7 se permite exclusivamente LibreOffice 7.4.x verificado manualmente como compatible.");
+            Warn("Ese instalador no corresponde a una versión compatible. Usa Actualizar automáticamente.");
             return;
         }
         if (!Confirm("¿Abrir este instalador de LibreOffice?\n\nComprueba su firma, arquitectura e idioma. Guarda todos los documentos antes de iniciar."))

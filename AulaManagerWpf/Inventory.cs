@@ -87,6 +87,7 @@ public partial class MainWindow
                         UninstallCommand = cmd,
                         Guid = Guid.TryParse(subname, out var id) ? id.ToString("B") : "",
                         Msi = Convert.ToString(k?.GetValue("WindowsInstaller")) == "1",
+                        Is64Bit = view == RegistryView.Registry64,
                         IsAntivirus = AvKeywords.Any(word => name.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0)
                     });
                 }

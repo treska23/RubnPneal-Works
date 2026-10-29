@@ -14,9 +14,10 @@ namespace AulaManagerWpf;
 public partial class MainWindow
 {
     private sealed class TempResult { public readonly int Scanned, Changed, Errors; public readonly long Bytes; public TempResult(int scanned, int changed, int errors, long bytes) { Scanned = scanned; Changed = changed; Errors = errors; Bytes = bytes; } }
-    private static TempResult CleanTemp(bool preview, bool includeSystem)
+    private static TempResult CleanTemp(bool preview, bool includeSystem, bool includeUser = true)
     {
-        var roots = new List<string> { Path.GetTempPath() };
+        var roots = new List<string>();
+        if (includeUser) roots.Add(Path.GetTempPath());
         if (includeSystem) roots.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Temp"));
         int scanned = 0, changed = 0, errors = 0;
         long bytes = 0;
@@ -173,34 +174,68 @@ public partial class MainWindow
     }
     private async void Apply_Click(object sender, RoutedEventArgs e)
     {
-        var systemChecks = new CheckBox[] { CeipCheck, DiagCheck, ServicesCheck, TabletCheck, RemoteCheck, SystemTempCheck };
-        bool changesSystem = systemChecks.Any(x => x.IsChecked == true);
-        if (changesSystem && !NeedAdminAndStation()) return;
-        if (TempCheck.IsChecked != true && !changesSystem) { Warn("No hay tareas seleccionadas."); return; }
-        if (!Confirm("¿Ejecutar exactamente las tareas marcadas?\n\nLa limpieza de archivos es irreversible. Los servicios y CEIP se respaldarán.")) return;
+        await ExecuteMaintenanceAsync(SelectedMaintenance(), false);
+    }
+    private async void RunAll_Click(object sender, RoutedEventArgs e)
+    {
+        await ExecuteMaintenanceAsync(MaintenancePlan.All(), true);
+    }
+    private async Task ExecuteMaintenanceAsync(MaintenancePlan plan, bool all)
+    {
+        if (_busy) return;
+        if (!plan.HasTasks) { Warn("No hay tareas seleccionadas."); return; }
+        if (plan.ChangesSystem && !NeedAdminAndStation()) return;
+        if (!Confirm((all ? "¿Hacer todo el mantenimiento de este puesto?\n\n" : "¿Ejecutar las tareas seleccionadas?\n\n") +
+            plan.Describe() + "\n\nLos temporales eliminados no se pueden recuperar. Los servicios y CEIP se respaldan antes de modificarlos."))
+            return;
         SaveIdentity();
-        var backup = ReadBackup();
-        int success = 0, failure = 0;
-        if (TempCheck.IsChecked == true)
-        {
-            bool includeSystem = SystemTempCheck.IsChecked == true;
-            TempResult temp = null!;
-            await RunBusyAsync(async () => temp = await Task.Run(() => CleanTemp(false, includeSystem)));
-            if (temp == null) return;
-            Log($"Temporales eliminados: {temp.Changed} · {temp.Bytes / 1048576.0:N1} MiB · {temp.Errors} incidencias.");
-            success += temp.Changed; failure += temp.Errors;
-        }
-        var services = new List<string>();
-        if (DiagCheck.IsChecked == true) services.AddRange(ServicesAllowlist.Take(2));
-        if (ServicesCheck.IsChecked == true) services.AddRange(new[] { "Fax", "WMPNetworkSvc" });
-        if (TabletCheck.IsChecked == true) services.Add("TabletInputService");
-        if (RemoteCheck.IsChecked == true) services.Add("RemoteRegistry");
-        foreach (var name in services.Distinct())
-            if (ChangeService(name, true, backup)) success++; else failure++;
-        if (CeipCheck.IsChecked == true)
-            if (ChangeCeip(false, backup)) success++; else failure++;
-        Log($"Mantenimiento terminado: {success} cambios, {failure} incidencias.");
-        Info($"Proceso terminado.\nCambios y archivos: {success}\nIncidencias: {failure}\nConsulta el registro.");
+        await RunBusyAsync(async () => {
+            var backup = ReadBackup();
+            int success = 0, failure = 0;
+            Log(all ? "Inicio de TODO el mantenimiento." : "Inicio de mantenimiento seleccionado.");
+            Log(plan.Describe());
+            if (plan.UserTemp || plan.SystemTemp)
+            {
+                StatusText.Text = "Limpiando temporales…";
+                var temp = await Task.Run(() => CleanTemp(false, plan.SystemTemp, plan.UserTemp));
+                Log($"Temporales eliminados: {temp.Changed} · {temp.Bytes / 1048576.0:N1} MiB · {temp.Errors} incidencias.");
+                success += temp.Changed; failure += temp.Errors;
+            }
+            foreach (var name in plan.Services)
+            {
+                StatusText.Text = "Configurando " + name + "…";
+                await Task.Yield();
+                if (ChangeService(name, true, backup)) success++; else failure++;
+            }
+            if (plan.Ceip)
+            {
+                StatusText.Text = "Configurando CEIP/SQM…";
+                await Task.Yield();
+                if (ChangeCeip(false, backup)) success++; else failure++;
+            }
+            if (plan.UpdateLibre)
+            {
+                try { await UpdateLibreOfficeAsync(); success++; }
+                catch (Exception ex) { failure++; Log("No se completó la actualización de LibreOffice: " + ex.Message); }
+            }
+            if (plan.ExportReport)
+            {
+                StatusText.Text = "Actualizando inventario…";
+                await RefreshInventoryAsync();
+                await RefreshSoftwareAsync();
+            }
+            Log($"Mantenimiento terminado: {success} cambios y archivos, {failure} incidencias.");
+            string report = "";
+            if (plan.ExportReport)
+            {
+                StatusText.Text = "Guardando informe…";
+                report = WriteReport();
+                Log("Informe de mantenimiento guardado: " + report);
+            }
+            StatusText.Text = failure == 0 ? "Mantenimiento terminado" : "Terminado con incidencias";
+            Info($"Mantenimiento terminado.\nCambios y archivos: {success}\nIncidencias: {failure}\n" +
+                (report.Length > 0 ? "Informe guardado:\n" + report : "Consulta el registro."));
+        });
     }
     private void Restore_Click(object sender, RoutedEventArgs e)
     {

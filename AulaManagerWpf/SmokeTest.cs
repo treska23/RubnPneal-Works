@@ -17,6 +17,31 @@ public partial class MainWindow
         {
             if (string.IsNullOrWhiteSpace(PcNameText.Text) || _pc.RamMb <= 0)
                 throw new InvalidOperationException("Inventory did not populate");
+            var plan = MaintenancePlan.All();
+            if (!plan.UserTemp || !plan.SystemTemp || !plan.Ceip || !plan.ExportReport || !plan.UpdateLibre ||
+                !plan.HasTasks || !plan.ChangesSystem ||
+                !System.Linq.Enumerable.SequenceEqual(plan.Services, ServicesAllowlist))
+                throw new Exception("Run-all plan omitted maintenance tasks");
+            plan.Services[0] = "changed-for-test";
+            if (MaintenancePlan.All().Services[0] != "DiagTrack") throw new Exception("Run-all plan shares mutable state");
+            if (!RunAllOverviewButton.Content.ToString().Contains("todo") ||
+                !RunAllMaintenanceButton.Content.ToString().Contains("todo"))
+                throw new Exception("Run-all buttons missing");
+            if (!IsLegacyLibreCompatible(new Version(25, 2, 7, 2)) || IsLegacyLibreCompatible(new Version(25, 8, 0, 0)) ||
+                !IsLegacyLibre(new Version(6, 1)) || IsLegacyLibre(new Version(10, 0)) ||
+                LibreVersion("7.6.4.1") != new Version(7, 6, 4, 1)) throw new Exception("LibreOffice compatibility policy failed");
+            if (StableVersions("<a href=\"26.2.6/\">x</a><a href=\"26.8.1/\">x</a><a href=\"27.2.0-rc1/\">x</a>")[0] != "26.8.1")
+                throw new Exception("Stable release discovery failed");
+            string center = CenterBox.Text, station = StationBox.Text;
+            try
+            {
+                CenterBox.Text = "SmokeTest";
+                StationBox.Text = Guid.NewGuid().ToString("N");
+                string report = WriteReport();
+                if (!File.ReadAllText(report).Contains("Centro: SmokeTest")) throw new Exception("Report not generated");
+                File.Delete(report);
+            }
+            finally { CenterBox.Text = center; StationBox.Text = station; }
             var serializer = new JavaScriptSerializer();
             var identity = serializer.Deserialize<Identity>(serializer.Serialize(new Identity { Center = "Centro ñ", Station = "PC1" }));
             if (identity.Center != "Centro ñ" || identity.Station != "PC1") throw new Exception("Identity JSON roundtrip");
@@ -48,7 +73,23 @@ public partial class MainWindow
                     using (var file = File.Create($"smoke-results/page-{page}-{width}.png")) encoder.Save(file);
                 }
             }
-            File.WriteAllText("smoke-results/passed.txt", "PASS: WPF startup, inventory, six pages at three widths, identity/backup JSON and Windows argument quoting. No maintenance applied.");
+            var args = Environment.GetCommandLineArgs();
+            if (System.Linq.Enumerable.Contains(args, "--libre-network-test"))
+            {
+                foreach (bool legacy in new[] { true, false }) foreach (bool x64 in new[] { true, false }) {
+                    var release = await GetLibreReleaseAsync(legacy, x64);
+                    if (legacy && !IsLegacyLibreCompatible(LibreVersion(release.Version)!)) throw new Exception("Incompatible Windows 7 release offered");
+                    File.AppendAllText("smoke-results/libre-metadata.txt", $"{legacy} / {x64}: {release.Download}\nSHA256 {release.Sha256}\n");
+                }
+            }
+            if (System.Linq.Enumerable.Contains(args, "--libre-install-test"))
+            {
+                var release = await GetLibreReleaseAsync(!Environment.Is64BitProcess, Environment.Is64BitProcess);
+                string file = await DownloadLibreAsync(release);
+                await InstallLibreAsync(release, file);
+                File.WriteAllText("smoke-results/libre-install-passed.txt", "Downloaded, SHA256 verified, installed and registry version verified: " + release.FileName);
+            }
+            File.WriteAllText("smoke-results/passed.txt", "PASS: WPF startup, inventory, six pages at three widths, run-all plan/buttons, report generation, compatibility policy, identity/backup JSON and Windows argument quoting. System cleanup/CEIP/services were not changed.");
             Application.Current.Shutdown(0);
         }
         catch (Exception ex)
