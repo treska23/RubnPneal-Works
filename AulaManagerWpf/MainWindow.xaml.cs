@@ -6,10 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.Text;
-using System.Text.Json;
+using System.Web.Script.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Threading.Tasks;
 
 namespace AulaManagerWpf;
 
@@ -28,12 +29,16 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Width = Math.Min(Width, SystemParameters.WorkArea.Width);
+        Height = Math.Min(Height, SystemParameters.WorkArea.Height);
         _dataFolder = Path.Combine(_baseFolder, "Datos");
         try { Directory.CreateDirectory(_dataFolder); }
         catch (Exception ex) { Warn("No se puede escribir en el pendrive: " + ex.Message); }
         LoadIdentity();
-        RefreshInventory();
-        RefreshSoftware();
+        Loaded += async (_, __) => {
+            await RunBusyAsync(async () => { await RefreshInventoryAsync(); await RefreshSoftwareAsync(); });
+            if (Environment.GetCommandLineArgs().Contains("--smoke-test")) await SmokeTestAsync();
+        };
         ShowPage(0);
         Log("Inicio de Aula Manager WPF. Ninguna tarea automática ejecutada.");
     }
@@ -56,7 +61,7 @@ public partial class MainWindow : Window
         try
         {
             if (!File.Exists(ConfigPath)) return;
-            var value = JsonSerializer.Deserialize<Identity>(File.ReadAllText(ConfigPath, Encoding.UTF8));
+            var value = new JavaScriptSerializer().Deserialize<Identity>(File.ReadAllText(ConfigPath, Encoding.UTF8));
             CenterBox.Text = value?.Center ?? "";
             StationBox.Text = value?.Station ?? "";
         }
@@ -66,8 +71,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            var content = JsonSerializer.Serialize(new Identity(CenterBox.Text.Trim(), StationBox.Text.Trim()),
-                new JsonSerializerOptions { WriteIndented = true });
+            var content = new JavaScriptSerializer().Serialize(new Identity { Center = CenterBox.Text.Trim(), Station = StationBox.Text.Trim() });
             File.WriteAllText(ConfigPath, content, new UTF8Encoding(false));
         }
         catch (Exception ex) { Warn("No se pudo guardar la identidad: " + ex.Message); }
@@ -97,9 +101,9 @@ public partial class MainWindow : Window
         }
         catch { /* Se conserva en memoria si el USB es de solo lectura. */ }
     }
-    private void Navigate_Click(object sender, RoutedEventArgs e)
+    private async void Navigate_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button b && int.TryParse(b.Tag?.ToString(), out int index)) ShowPage(index);
+        if (sender is Button b && int.TryParse(b.Tag?.ToString(), out int index)) { ShowPage(index); if (index == 2) await RunBusyAsync(RefreshSoftwareAsync); }
     }
     private void ShowPage(int index)
     {
@@ -111,15 +115,15 @@ public partial class MainWindow : Window
             nav[n].Background = new SolidColorBrush(n == index ? Color.FromRgb(32, 143, 230) : Color.FromRgb(243, 250, 255));
             nav[n].Foreground = new SolidColorBrush(n == index ? Colors.White : Color.FromRgb(19, 57, 104));
         }
-        if (index == 2) RefreshSoftware();
+
         if (index == 3) LibreInstalledText.Text = "Instalado: " + _pc.LibreOffice;
         if (index == 5) IdentityText.Text = $"Centro: {CenterBox.Text} · Puesto: {StationBox.Text} · Equipo: {_pc.Machine}";
     }
 
-    private void RefreshInventory()
+    private async Task RefreshInventoryAsync()
     {
         _isAdmin = IsAdministrator();
-        _pc = Inspect();
+        _pc = await Task.Run(Inspect);
         PcNameText.Text = _pc.Machine;
         OsText.Text = _pc.Windows;
         ArchText.Text = _pc.Architecture;
@@ -133,7 +137,7 @@ public partial class MainWindow : Window
         StateDisk.Text = _pc.DiskFreeGb >= 25 ? "✓ Espacio libre suficiente" : "⚠ Revisar espacio en disco";
         StateAV.Text = "Antivirus de terceros: comprobación disponible";
         MemoryText.Text = $"RAM: {_pc.RamUsedPercent}% en uso";
-        MemoryBar.Value = Math.Clamp(_pc.RamUsedPercent, 0, 100);
+        MemoryBar.Value = Math.Max(0, Math.Min(100, _pc.RamUsedPercent));
         FreeDiskText.Text = $"Disco libre: {_pc.DiskFreeGb:N1} GB";
         MigrationSpecsText.Text = $"Sistema: {_pc.Windows} · {_pc.Architecture} · RAM: {_pc.RamMb:N0} MB · Libre: {_pc.DiskFreeGb:N1} GB";
         LibreWarningText.Text = _pc.IsWindows7
@@ -150,7 +154,7 @@ public partial class MainWindow : Window
         try
         {
             SaveIdentity();
-            var exe = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
+            var exe = Process.GetCurrentProcess().MainModule?.FileName;
             if (string.IsNullOrWhiteSpace(exe)) throw new InvalidOperationException("Ejecutable no encontrado.");
             Process.Start(new ProcessStartInfo(exe) { UseShellExecute = true, Verb = "runas", WorkingDirectory = _baseFolder });
             Close();
@@ -182,7 +186,7 @@ public partial class MainWindow : Window
         catch (Exception ex) { Warn(ex.Message); }
     }
 
-    private sealed record Identity(string Center, string Station);
+    public sealed class Identity { public string Center { get; set; } = ""; public string Station { get; set; } = ""; }
     private sealed class PcInfo
     {
         public string Machine = "", Windows = "", Architecture = "", Cpu = "", LibreOffice = "";

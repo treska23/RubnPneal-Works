@@ -25,12 +25,12 @@ public partial class MainWindow
     private void RunLibre_Click(object sender, RoutedEventArgs e)
     {
         if (!File.Exists(_installerMsi) ||
-            !Path.GetFileName(_installerMsi).Contains("LibreOffice", StringComparison.OrdinalIgnoreCase))
+            Path.GetFileName(_installerMsi).IndexOf("LibreOffice", StringComparison.OrdinalIgnoreCase) < 0)
         {
             Warn("Selecciona un instalador MSI de LibreOffice válido.");
             return;
         }
-        if (_pc.IsWindows7 && !Path.GetFileName(_installerMsi).Contains("7.4.", StringComparison.OrdinalIgnoreCase))
+        if (_pc.IsWindows7 && Path.GetFileName(_installerMsi).IndexOf("7.4.", StringComparison.OrdinalIgnoreCase) < 0)
         {
             Warn("En Windows 7 se permite exclusivamente LibreOffice 7.4.x verificado manualmente como compatible.");
             return;
@@ -40,10 +40,7 @@ public partial class MainWindow
         try
         {
             var psi = new ProcessStartInfo("msiexec.exe") { UseShellExecute = true, Verb = "runas" };
-            psi.ArgumentList.Add("/i");
-            psi.ArgumentList.Add(_installerMsi);
-            psi.ArgumentList.Add("/passive");
-            psi.ArgumentList.Add("/norestart");
+            psi.Arguments = "/i " + QuoteArgument(_installerMsi) + " /passive /norestart";
             Process.Start(psi);
             Log("Instalador LibreOffice iniciado. Resultado PENDIENTE de verificación.");
             Info("Instalador abierto. Verifica la versión de LibreOffice al terminar.");

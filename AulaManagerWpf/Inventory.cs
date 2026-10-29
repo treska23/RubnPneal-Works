@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
 namespace AulaManagerWpf;
@@ -86,7 +87,7 @@ public partial class MainWindow
                         UninstallCommand = cmd,
                         Guid = Guid.TryParse(subname, out var id) ? id.ToString("B") : "",
                         Msi = Convert.ToString(k?.GetValue("WindowsInstaller")) == "1",
-                        IsAntivirus = AvKeywords.Any(word => name.Contains(word, StringComparison.OrdinalIgnoreCase))
+                        IsAntivirus = AvKeywords.Any(word => name.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0)
                     });
                 }
             }
@@ -98,9 +99,9 @@ public partial class MainWindow
         return results.OrderByDescending(x => x.IsAntivirus).ThenBy(x => x.Name).ToList();
     }
 
-    private void RefreshSoftware()
+    private async Task RefreshSoftwareAsync()
     {
-        _installed = FindSoftware();
+        _installed = await Task.Run(FindSoftware);
         SoftwareList.ItemsSource = null;
         SoftwareList.ItemsSource = _installed;
     }

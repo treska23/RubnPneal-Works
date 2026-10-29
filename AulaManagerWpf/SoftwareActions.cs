@@ -13,9 +13,9 @@ public partial class MainWindow
     [DllImport("kernel32.dll")]
     private static extern IntPtr LocalFree(IntPtr memory);
 
-    private void RefreshSoftware_Click(object sender, RoutedEventArgs e)
+    private async void RefreshSoftware_Click(object sender, RoutedEventArgs e)
     {
-        RefreshSoftware();
+        await RunBusyAsync(RefreshSoftwareAsync);
         Log($"Listado actualizado: {_installed.Count} programas encontrados.");
     }
     private void ControlPanel_Click(object sender, RoutedEventArgs e)
@@ -39,8 +39,7 @@ public partial class MainWindow
             if (selected.Msi && !string.IsNullOrWhiteSpace(selected.Guid))
             {
                 var msi = new ProcessStartInfo("msiexec.exe") { UseShellExecute = true, Verb = "runas" };
-                msi.ArgumentList.Add("/x");
-                msi.ArgumentList.Add(selected.Guid);
+                msi.Arguments = "/x " + QuoteArgument(selected.Guid);
                 Process.Start(msi);
             }
             else
@@ -73,7 +72,7 @@ public partial class MainWindow
                     return;
                 }
                 var start = new ProcessStartInfo(exe) { UseShellExecute = true, Verb = "runas" };
-                foreach (var arg in args.Skip(1)) start.ArgumentList.Add(arg);
+                start.Arguments = string.Join(" ", args.Skip(1).Select(QuoteArgument));
                 Process.Start(start);
             }
             Log($"Desinstalador iniciado para {selected.Name}. Eliminación PENDIENTE de verificación.");

@@ -1,0 +1,67 @@
+name: Aula Manager WPF - net48 x86 x64
+on:
+  push:
+    branches: [feat/aula-manager-portable]
+    paths: ["AulaManagerWpf/**", ".github/workflows/aula-manager-wpf.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86, x64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build .NET Framework 4.8
+        run: dotnet build AulaManagerWpf/AulaManagerWpf.csproj -c Release -p:Platform=${{ matrix.arch }} --nologo
+      - name: WPF startup, pages, JSON and argument tests
+        shell: pwsh
+        run: |
+          $exe = Join-Path $PWD 'AulaManagerWpf/bin/${{ matrix.arch }}/Release/net48/AulaManager.exe'
+          $proc = Start-Process $exe -ArgumentList '--smoke-test' -PassThru -WindowStyle Hidden
+          if (!$proc.WaitForExit(60000)) { Stop-Process -Id $proc.Id -Force; throw 'WPF smoke test timeout' }
+          if ($proc.ExitCode -ne 0) { throw "WPF failed: $($proc.ExitCode)" }
+          if (!(Test-Path smoke-results/passed.txt)) { throw 'Missing smoke test result' }
+          Get-Content smoke-results/passed.txt
+      - name: Package portable folder
+        shell: pwsh
+        run: |
+          $name = 'AulaManager-WPF-net48-${{ matrix.arch }}'
+          New-Item -ItemType Directory -Path "dist/$name" -Force | Out-Null
+          Copy-Item 'AulaManagerWpf/bin/${{ matrix.arch }}/Release/net48/AulaManager.exe*' "dist/$name/"
+          Copy-Item AulaManagerWpf/README.md "dist/$name/LEEME.md"
+          Compress-Archive "dist/$name/*" "dist/$name.zip"
+          Get-FileHash "dist/$name.zip" -Algorithm SHA256 | Format-List | Out-File "dist/$name.sha256.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulaManager-WPF-net48-${{ matrix.arch }}
+          path: dist/*.*
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: WPF-smoke-${{ matrix.arch }}
+          path: smoke-results/
+          if-no-files-found: warn
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: AulaManager-WPF-net48-*
+          path: packages
+          merge-multiple: true
+      - name: Publish verified build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "aula-wpf-net48-${{ github.run_number }}-${GITHUB_SHA:0:7}" packages/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease --title "Aula Manager WPF .NET 4.8 (build ${{ github.run_number }})" --notes "WPF x86/x64. Requires installed .NET Framework 4.8. Windows 7 SP1 compatibility target; CI builds and smoke tests run on Windows Server 2022, not Windows 7. Extract the full ZIP before running AulaManager.exe."

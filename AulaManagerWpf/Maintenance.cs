@@ -4,15 +4,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
+using System.Web.Script.Serialization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Threading.Tasks;
 
 namespace AulaManagerWpf;
 
 public partial class MainWindow
 {
-    private sealed record TempResult(int Scanned, int Changed, int Errors, long Bytes);
+    private sealed class TempResult { public readonly int Scanned, Changed, Errors; public readonly long Bytes; public TempResult(int scanned, int changed, int errors, long bytes) { Scanned = scanned; Changed = changed; Errors = errors; Bytes = bytes; } }
     private static TempResult CleanTemp(bool preview, bool includeSystem)
     {
         var roots = new List<string> { Path.GetTempPath() };
@@ -60,14 +61,17 @@ public partial class MainWindow
         }
         return new TempResult(scanned, changed, errors, bytes);
     }
-    private void Preview_Click(object sender, RoutedEventArgs e)
+    private async void Preview_Click(object sender, RoutedEventArgs e)
     {
-        var result = CleanTemp(true, SystemTempCheck.IsChecked == true);
+        bool includeSystem = SystemTempCheck.IsChecked == true;
+        TempResult result = null!;
+        await RunBusyAsync(async () => result = await Task.Run(() => CleanTemp(true, includeSystem)));
+        if (result == null) return;
         Log($"Vista previa: {result.Changed} temporales de más de 7 días, {result.Bytes / 1048576.0:N1} MiB, {result.Errors} incidencias.");
         Info($"Archivos candidatos: {result.Changed}\nEspacio aproximado: {result.Bytes / 1048576.0:N1} MiB\nNo se ha eliminado nada.");
     }
 
-    private sealed class Backup
+    public sealed class Backup
     {
         public Dictionary<string, int> Services { get; set; } = new(StringComparer.OrdinalIgnoreCase);
         public int? Ceip { get; set; }
@@ -79,7 +83,7 @@ public partial class MainWindow
         try
         {
             return File.Exists(BackupPath)
-                ? JsonSerializer.Deserialize<Backup>(File.ReadAllText(BackupPath)) ?? new Backup()
+                ? new JavaScriptSerializer().Deserialize<Backup>(File.ReadAllText(BackupPath)) ?? new Backup()
                 : new Backup();
         }
         catch { return new Backup(); }
@@ -89,7 +93,7 @@ public partial class MainWindow
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(BackupPath)!);
-            File.WriteAllText(BackupPath, JsonSerializer.Serialize(state, new JsonSerializerOptions { WriteIndented = true }),
+            File.WriteAllText(BackupPath, new JavaScriptSerializer().Serialize(state),
                 new UTF8Encoding(false));
             return true;
         }
@@ -140,7 +144,8 @@ public partial class MainWindow
         const string registryPath = @"SOFTWARE\Microsoft\SQMClient\Windows";
         try
         {
-            using var key = Registry.LocalMachine.CreateSubKey(registryPath, writable: true);
+            using var machine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32);
+            using var key = machine.CreateSubKey(registryPath, writable: true);
             if (key == null) return false;
             var old = key.GetValue("CEIPEnable");
             if (!restore)
@@ -166,7 +171,7 @@ public partial class MainWindow
         }
         catch (Exception ex) { Log("Error ajustando CEIP: " + ex.Message); return false; }
     }
-    private void Apply_Click(object sender, RoutedEventArgs e)
+    private async void Apply_Click(object sender, RoutedEventArgs e)
     {
         var systemChecks = new CheckBox[] { CeipCheck, DiagCheck, ServicesCheck, TabletCheck, RemoteCheck, SystemTempCheck };
         bool changesSystem = systemChecks.Any(x => x.IsChecked == true);
@@ -178,7 +183,10 @@ public partial class MainWindow
         int success = 0, failure = 0;
         if (TempCheck.IsChecked == true)
         {
-            var temp = CleanTemp(false, SystemTempCheck.IsChecked == true);
+            bool includeSystem = SystemTempCheck.IsChecked == true;
+            TempResult temp = null!;
+            await RunBusyAsync(async () => temp = await Task.Run(() => CleanTemp(false, includeSystem)));
+            if (temp == null) return;
             Log($"Temporales eliminados: {temp.Changed} · {temp.Bytes / 1048576.0:N1} MiB · {temp.Errors} incidencias.");
             success += temp.Changed; failure += temp.Errors;
         }
