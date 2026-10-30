@@ -1,76 +1,63 @@
-# Aula Manager Portable — v0.3 (vista adaptable, prototipo técnico)
+# Aula Manager Portable 0.6
 
-Aplicación **nativa de escritorio Windows (Win32, C++17, Visual Studio 2022)**, en español, orientada a las revisiones de aulas de centros municipales de mayores. **No tiene instalador** y la compilación Release/Win32 utiliza **CRT estática (/MT)**: el ejecutable puede llevarse en un pendrive y arrancar tanto en Windows 7 SP1 de 32 bits como en Windows 10 de 32 o 64 bits, sin instalar .NET ni Visual C++ Redistributable. El funcionamiento en cada equipo real debe verificarse antes de uso en producción.
+Aplicación nativa x86 para Windows 7 SP1 y Windows 10, en equipos de 32 o 64 bits. No necesita WPF, .NET ni instalar Visual C++ Redistributable.
 
-> ESTADO: **primera versión funcional en desarrollo**, no sustituye todavía todas las operaciones de Nivel 3 de Aurora/Aula Optimizer. No se ha probado en los ordenadores reales de los centros. No ejecute mantenimiento masivo antes de validarlo en un PC piloto. El compilador de GitHub Actions valida que el proyecto se puede generar, pero no demuestra compatibilidad de hardware ni ausencia de regresiones.
+## Contenido del ZIP
 
-## Interfaz v0.3
+El paquete incluye el EXE, las **ISO oficiales de Windows 10 22H2 en español de España, de 32 y 64 bits**, el extractor portable y sus licencias/fuentes. **No incluye instaladores de LibreOffice**. El EXE ocupa menos de 1 MB; las ISO ocupan aproximadamente 9,77 GiB en conjunto. Se usa ZIP sin volver a comprimir sus datos WIM, ya comprimidos.
 
-La ventana ahora redistribuye todos sus paneles y controles al maximizar o redimensionar (`WM_SIZE`), permite texto de varias líneas sin elipsis en los botones, utiliza tamaños de fuente legibles, un diseño azul/celeste y blanco, accesos rápidos diferenciados por color, y su icono está integrado en el ejecutable. Las etiquetas de información calculan alturas según el contenido (sistema operativo y CPU largos no deben solaparse). En pantallas suficientemente amplias se muestran tres tarjetas inferiores de estado, recursos y tareas recomendadas; en pantallas más pequeñas estas se ocultan para priorizar los controles de trabajo. Se compiló en Windows CI y se generaron capturas automáticas de comprobación, **sin sustituir una prueba manual en los equipos del aula**.
+Extrae todo el ZIP y conserva `Windows10` y `Herramientas` junto al EXE. Usa un disco o pendrive NTFS/exFAT y al menos 12 GB disponibles para la carpeta. Cada ISO supera el límite de 4 GiB de FAT32. Puedes extraer el ZIP en el equipo moderno y copiar la carpeta completa al pendrive para usarla en Windows 7.
 
-## Cómo abrir y compilar
+## Puesta a punto con un botón
 
-1. Abrir \`AulaManagerPortable.sln\` en Visual Studio 2022 con el componente **Desarrollo para el escritorio con C++** y el SDK de Windows.
-2. Seleccionar **Release | Win32** y compilar.
-3. Copiar **solo** \`build\Release\AulaManagerPortable.exe\` al pendrive.
-4. Ejecutar directamente. Si se quieren almacenar registros, el pendrive debe permitir escritura. El programa crea \`Datos\\\` y \`AulaManager.ini\` junto a sí mismo; **no escribe su configuración en AppData**.
-5. Los cambios que requieren administrador se hacen después de elegir **Reiniciar como administrador**. El programa nunca instala un servicio residente.
+Indica centro y puesto físico y pulsa **Preparar el equipo**. El permiso de administrador se solicita si hace falta. El botón encadena inventario, preparación previa de LibreOffice desde su web, reducción de telemetría, retirada del software externo, instalación/actualización de LibreOffice y exportación del informe.
 
-En la rama \`feat/aula-manager-portable\` hay un flujo de GitHub Actions que compila Win32 Release. Si termina correctamente, se puede obtener el \`.exe\` desde el artefacto de esa ejecución (se requiere acceder a las acciones de GitHub).
+Conserva LibreOffice, aplicaciones predeterminadas de Windows, actualizaciones, controladores y bibliotecas necesarias. Retira las demás aplicaciones registradas, incluidos antivirus, Microsoft Office y navegadores adicionales. En Windows 10 también revisa paquetes externos de Store y su aprovisionamiento. Las excepciones empiezan vacías; pueden guardarse como `Nombre exacto=1` en `[Conservar]` de `PerfilAula.ini` para todos los puestos.
 
-## Módulos implementados
+La telemetría aplica y comprueba políticas CEIP/SQM, AppCompat, recopilación y errores; deshabilita tareas de CEIP, Application Experience y Feedback y detiene/deshabilita los servicios de diagnóstico presentes. Guarda respaldo para **Restaurar telemetría**. No certifica que Windows deje de realizar toda comunicación de diagnóstico.
 
-| Módulo | Operaciones | Seguridad/estado |
-|---|---|---|
-| Resumen | Nombre Windows, sistema, arquitectura, CPU, memoria, espacio libre y LibreOffice | El **centro y puesto físico** se introducen independientemente del nombre de Windows (evita mezclar equipos clonados). |
-| Mantenimiento | Vista previa y eliminación de temporales con antigüedad superior a 7 días | No entra en reparse points/junctions; evita eliminar carpetas completas. Archivos en uso o protegidos se omiten si Windows los bloquea. |
-| Telemetría y servicios | CEIP/SQM y arranque opcional de DiagTrack, dmwappushservice, Fax, WMPNetworkSvc, TabletInputService y RemoteRegistry | Opt-in. Respalda valores por centro/puesto y permite restaurarlos. No toca Windows Update, Firewall ni Microsoft Defender. **No equivale a eliminar toda la telemetría**. |
-| Software | Inventario por Registro, detección orientativa de antivirus de terceros y apertura del desinstalador registrado | Interacción con asistentes del fabricante, sin garantía de eliminación. Los antivirus de Microsoft no se eliminan. Actualizar listado para verificar. |
-| LibreOffice | Detección y ejecución interactiva de un archivo MSI local seleccionado por el técnico | En Windows 7 restringido preventivamente a instaladores LibreOffice 7.4.x. La aplicación no descarga ejecutables ni comprueba todavía la firma digital del MSI. |
-| Migración | Revisión preliminar de SP1, RAM, disco y presencia de archivos de ISO/USB; lanzamiento visible de setup.exe | **Nunca formatea ni modifica particiones por su cuenta**. Requiere confirmación de copia de seguridad, licencia y arquitectura. |
-| Informes | Registro de actuaciones y exportación TXT UTF-8 por centro y puesto | No afirma que una desinstalación o migración haya finalizado sin comprobarla. |
+Los desinstaladores utilizan MSI silencioso, QuietUninstallString del fabricante, Inno Setup, NSIS o Chromium. No se inventan parámetros para desinstaladores desconocidos. Contraseñas, protecciones del fabricante, reinicios o programas que sigan instalados dejan el resultado pendiente. Una instalación o un informe fallidos impiden marcar el puesto como preparado. Cancelar detiene las siguientes operaciones y conserva el informe parcial; no fuerza el cierre de un instalador en marcha.
 
-## Migrar Windows 7 a Windows 10 evitando Media Creation Tool en el ordenador antiguo
+## LibreOffice desde la web oficial
 
-1. Preparar desde otro equipo actualizado una ISO **oficial de Windows 10 22H2**, normalmente desde <https://www.microsoft.com/es-es/software-download/windows10iso>.
-2. Extraer todos sus archivos en un USB con suficiente capacidad, por ejemplo desde un Windows 10/11.
-3. En el equipo Windows 7 SP1 iniciar sesión, guardar copia externa de los datos y abrir la aplicación desde el pendrive.
-4. En «Migración», elegir la **carpeta raíz** con \`setup.exe\` y \`sources\install.wim\` o \`sources\install.esd\`.
-5. Comprobar **idioma, edición, arquitectura del medio y validez de licencia**. Para intentar conservar aplicaciones y datos, la instalación debe iniciarse **desde Windows 7 en funcionamiento** y con la misma arquitectura de 32/64 bits. El cambio de 32 a 64 bits precisa instalación limpia con copia/recuperación de datos.
-6. La aplicación hace una precomprobación básica y abre el instalador original de Windows mediante UAC, **sin automatizar la decisión de particionado**. El instalador de Microsoft determina la compatibilidad final.
+En **Windows 10**, consulta el catálogo estable de The Document Foundation, elige la versión numérica más reciente y obtiene su SHA256 desde el servidor oficial. Selecciona 32/64 bits según Windows o la arquitectura del LibreOffice ya instalado, descarga el MSI, comprueba hash e identidad/versión/arquitectura del paquete e instala o actualiza automáticamente. No rebaja versiones posteriores ya instaladas. No queda fijado a la versión que existía al compilar la aplicación.
 
-**Avisos importantes**: Windows 10 Home/Pro llegó a fin del soporte el **14/10/2025**; estudiar ESU empresarial o migrar a hardware soportado. Microsoft cerró la posibilidad de obtener una nueva actualización gratuita desde Windows 7/8. El instalador puede requerir clave/licencia válida. No se debe confiar en que el equipo quedará activado automáticamente.
+En **Windows 7 SP1**, la última rama compatible es 25.2 y se descarga la edición final **25.2.7.2** del archivo oficial. Las funciones dependientes del Python incluido pueden no funcionar en Windows 7. No intenta instalar 25.8 ni versiones posteriores incompatibles.
 
-El error de Media Creation Tool \`0x80072F8F-0x20000\` **puede estar relacionado** con fecha/hora o incompatibilidad TLS/certificados; no demuestra que el PC sea incapaz de ejecutar Windows 10. Microsoft documenta KB3140245 y los ajustes WinHTTP/SChannel para TLS 1.2 en Windows 7, pero el programa **no hace cambios TLS peligrosos a ciegas**.
+Las descargas se guardan en `%LOCALAPPDATA%/AulaManager/Descargas` del equipo intervenido. Si no puede consultar la web o verificar/obtener el MSI, se detiene antes de cambiar servicios o retirar aplicaciones. Necesita Internet para LibreOffice. No distribuye ni utiliza MSI incluidos en el ZIP.
 
-### Fuentes oficiales para mantenimiento
+- Catálogo: https://download.documentfoundation.org/libreoffice/stable/
+- Archivo para Windows 7: https://downloadarchive.documentfoundation.org/libreoffice/old/25.2.7.2/
 
-- [Microsoft: Windows 10 fin de soporte](https://support.microsoft.com/es-es/windows/deployment/updates-lifecycle/windows-10-support-has-ended-on-october-14-2025)
-- [Microsoft: retirada de la actualización gratuita de Windows 7/8](https://devicepartner.microsoft.com/en-US/communications/comm-windows-ends-installation-path-for-free-windows-7-8-upgrade)
-- [Microsoft: habilitar TLS 1.2 en Windows 7](https://learn.microsoft.com/es-es/intune/configmgr/core/plan-design/security/enable-tls-1-2-client)
-- [Microsoft: descargar ISO de Windows 10](https://www.microsoft.com/es-es/software-download/windows10iso)
-- [LibreOffice: requisitos de versiones actuales](https://es.libreoffice.org/requisitos-del-sistema/)
-- [LibreOffice 7.4: requisitos del sistema, documentación histórica](https://wiki.documentfoundation.org/images/d/df/GS7400-Preface.pdf)
+## Instalar Windows 10 desde Windows 7 con la ISO incluida
 
-## Diferencias respecto al nivel 3 de Aula Optimizer
+La vista **Migración Windows** detecta la ISO que coincide con la arquitectura actual. Al iniciar, comprueba su SHA256 oficial y la extrae en el disco local con 7-Zip portable. Windows 7 no necesita montar la imagen ni ejecutar Media Creation Tool. Una vez preparado el medio abre `setup.exe` desde Windows; el asistente de Microsoft controla la actualización y la aceptación de sus condiciones.
 
-Los registros proporcionados en el proyecto CURRO muestran operaciones de CEIP/SQM, tareas programadas CEIP, servicios, efectos visuales, limpieza, eliminación de programas y LibreOffice. Esta versión **no** realiza aún de forma automática:
-- reversión/cambios en todas las tareas programadas CEIP;
-- optimización de efectos visuales;
-- eliminación automatizada de todos los antivirus de terceros, especialmente si disponen de autoprotección;
-- gestión de todos los programas prescindibles del nivel 3 sin lista blanca/negra por centro;
-- actualización LibreOffice mediante descarga automática con firma, hash y detección fiable de compatibilidad;
-- auditoría de cables/periféricos, red SIM, disco SMART y generación avanzada de informes por aula;
-- copia externa automática de perfiles/datos ni validación avanzada del contenido/arquitectura de ISO.
+Se requieren Windows 7 SP1, al menos 2 GB de RAM y 35 GB libres en el disco de Windows, copia externa verificada y licencia/idioma adecuados. Las ISO incluidas son de español de España. Una actualización que conserve programas debe mantener arquitectura e idioma base. La migración se inicia explícitamente desde esa vista: no se ejecuta como parte del botón de mantenimiento. No se formatea ni se arranca desde USB automáticamente.
 
-Las desinstalaciones registradas como iniciadas deben revisarse y los resultados técnicos han de recogerse por **puesto físico**. No desinstalar sin verificar programas docentes, drivers, herramientas de accesibilidad ni software necesario para cada aula.
+El medio se prepara en `%LOCALAPPDATA%/AulaManager/Windows10`, con una carpeta distinta por ISO. Se comprueba la arquitectura real de `setup.exe` y la presencia de `sources/install.wim` o `install.esd`. La preparación verificada puede reutilizarse. Cancelar la extracción no abre el instalador. Abrirlo no equivale a completar la migración: queda pendiente de comprobar tras reiniciar.
 
-## Arquitectura y limitaciones
+Origen: https://www.microsoft.com/es-es/software-download/windows10ISO
 
-- Fuente \`src/Core.cpp\`: inventario, registro, temporales, servicios, software y migración.
-- Fuente \`src/main.cpp\`: navegación gráfica de 6 apartados y acciones.
-- \`AulaManager.ini\`: último centro/puesto; \`Datos/Registros\`, \`Datos/Respaldos\`, \`Datos/Informes\`.
-- No usa PowerShell, \`chcp 65001\`, \`Write-Host\` ni scripts PS; evita la ruta que falló en PC10 de Monteolivete.
-- La eliminación de temporales es permanente y **no reversible**. Las copias de seguridad de servicios/CEIP dependen del identificador de centro y puesto físico en el mismo pendrive; no usar puestos con identificadores repetidos en el mismo centro.
-- Aplicación creada con Win32 clásico para maximizar compatibilidad/portabilidad. Se puede modernizar la interfaz manteniendo un ejecutable nativo.
-- Necesita validación en un PC Windows 7 y otro Windows 10; Microsoft ya no mantiene Windows 7.
+- x86, `Win10_22H2_Spanish_x32v1.iso`: `db414636d7ec65b1aefcc1242d323e839823db21fd25a2a9c5dcecc3c16c3309`
+- x64, `Win10_22H2_Spanish_x64v1.iso`: `0d48c6f236ca9f966eccd84d9be01b038516567aabf1c46dcbee785556b19813`
+
+7-Zip 26.05 se distribuye sin modificar como herramienta externa. Incluye `License.txt`, documentación y código fuente oficial comprimido. Origen: https://github.com/ip7z/7zip/releases/tag/26.05. No se instala como programa en los puestos.
+
+## Datos y compilación
+
+`AulaManager.ini` guarda el último centro/puesto. `Datos/Registros`, `Datos/Respaldos` y `Datos/Informes` se crean junto al EXE. Los identificadores admiten Unicode y los informes llevan BOM UTF-8. Usa identificadores distintos para los puestos del mismo centro.
+
+La fuente, herramientas, dependencias y compilación se mantienen fuera de OneDrive. La copia del ZIP final en OneDrive se hace por petición expresa del usuario.
+
+```powershell
+./AulaManagerPortable/scripts/build-portable.ps1 -Tests
+./AulaManagerPortable/scripts/verify-portable.ps1
+./AulaManagerPortable/scripts/package-portable.ps1
+```
+
+La compilación utiliza MSVC 2022/v143 fijado con SHA256, SDK de Windows y Node para la auditoría PE. El guard rechaza v145 y CLR. El auditor revisa la entrega x86, subsistema 6.1 y DLL/importaciones modernas conocidas, incluida la regresión por GetSystemTimePreciseAsFileTime. No equivale a una certificación de todas las APIs.
+
+El empaquetado requiere las dos ISO oficiales verificadas en `Dependencies/Windows10ISO` y 7-Zip en `Dependencies/7zip`. Excluye todo MSI, confirma que las ISO están dentro del ZIP y verifica por SHA256 todos sus archivos. No copia datos ni cachés de los equipos intervenidos.
+
+Pruebas: motor del botón con operaciones inyectadas; Unicode, vista previa, hashes, comandos de desinstalación y catálogo de versiones; 196 combinaciones de tamaño/DPI y cancelación/finalización en segundo plano. Las pruebas ampliadas pueden descargar/verificar el MSI actual y extraer/verificar ambas ISO mediante el código de producción, **sin instalar LibreOffice ni abrir setup.exe**. GitHub Actions usa Windows Server 2022. La apertura y las modificaciones reales siguen necesitando validación en equipos Windows 7 y Windows 10.

@@ -182,3 +182,6 @@ dist
 .vscode/fine-tune/*.jsonl
 .env.local
 mi-portfolio/components/ui/game-fighter/
+/Tools/
+/Entregas/
+/Dependencies/
