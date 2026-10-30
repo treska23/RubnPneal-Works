@@ -115,7 +115,7 @@ LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
    TOOLINFOW info={sizeof(info)};info.uFlags=TTF_IDISHWND|TTF_SUBCLASS;info.hwnd=hwnd;info.uId=(UINT_PTR)navButtons[i];info.lpszText=const_cast<wchar_t*>(nav[i]);SendMessageW(tooltips,TTM_ADDTOOLW,0,(LPARAM)&info);
   }
   layoutReady=true;Navigate(0);
-  if(!layoutTesting)aula::Log(L"Aula Manager v0.5: interfaz con ajuste de texto, desplazamiento y escalado DPI iniciada.");return 0;
+  if(!layoutTesting)aula::Log(L"Aula Manager v0.6: interfaz con ajuste de texto, desplazamiento y escalado DPI iniciada.");return 0;
  }
  case WM_COMMAND:{
   int id=LOWORD(wp),notification=HIWORD(wp);

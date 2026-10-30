@@ -17,4 +17,5 @@ test('v145 cannot be packaged even if import selection changes',()=>{const bytes
 test('a Windows 10 minimum subsystem is rejected',()=>{const bytes=fixture();bytes.writeUInt16LE(10,0x98+48);assert.equal(inspect(bytes).passed,false);});
 test('a CLR executable cannot pass as native',()=>{const bytes=fixture();bytes.writeUInt32LE(0x1100,0x98+96+14*8);assert.equal(inspect(bytes).passed,false);});
 test('a private runtime DLL requires explicit review',()=>{const bytes=fixture();bytes.write('vcruntime.dll\0',0x260);assert.equal(inspect(bytes).passed,false);});
+test('the system MSVCRT used by the official legacy extractor is accepted',()=>{const bytes=fixture('memcpy');bytes.write('MSVCRT.dll\0',0x260);assert.equal(inspect(bytes).passed,true);});
 test('non-PE input is rejected',()=>assert.throws(()=>inspect(Buffer.from('not an executable'))));

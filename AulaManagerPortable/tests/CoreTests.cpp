@@ -1,4 +1,5 @@
 #include "../src/Automation.h"
+#include "../src/WindowsMedia.h"
 #include <fstream>
 #include <iterator>
 #include <iostream>
@@ -6,6 +7,36 @@
 int wmain(int argc,wchar_t** argv){
     int failures=0;
     auto check=[&](bool ok,const char* description){std::cout<<(ok?"PASS ":"FAIL ")<<description<<'\n';if(!ok)++failures;};
+    if(argc==4&&std::wstring(argv[1])==L"--prepare-iso"){
+        aula::Inspection pc;pc.windows7=true;pc.servicePackMajor=1;pc.osMajor=6;pc.osMinor=1;pc.ramMb=4096;pc.freeGb=100;
+        pc.architecture=std::wstring(argv[2]).find(L"x64")!=std::wstring::npos?L"64 bits":L"32 bits";
+        std::wstring folder,error;
+        bool ok=aula::PrepareWindowsIso(argv[2],pc,folder,nullptr,[](const std::wstring& line){std::wcout<<line<<std::endl;},error,argv[3]);
+        if(!ok)std::wcerr<<error<<std::endl;
+        check(ok,"real official ISO is verified, extracted and checked through the production Windows 7 path; setup is never run");
+        return failures?1:0;
+    }
+    if(argc==2&&std::wstring(argv[1])==L"--online-catalog"){
+        aula::Inspection pc;pc.osMajor=10;pc.build=19045;pc.architecture=L"64 bits";pc.libreofficeVersion=L"999.0.0.0";
+        aula::OfficePreparation office;std::wstring error;
+        bool ok=aula::PrepareLibreOffice(pc,office,nullptr,{},error);
+        if(!ok)std::wcerr<<error<<std::endl;
+        check(ok&&!office.installNeeded&&!office.version.empty(),"live official stable catalog and SHA256 are read without downloading or running an installer");
+        std::wcout<<L"Latest stable: "<<office.version<<std::endl;return failures?1:0;
+    }
+    if(argc==3&&std::wstring(argv[1])==L"--prepare-office"){
+        aula::Inspection pc;pc.osMajor=10;pc.build=19045;pc.architecture=L"64 bits";pc.libreofficeVersion=L"7.4.7.2";pc.freeGb=100;
+        aula::OfficePreparation office;std::wstring error;
+        bool ok=aula::PrepareLibreOffice(pc,office,nullptr,[](const std::wstring& line){std::wcout<<line<<std::endl;},error,argv[2]);
+        if(!ok)std::wcerr<<error<<std::endl;
+        check(ok&&office.installNeeded&&aula::CompareVersion(office.version,L"25.2.7.2")>0,"latest LibreOffice is downloaded from the official site and verified by SHA256 and MSI metadata; it is never installed by this test");
+        std::wcout<<L"Verified MSI version: "<<office.version<<std::endl;return failures?1:0;
+    }
+    check(aula::LatestStableOffice("<a href=\"26.8.2/\"><a href=\"26.2.10/\"><a href=\"26.8.1/\">")==L"26.8.2","official stable catalog selects the newest numeric release");
+    check(aula::LatestStableOffice("<a href=\"26.9.0-beta/\"><a href=\"https://evil.test/99.0.0/\">").empty(),"prerelease and external catalog links are rejected");
+    aula::Inspection resources;resources.windows7=true;resources.servicePackMajor=1;resources.architecture=L"32 bits";resources.ramMb=4096;resources.freeGb=35;std::wstring requirement;
+    check(aula::WindowsMediaRequirements(resources,requirement),"Windows 7 SP1 with sufficient space can prepare the bundled ISO");
+    resources.freeGb=34;check(!aula::WindowsMediaRequirements(resources,requirement),"ISO preparation refuses insufficient space before extracting");
     const std::wstring center=L"Centro — revisión 東京",station=L"PC-01";
     aula::IniWrite(L"Centro",center);aula::IniWrite(L"Puesto",station);
     check(aula::IniRead(L"Centro")==center&&aula::IniRead(L"Puesto")==station,"Unicode identity round trip");
@@ -73,6 +104,7 @@ int wmain(int argc,wchar_t** argv){
         std::ifstream input(aula::DataFolder()+L"\\Informes\\"+data.cFileName,std::ios::binary);
         std::string text((std::istreambuf_iterator<char>(input)),std::istreambuf_iterator<char>());
         valid=text.size()>3&&(unsigned char)text[0]==0xef&&(unsigned char)text[1]==0xbb&&(unsigned char)text[2]==0xbf&&
+            text.find(u8"Puesto físico: ")!=std::string::npos&&
             text.find(u8"Centro — revisión 東京")!=std::string::npos&&text.find(u8"Prueba de exportación")!=std::string::npos;
         FindClose(find);
     }

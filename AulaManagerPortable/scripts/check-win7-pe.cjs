@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
-const allowedDlls = new Set(('kernel32 kernelbase user32 advapi32 shell32 ole32 oleaut32 comdlg32 comctl32 gdi32 gdiplus wintrust crypt32 msi bcrypt winhttp taskschd userenv wtsapi32 shlwapi rpcrt4 version setupapi iphlpapi ws2_32 ntdll').split(' ').map(x=>x+'.dll'));
+const allowedDlls = new Set(('kernel32 kernelbase user32 advapi32 shell32 ole32 oleaut32 comdlg32 comctl32 gdi32 gdiplus wintrust crypt32 msi bcrypt winhttp taskschd userenv wtsapi32 shlwapi rpcrt4 version setupapi iphlpapi ws2_32 ntdll msvcrt').split(' ').map(x=>x+'.dll'));
 const unavailable = new Set(['GetSystemTimePreciseAsFileTime','GetTickCount64Precise','WaitOnAddress','WakeByAddressAll','WakeByAddressSingle','GetTempPath2W','GetTempPath2A','SetThreadDescription','GetThreadDescription','GetDpiForWindow','GetDpiForSystem','SetProcessDpiAwarenessContext','GetCurrentPackageId','GetCurrentPackageFamilyName','GetSystemTimeAdjustmentPrecise','SetThreadInformation','GetThreadInformation','SetProcessInformation','GetProcessInformation','GetOverlappedResultEx','GetSystemCpuSetInformation','VirtualAlloc2','VirtualAlloc2FromApp','MapViewOfFile3','CreateFile2','PathCchCombineEx']);
 function inspect(bytes) {
  const errors=[];

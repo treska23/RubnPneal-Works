@@ -57,11 +57,11 @@
     <ClCompile Include="src\InstalledSoftware.cpp" />
     <ClCompile Include="src\OfficePackage.cpp" />
     <ClCompile Include="src\Telemetry.cpp" />
-    <ClCompile Include="src\StoreApps.cpp" />
+    <ClCompile Include="src\StoreApps.cpp" /><ClCompile Include="src\WindowsMedia.cpp" />
 
     <ClCompile Include="src\main.cpp" />
     <ClInclude Include="src\Core.h" />
-    <ClInclude Include="src\Automation.h" />
+    <ClInclude Include="src\Automation.h" /><ClInclude Include="src\WindowsMedia.h" />
     <ClInclude Include="src\SoftwarePolicy.h" />
     <ClInclude Include="src\Win7Build.h" />
 

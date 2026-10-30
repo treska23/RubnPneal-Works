@@ -10,6 +10,6 @@
     <ClCompile><WarningLevel>Level4</WarningLevel><LanguageStandard>stdcpp17</LanguageStandard><RuntimeLibrary>MultiThreaded</RuntimeLibrary><AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions><PreprocessorDefinitions>_WIN32_WINNT=0x0601;WINVER=0x0601;UNICODE;_UNICODE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile>
     <Link><SubSystem>Console</SubSystem><MinimumRequiredVersion>6.01</MinimumRequiredVersion><AdditionalDependencies>user32.lib;advapi32.lib;shell32.lib;comdlg32.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies></Link>
   </ItemDefinitionGroup>
-  <ItemGroup><ClCompile Include="CoreTests.cpp"/><ClCompile Include="..\src\Core.cpp"/><ClCompile Include="..\src\InstalledSoftware.cpp"/><ClCompile Include="..\src\OfficePackage.cpp"/><ClCompile Include="..\src\Telemetry.cpp"/><ClCompile Include="..\src\StoreApps.cpp"/></ItemGroup>
+  <ItemGroup><ClCompile Include="CoreTests.cpp"/><ClCompile Include="..\src\Core.cpp"/><ClCompile Include="..\src\InstalledSoftware.cpp"/><ClCompile Include="..\src\OfficePackage.cpp"/><ClCompile Include="..\src\Telemetry.cpp"/><ClCompile Include="..\src\StoreApps.cpp"/><ClCompile Include="..\src\WindowsMedia.cpp" /></ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
 </Project>

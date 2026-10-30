@@ -38,7 +38,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: AulaManager-v05-Windows7-10-nativo
+          name: AulaManager-v06-EXE-Windows7-10
           path: |
             AulaManagerPortable/build/Win7/AulaManagerPortable.exe
             AulaManagerPortable/build/Win7/compatibilidad-win7.json

@@ -90,6 +90,7 @@ inline AutomationSummary RunClassroomAutomation(AutomationContext& context, Auto
 bool PrepareLibreOffice(const Inspection& system, OfficePreparation& output,
                        const std::atomic_bool* cancel, const std::function<void(const std::wstring&)>& progress,
                        std::wstring& error,const std::wstring& packageFolder=L"");
+std::wstring LatestStableOffice(const std::string& catalog);
 std::wstring FileSha256(const std::wstring& path);
 bool ValidateLibreOfficePackage(const std::wstring& path,const Inspection& system,std::wstring& error,
                                const std::wstring& expectedHash=L"");

@@ -1,4 +1,5 @@
 #include "Interface.h"
+#include "WindowsMedia.h"
 #include "Batch.h"
 namespace {
 void Navigate(int page){
@@ -101,9 +102,9 @@ void Navigate(int page){
     }else if(page==3){
         aula::Inspection i=UiInspection();
         Text(L"installed",L"Versión detectada: "+i.libreoffice,true);
-        Text(L"explain",L"El botón Preparar el equipo usa automáticamente los instaladores incluidos. Esta herramienta avanzada permite elegir otro MSI oficial.");
+        Text(L"explain",L"El botón Preparar el equipo consulta y descarga la versión más reciente compatible desde la web oficial. Esta herramienta avanzada permite elegir un MSI ya descargado.");
         Text(L"compat",i.windows7?
-             L"Windows 7 SP1: el paquete incluye LibreOffice 25.2.7.2. La rama 25.8 y las posteriores requieren otro sistema.":
+             L"Windows 7 SP1: se descarga LibreOffice 25.2.7.2, última versión compatible. En Windows 10 se consulta la versión estable actual.":
              L"Revisa firma digital, versión e idioma del instalador antes de ejecutarlo.");
         Btn(L"pick",L"Seleccionar archivo MSI",MSI_PICK);
         Text(L"filename",selectedMsi.empty()?L"No se ha elegido ningún instalador.":selectedMsi,false,true);
@@ -112,17 +113,18 @@ void Navigate(int page){
         Text(L"note",L"Se abrirá el instalador visible. Después comprueba que la versión nueva figura instalada.",false,true);
     }else if(page==4){
         aula::Inspection i=UiInspection();
-        Text(L"explain",L"Prepara una ISO oficial en un equipo moderno y copia su contenido a un USB. No uses Media Creation Tool en Windows 7.");
+        if(selectedFolder.empty()&&!layoutTesting)selectedFolder=aula::BundledWindowsIso(i);
+        Text(L"explain",L"La ISO oficial de Windows 10 va incluida. El programa elige la de 32 o 64 bits y la extrae en el disco local; funciona desde Windows 7 sin montar la ISO.");
         Text(L"system",L"Sistema: "+i.windows+L"   ·   "+i.architecture+
              L"   ·   RAM: "+std::to_wstring(i.ramMb)+L" MB   ·   Libre: "+std::to_wstring(i.freeGb)+L" GB");
         Text(L"compat",L"La actualización que conserve programas debe iniciarse desde Windows, con arquitectura, idioma y edición compatibles. Windows 10 ya está fuera de soporte general.");
-        Btn(L"pick",L"Seleccionar carpeta ISO / USB",FOLDER_PICK);
-        Text(L"folder",selectedFolder.empty()?L"No se ha seleccionado ningún medio.":selectedFolder,false,true);
+        Btn(L"pick",L"Seleccionar archivo ISO",FOLDER_PICK);
+        Text(L"folder",selectedFolder.empty()?L"No se encuentra la ISO. Extrae todo el ZIP, incluida la carpeta Windows10.":selectedFolder,false,true);
         Btn(L"scan",L"Comprobar requisitos",SCAN);
         Text(L"scanText",L"Esperando selección del instalador.");
         Box(L"backup",L"He realizado y verificado una copia de seguridad externa.",checkBackup);
         Box(L"license",L"Dispongo de medio oficial, licencia válida y arquitectura/idioma adecuados.",checkLicense);
-        Btn(L"migrate",L"Abrir instalador Windows",MIGRATE);
+        Btn(L"migrate",L"Preparar ISO e iniciar Windows 10",MIGRATE);
     }else if(page==5){
         Text(L"identity",Identity());
         logEdit=Element(L"EDIT",aula::ReadLog(),WS_TABSTOP|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY|WS_VSCROLL,
@@ -163,15 +165,29 @@ void DoRemove(){
     }else Notice(L"Se abrió el desinstalador. Cuando termine, pulsa «Actualizar listado» para verificar si sigue instalado.");
 }
 void DoMigration(){
-    aula::Inspection i=aula::Inspect();
-    std::wstring reason;
-    if(!aula::ValidInstallerFolder(selectedFolder,i,reason)){Notice(reason,MB_ICONWARNING);AppendLog(L"Migración bloqueada: "+reason);return;}
+    auto system=aula::Inspect();std::wstring error;
+    if(!aula::WindowsMediaRequirements(system,error)){Notice(error,MB_ICONWARNING);return;}
+    if(selectedFolder.empty())selectedFolder=aula::BundledWindowsIso(system);
+    if(selectedFolder.empty()){Notice(L"No se encuentra la ISO incluida. Extrae el ZIP completo y conserva la carpeta Windows10.",MB_ICONWARNING);return;}
     if(!Checked(checkBackup)||!Checked(checkLicense)){
-        Notice(L"Marca ambas comprobaciones de copia de seguridad y licencia/arquitectura antes de continuar.",MB_ICONWARNING);return;
+        Notice(L"Confirma la copia de seguridad y la licencia/idioma antes de iniciar la actualizacion.",MB_ICONWARNING);return;
     }
-    if(!Confirm(L"¿Abrir ahora setup.exe desde Windows?\n\nNo se formateará nada desde Aula Manager. El instalador de Microsoft mostrará sus propias opciones.\nNo inicies desde USB si buscas conservar aplicaciones y archivos."))return;
-    if(aula::OpenInstaller(selectedFolder,mainWindow))AppendLog(L"Instalador de Windows iniciado. Resultado de migración PENDIENTE.");
-    else{AppendLog(L"No se pudo abrir setup.exe; no se inició la migración.");Notice(L"No se pudo abrir el instalador.",MB_ICONWARNING);}
+    LANGID language=GetSystemDefaultUILanguage();
+    if(language!=0x040a&&language!=0x0c0a){Notice(L"La ISO incluida es de espanol de Espana. Para actualizar conservando programas, el idioma base de Windows debe coincidir.",MB_ICONWARNING);return;}
+    if(!Confirm(L"Se verificara y extraera la ISO incluida y se abrira el instalador de Windows 10 desde este Windows. El asistente de Microsoft mostrara las opciones de conservacion y pedira aceptar sus condiciones. ¿Iniciar la preparacion?"))return;
+    auto source=selectedFolder;
+    StartJob([source,system]{
+        std::wstring folder,error;
+        bool iso=source.size()>4&&aula::Fold(source.substr(source.size()-4))==L".iso";
+        bool ready=iso?aula::PrepareWindowsIso(source,system,folder,&cancelRequested,[](const std::wstring& text){Phase(text);},error):aula::ValidInstallerFolder(source,system,error);
+        if(!iso)folder=source;
+        if(!ready){Issue(error);ExportJobReport();return;}
+        if(cancelRequested){ExportJobReport();return;}
+        Phase(L"Abriendo el asistente de Microsoft Windows 10");
+        if(aula::OpenInstaller(folder,mainWindow))Issue(L"ISO preparada e instalador abierto. La migracion queda pendiente de completar el asistente y comprobar el resultado tras el reinicio.");
+        else Issue(L"No se pudo abrir setup.exe. No se ha iniciado la migracion.");
+        ExportJobReport();
+    });
 }
 void Action(int id){
     if(id==FULL_RUN){StartFullMaintenance();return;}
@@ -226,11 +242,13 @@ void Action(int id){
     }
     case OPEN_LO:aula::LaunchUrl(L"https://es.libreoffice.org/descarga/libreoffice/");break;
     case FOLDER_PICK:
-        selectedFolder=aula::ChooseFolder(mainWindow);
+        selectedFolder=aula::ChooseWindowsIso(mainWindow);
         SetLabel(L"folder",selectedFolder.empty()?L"No seleccionada.":selectedFolder);
         break;
     case SCAN:{
-        std::wstring msg;bool valid=aula::ValidInstallerFolder(selectedFolder,aula::Inspect(),msg);
+        std::wstring msg;auto system=aula::Inspect();bool valid=aula::WindowsMediaRequirements(system,msg);
+        if(valid&&GetFileAttributesW(selectedFolder.c_str())==INVALID_FILE_ATTRIBUTES){valid=false;msg=L"No se encuentra la ISO seleccionada";}
+        if(valid)msg=L"Recursos suficientes. Al iniciar se comprobaran el SHA256 de Microsoft y la arquitectura y se extraera la ISO automaticamente.";
         SetLabel(L"scanText",msg);
         AppendLog(std::wstring(valid?L"Medio de instalación: ":L"Medio rechazado: ")+msg);
         Notice(msg,valid?MB_ICONINFORMATION:MB_ICONWARNING);break;

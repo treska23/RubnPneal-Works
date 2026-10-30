@@ -1,5 +1,6 @@
 #include "Core.h"
 #include "Automation.h"
+#include "WindowsMedia.h"
 #include <shellapi.h>
 #include <shlobj.h>
 #include <commdlg.h>
@@ -435,12 +436,12 @@ bool ValidInstallerFolder(const std::wstring& folder,const Inspection& i,std::ws
     if(!Exists(Join(folder,L"sources\\install.wim"))&&!Exists(Join(folder,L"sources\\install.esd"))){
         reason=L"Falta sources\\install.wim o sources\\install.esd: no parece un medio completo.";return false;
     }
-    if(i.windows7&&i.windows.find(L"Service Pack 1")==std::wstring::npos &&
-       i.windows.find(L"SP1")==std::wstring::npos){
+    if(i.windows7&&i.servicePackMajor<1){
         reason=L"Windows 7 sin Service Pack 1 confirmado. Comprueba primero el SP1.";return false;
     }
     if(i.freeGb<25){reason=L"Espacio libre insuficiente para una migración prudente: recomendamos al menos 25 GB.";return false;}
     if(i.ramMb<1900){reason=L"Menos de 2 GB RAM: no se recomienda continuar sin revisar recursos.";return false;}
+    if(!WindowsSetupArchitecture(Join(folder,L"setup.exe"),i,reason))return false;
     reason=L"Medio reconocido. Confirma que la ISO es oficial, de igual idioma, edición y arquitectura ("+
            i.architecture+L"), y que dispones de licencia válida. La comprobación del instalador será definitiva.";
     return true;

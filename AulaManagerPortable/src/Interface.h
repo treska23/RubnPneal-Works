@@ -310,7 +310,7 @@ void PaintSurface(HWND hwnd,HDC dc){
  }
  if(hwnd==mainWindow){
   if(!compactNav){DrawTextAt(dc,L"AULA MANAGER",{22,79,195,28},fontBrand,RGB(28,68,102));DrawTextAt(dc,L"Mantenimiento de aulas",{22,108,194,22},fontMeta,RGB(100,122,141));
-   if(h>620){DrawTextAt(dc,L"PORTABLE  ·  v0.5",{22,h-100,190,22},fontMeta,RGB(41,126,178));DrawTextAt(dc,L"Tus registros viajan contigo",{22,h-72,184,40},fontMeta,RGB(100,122,141));}
+   if(h>620){DrawTextAt(dc,L"PORTABLE  ·  v0.6",{22,h-100,190,22},fontMeta,RGB(41,126,178));DrawTextAt(dc,L"Tus registros viajan contigo",{22,h-72,184,40},fontMeta,RGB(100,122,141));}
   }
   DrawTextAt(dc,jobRunning?L"En curso  ·  Puedes seguir el avance y cancelar":
    (w-sidebar>660?L"Listo  ·  Datos junto al ejecutable  ·  Preparación automática":L"Listo  ·  Modo portable"),{sidebar+38,h-28,w-sidebar-52,24},fontMeta,RGB(100,122,141));
