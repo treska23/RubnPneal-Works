@@ -1,0 +1,16 @@
+{
+  "tracks": [],
+  "artwork": [
+    {
+      "title": "KID D — portada",
+      "src": "https://raw.githubusercontent.com/treska23/RubnPneal-Works/main/public/hero/kid-d-cover.jpg",
+      "alt": "Arte de Kid D"
+    },
+    {
+      "title": "KID D — ilustración",
+      "src": "https://raw.githubusercontent.com/treska23/RubnPneal-Works/main/public/hero/kid-d-ilustracion.webp",
+      "alt": "Ilustración de Kid D"
+    }
+  ],
+  "videos": []
+}
