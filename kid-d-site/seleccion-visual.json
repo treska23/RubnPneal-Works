@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "source": "KidD_Catalogo_20261101_190308.zip",
+  "note": "El catálogo es ligero: contiene miniaturas de imagen, rutas de originales y metadatos, pero no los originales. No contiene canciones del disco. Selección editorial provisional; los vídeos aún no se han visionado.",
+  "approvedVisualCandidates": [
+    {
+      "id": 461,
+      "path": "Cartoon\\Sin título-1 copia.jpg",
+      "title": "Portada alternativa",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    },
+    {
+      "id": 484,
+      "path": "ChatGPT Image 28 jun 2025, 13_53_54 copia.png",
+      "title": "Retrato de Kid D",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    },
+    {
+      "id": 686,
+      "path": "Kurt d\\kurt d buzz 2.jpg",
+      "title": "Energía",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    },
+    {
+      "id": 700,
+      "path": "Kurt d\\psico kid d.jpg",
+      "title": "Guitarra psicodélica",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    },
+    {
+      "id": 743,
+      "path": "lo fi\\Durmiendo\\Dormido normal\\Dormido nbormal 2.png",
+      "title": "Introspección lo-fi",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    },
+    {
+      "id": 992,
+      "path": "X deer\\CVibesLipSync\\kurt d rest.jpg",
+      "title": "Azoteas",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    },
+    {
+      "id": 1116,
+      "path": "Yellow coat\\ascensor kid YC.png",
+      "title": "Kid D y Yellow Coat",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    },
+    {
+      "id": 1164,
+      "path": "Yellow coat\\ChatGPT Image 7 sept 2025, 19_00_12.png",
+      "title": "El ciervo",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    },
+    {
+      "id": 1186,
+      "path": "Yellow coat\\Dos en moto.png",
+      "title": "La moto",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    },
+    {
+      "id": 1194,
+      "path": "Yellow coat\\entrada a concierto.jpg",
+      "title": "El concierto",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    },
+    {
+      "id": 1205,
+      "path": "Yellow coat\\Gemini_Generated_Image_ky94e7ky94e7ky94 (1).png",
+      "title": "Bosque ritual",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    },
+    {
+      "id": 1210,
+      "path": "Yellow coat\\Guitarrista y sombra en el público.png",
+      "title": "El músico",
+      "status": "seleccionado_provisionalmente",
+      "uploaded": false
+    }
+  ],
+  "videoCandidates": [
+    {
+      "id": 405,
+      "path": "Aqui y ahora\\Secuencias\\Kid d Aquí y ahora.mp4",
+      "title": "Aquí y ahora",
+      "status": "pendiente_de_visionado",
+      "uploaded": false
+    },
+    {
+      "id": 550,
+      "path": "Corto filmoteca\\Secuencias\\KididFilmoFinal02.mp4",
+      "title": "Corto filmoteca",
+      "status": "pendiente_de_visionado",
+      "uploaded": false
+    },
+    {
+      "id": 775,
+      "path": "lo fi\\Video clip\\Tus amigos video clip final 1.mp4",
+      "title": "Tus amigos videoclip",
+      "status": "pendiente_de_visionado",
+      "uploaded": false
+    },
+    {
+      "id": 974,
+      "path": "Videos Finales\\Kid d Stand By.mp4",
+      "title": "Stand By",
+      "status": "pendiente_de_visionado",
+      "uploaded": false
+    },
+    {
+      "id": 975,
+      "path": "Videos Finales\\Kid d Teaser tus amigos.mp4",
+      "title": "Teaser Tus amigos",
+      "status": "pendiente_de_visionado",
+      "uploaded": false
+    },
+    {
+      "id": 976,
+      "path": "Videos Finales\\Kid Xd.mp4",
+      "title": "Kid Xd",
+      "status": "pendiente_de_visionado",
+      "uploaded": false
+    },
+    {
+      "id": 978,
+      "path": "Videos Finales\\Links pre save\\Kid art process edit.mp4",
+      "title": "Proceso de dibujo",
+      "status": "pendiente_de_visionado",
+      "uploaded": false
+    },
+    {
+      "id": 982,
+      "path": "Videos Finales\\TusAmigos_Story Remake 04 (edit).mp4",
+      "title": "Tus amigos story",
+      "status": "pendiente_de_visionado",
+      "uploaded": false
+    }
+  ],
+  "music": {
+    "status": "pendiente_de_incorporacion",
+    "tracks": []
+  }
+}
